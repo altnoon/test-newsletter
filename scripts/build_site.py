@@ -39,6 +39,32 @@ def unique_slug(existing: set[str], candidate: str) -> str:
     return final
 
 
+def media_sort_key(path: Path):
+    """
+    Preferred order for newsletter assets:
+    1) [Fase N] ... - Propietarios - ES
+    2) [Fase N] ... - Propietarios - EN
+    3) [Fase N] ... - No propietarios - ES
+    4) [Fase N] ... - No propietarios - EN
+    with phase ascending.
+    Non-matching files are sorted after by creation time then name.
+    """
+    pattern = re.compile(
+        r"^\[Fase\s*(\d+)\]\s*Nuevos destinos\s*-\s*"
+        r"(Propietarios|No propietarios)\s*-\s*(ES|EN)$",
+        re.IGNORECASE,
+    )
+    match = pattern.match(path.stem.strip())
+    if match:
+        phase = int(match.group(1))
+        audience = match.group(2).strip().lower()
+        language = match.group(3).strip().upper()
+        audience_rank = 0 if audience == "propietarios" else 1
+        language_rank = 0 if language == "ES" else 1
+        return (0, phase, audience_rank, language_rank, path.name.lower())
+    return (1, created_at(path), path.name.lower())
+
+
 def nav_for_root(docs: list[dict], active_slug: str) -> str:
     if not docs:
         return '<span class="nav-empty">No images found</span>'
@@ -148,13 +174,13 @@ def main() -> None:
             for p in PDF_DIR.iterdir()
             if p.is_file() and p.suffix.lower() in IMAGE_EXTS
         ],
-        key=lambda p: (created_at(p), p.name.lower()),
+        key=media_sort_key,
     )
 
     docs: list[dict] = []
     seen: set[str] = set()
     for path in media_files:
-        label = html.escape(path.name)
+        label = html.escape(path.stem)
         slug = unique_slug(seen, slugify(path.name))
         docs.append(
             {
