@@ -182,6 +182,24 @@ body {
   color: #4b5563;
 }
 
+.pin-note-author-label {
+  display: block;
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  color: #4b5563;
+}
+
+.pin-note-author {
+  width: 100%;
+  margin: 0 0 0.4rem;
+  border: 1px solid #e1cb5f;
+  border-radius: 8px;
+  padding: 0.35rem 0.45rem;
+  font: inherit;
+  color: #1f2937;
+  background: #fffdf2;
+}
+
 .pin-note-input {
   width: 100%;
   min-height: 84px;

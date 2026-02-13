@@ -85,6 +85,8 @@
     editor.className = "pin-note-editor";
     editor.innerHTML =
       '<p class="pin-note-meta"></p>' +
+      '<label class="pin-note-author-label" for="pin-note-author">Name</label>' +
+      '<input id="pin-note-author" class="pin-note-author" type="text" maxlength="40" placeholder="e.g. Ana" />' +
       '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
       '<div class="pin-note-actions">' +
       '<button class="pin-note-save" type="button">Save</button>' +
@@ -131,11 +133,21 @@
     }
 
     const input = editor.querySelector(".pin-note-input");
+    const noteAuthorInput = editor.querySelector(".pin-note-author");
     const meta = editor.querySelector(".pin-note-meta");
     const saveBtn = editor.querySelector(".pin-note-save");
     const cancelBtn = editor.querySelector(".pin-note-cancel");
     const deleteBtn = editor.querySelector(".pin-note-delete");
-    if (!input || !meta || !saveBtn || !cancelBtn || !deleteBtn) return;
+    if (
+      !input ||
+      !noteAuthorInput ||
+      !meta ||
+      !saveBtn ||
+      !cancelBtn ||
+      !deleteBtn
+    ) {
+      return;
+    }
 
     editor.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -183,15 +195,19 @@
         meta.textContent = `${item.author || "Anonymous"}${timestamp}`;
         return;
       }
-      const author = getAuthorName();
+      const author = noteAuthorInput.value.trim() || getAuthorName();
       meta.textContent = author
         ? `New note by ${author}`
-        : "Add your name in the side panel before saving";
+        : "Add your name in the note before saving";
     };
 
     const openEditor = (pin, initialText, mode, item) => {
       editorPin = pin;
       input.value = initialText || "";
+      noteAuthorInput.value =
+        mode === "edit" && item
+          ? item.author || getAuthorName()
+          : getAuthorName();
       editor.classList.add("is-open");
       editor.classList.toggle("is-edit", mode === "edit");
       deleteBtn.style.display = mode === "edit" ? "inline-flex" : "none";
@@ -206,6 +222,7 @@
       editingCommentId = null;
       editorPin = null;
       input.value = "";
+      noteAuthorInput.value = "";
     };
 
     const positionEditor = () => {
@@ -328,11 +345,16 @@
         setHint("Type a note before saving.", "warning");
         return;
       }
-      const author = getAuthorName();
+      const author = noteAuthorInput.value.trim() || getAuthorName();
       if (!author) {
-        setHint("Add your name in the side panel first.", "warning");
-        authorInput.focus();
+        setHint("Add your name before saving.", "warning");
+        noteAuthorInput.focus();
         return;
+      }
+
+      if (authorInput.value.trim() !== author) {
+        authorInput.value = author;
+        localStorage.setItem(AUTHOR_STORAGE_KEY, author);
       }
 
       saveBtn.disabled = true;
@@ -344,11 +366,12 @@
           const sharedOk = await mutateShared("update", {
             id: editingCommentId,
             text,
+            author,
           });
           if (!sharedOk) {
             comments = comments.map((item) =>
               item.id === editingCommentId
-                ? { ...item, text, createdAt: new Date().toISOString() }
+                ? { ...item, text, author, createdAt: new Date().toISOString() }
                 : item
             );
             persistLocal();
@@ -463,3 +486,8 @@
     }, 12000);
   });
 })();
+    noteAuthorInput.addEventListener("input", () => {
+      if (!editor.classList.contains("is-open")) return;
+      if (editor.classList.contains("is-edit")) return;
+      setEditorMeta("create", null);
+    });

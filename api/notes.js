@@ -115,12 +115,14 @@ module.exports = async function handler(req, res) {
     if (action === "update") {
       const id = String(body.id || "").trim();
       const text = String(body.text || "").trim();
+      const author = String(body.author || "").trim();
       if (!id || !text) return badRequest(res, "Invalid update payload");
       notes = notes.map((item) =>
         item.id === id
           ? {
               ...item,
               text,
+              author: author || item.author || "Anonymous",
               createdAt: new Date().toISOString(),
             }
           : item
