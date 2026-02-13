@@ -1,4 +1,15 @@
-const { kv } = require("@vercel/kv");
+const { Redis } = require("@upstash/redis");
+
+function createRedisClient() {
+  const url =
+    process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || "";
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || "";
+
+  if (!url || !token) return null;
+
+  return new Redis({ url, token });
+}
 
 function badRequest(res, message) {
   return res.status(400).json({ error: message });
@@ -41,7 +52,11 @@ function normalizeNotes(items) {
 }
 
 async function readNotes(key) {
-  const raw = await kv.get(key);
+  const redis = createRedisClient();
+  if (!redis) {
+    throw new Error("Redis is not configured");
+  }
+  const raw = await redis.get(key);
   return normalizeNotes(raw);
 }
 
@@ -68,6 +83,10 @@ module.exports = async function handler(req, res) {
     return badRequest(res, "Missing page");
   }
   const key = `notes:${page}`;
+  const redis = createRedisClient();
+  if (!redis) {
+    return res.status(500).json({ error: "Redis is not configured" });
+  }
 
   try {
     if (req.method === "GET") {
@@ -87,7 +106,7 @@ module.exports = async function handler(req, res) {
       const note = normalizeNote(body.note);
       if (!note) return badRequest(res, "Invalid note");
       notes.push(note);
-      await kv.set(key, notes);
+      await redis.set(key, notes);
       return res.status(200).json({ notes });
     }
 
@@ -104,7 +123,7 @@ module.exports = async function handler(req, res) {
             }
           : item
       );
-      await kv.set(key, notes);
+      await redis.set(key, notes);
       return res.status(200).json({ notes });
     }
 
@@ -112,12 +131,12 @@ module.exports = async function handler(req, res) {
       const id = String(body.id || "").trim();
       if (!id) return badRequest(res, "Missing id");
       notes = notes.filter((item) => item.id !== id);
-      await kv.set(key, notes);
+      await redis.set(key, notes);
       return res.status(200).json({ notes });
     }
 
     if (action === "clear") {
-      await kv.del(key);
+      await redis.del(key);
       return res.status(200).json({ notes: [] });
     }
 
