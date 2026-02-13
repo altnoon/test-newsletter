@@ -2,6 +2,8 @@
   const sections = document.querySelectorAll(".comments[data-page-key]");
   if (!sections.length) return;
 
+  const API_ENDPOINT = "/api/notes";
+
   const safeRead = (key) => {
     try {
       const raw = localStorage.getItem(key);
@@ -42,15 +44,39 @@
         const pinX = Number(sourcePin.x);
         const pinY = Number(sourcePin.y);
         const hasPin = Number.isFinite(pinX) && Number.isFinite(pinY);
+        if (!hasPin) return null;
 
         return {
           id: String(item.id || makeId()),
           text,
           createdAt: String(item.createdAt || new Date().toISOString()),
-          pin: hasPin ? { x: clamp01(pinX), y: clamp01(pinY) } : { x: 0.5, y: 0.5 },
+          pin: { x: clamp01(pinX), y: clamp01(pinY) },
         };
       })
       .filter(Boolean);
+
+  const requestNotes = async (page, method, body) => {
+    const query = `?page=${encodeURIComponent(page)}`;
+    const response = await fetch(
+      `${API_ENDPOINT}${method === "GET" ? query : ""}`,
+      method === "GET"
+        ? { method: "GET", headers: { Accept: "application/json" } }
+        : {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ page, ...body }),
+          }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Notes request failed (${response.status})`);
+    }
+    const payload = await response.json();
+    return normalizeComments(payload.notes || []);
+  };
 
   const createEditor = () => {
     const editor = document.createElement("div");
@@ -76,7 +102,8 @@
     const clearBtn = section.querySelector(".comment-clear");
     if (!image || !layout || !hint || !count || !clearBtn) return;
 
-    const storageKey = `image-timeline-comments:${pageKey}`;
+    const localStorageKey = `image-timeline-comments:${pageKey}`;
+    let usingShared = true;
 
     let stage = layout.querySelector(".media-stage");
     if (!stage) {
@@ -109,7 +136,7 @@
       event.stopPropagation();
     });
 
-    let comments = normalizeComments(safeRead(storageKey));
+    let comments = normalizeComments(safeRead(localStorageKey));
     let activeCommentId = null;
     let draftPin = null;
     let editorPin = null;
@@ -123,11 +150,12 @@
 
     const updateCount = () => {
       const total = comments.length;
-      count.textContent = `${total} ${total === 1 ? "note" : "notes"}`;
+      const mode = usingShared ? "shared" : "local";
+      count.textContent = `${total} ${total === 1 ? "note" : "notes"} (${mode})`;
     };
 
-    const saveComments = () => {
-      safeWrite(storageKey, comments);
+    const persistLocal = () => {
+      safeWrite(localStorageKey, comments);
     };
 
     const openEditor = (pin, initialText, mode) => {
@@ -201,6 +229,52 @@
       }
     };
 
+    const applyServerNotes = (serverNotes) => {
+      comments = normalizeComments(serverNotes);
+      persistLocal();
+      updateCount();
+      renderPins();
+    };
+
+    const syncFromShared = async (silent) => {
+      if (!usingShared) return;
+      if (editor.classList.contains("is-open")) return;
+      try {
+        const sharedNotes = await requestNotes(pageKey, "GET");
+        applyServerNotes(sharedNotes);
+        if (!silent) {
+          setHint("Shared notes synced.", "info");
+        }
+      } catch (_) {
+        usingShared = false;
+        updateCount();
+        setHint(
+          "Shared notes unavailable. Using local notes in this browser.",
+          "warning"
+        );
+      }
+    };
+
+    const mutateShared = async (action, payload) => {
+      if (!usingShared) return false;
+      try {
+        const sharedNotes = await requestNotes(pageKey, "POST", {
+          action,
+          ...payload,
+        });
+        applyServerNotes(sharedNotes);
+        return true;
+      } catch (_) {
+        usingShared = false;
+        updateCount();
+        setHint(
+          "Could not update shared notes. Switched to local notes.",
+          "warning"
+        );
+        return false;
+      }
+    };
+
     stage.addEventListener("click", (event) => {
       const rect = stage.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
@@ -216,38 +290,60 @@
       renderPins();
     });
 
-    saveBtn.addEventListener("click", () => {
+    saveBtn.addEventListener("click", async () => {
       const text = input.value.trim();
       if (!text) {
         setHint("Type a note before saving.", "warning");
         return;
       }
 
-      if (editingCommentId) {
-        comments = comments.map((item) =>
-          item.id === editingCommentId
-            ? { ...item, text, createdAt: new Date().toISOString() }
-            : item
-        );
-        activeCommentId = editingCommentId;
-        setHint("Note updated.", "info");
-      } else if (draftPin) {
-        const newItem = {
-          id: makeId(),
-          text,
-          createdAt: new Date().toISOString(),
-          pin: { x: draftPin.x, y: draftPin.y },
-        };
-        comments.push(newItem);
-        activeCommentId = newItem.id;
-        setHint("Note saved.", "info");
-      }
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      deleteBtn.disabled = true;
 
-      draftPin = null;
-      saveComments();
-      updateCount();
-      closeEditor();
-      renderPins();
+      try {
+        if (editingCommentId) {
+          const sharedOk = await mutateShared("update", {
+            id: editingCommentId,
+            text,
+          });
+          if (!sharedOk) {
+            comments = comments.map((item) =>
+              item.id === editingCommentId
+                ? { ...item, text, createdAt: new Date().toISOString() }
+                : item
+            );
+            persistLocal();
+            updateCount();
+          }
+          activeCommentId = editingCommentId;
+          setHint("Note updated.", "info");
+        } else if (draftPin) {
+          const newItem = {
+            id: makeId(),
+            text,
+            createdAt: new Date().toISOString(),
+            pin: { x: draftPin.x, y: draftPin.y },
+          };
+
+          const sharedOk = await mutateShared("add", { note: newItem });
+          if (!sharedOk) {
+            comments.push(newItem);
+            persistLocal();
+            updateCount();
+          }
+          activeCommentId = newItem.id;
+          setHint("Note saved.", "info");
+        }
+
+        draftPin = null;
+        closeEditor();
+        renderPins();
+      } finally {
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        deleteBtn.disabled = false;
+      }
     });
 
     cancelBtn.addEventListener("click", () => {
@@ -259,31 +355,57 @@
       setHint("Click on the image to place a pin and add a note.", "info");
     });
 
-    deleteBtn.addEventListener("click", () => {
+    deleteBtn.addEventListener("click", async () => {
       if (!editingCommentId) return;
-      comments = comments.filter((item) => item.id !== editingCommentId);
-      activeCommentId = null;
-      saveComments();
-      updateCount();
-      closeEditor();
-      renderPins();
-      setHint("Note deleted.", "info");
+
+      const deletedId = editingCommentId;
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      deleteBtn.disabled = true;
+
+      try {
+        const sharedOk = await mutateShared("delete", { id: deletedId });
+        if (!sharedOk) {
+          comments = comments.filter((item) => item.id !== deletedId);
+          persistLocal();
+          updateCount();
+        }
+
+        activeCommentId = null;
+        closeEditor();
+        renderPins();
+        setHint("Note deleted.", "info");
+      } finally {
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        deleteBtn.disabled = false;
+      }
     });
 
-    clearBtn.addEventListener("click", () => {
-      comments = [];
-      activeCommentId = null;
-      editingCommentId = null;
-      draftPin = null;
-      closeEditor();
+    clearBtn.addEventListener("click", async () => {
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      deleteBtn.disabled = true;
+
       try {
-        localStorage.removeItem(storageKey);
-      } catch (_) {
-        // Ignore storage errors.
+        const sharedOk = await mutateShared("clear", {});
+        if (!sharedOk) {
+          comments = [];
+          persistLocal();
+          updateCount();
+        }
+
+        activeCommentId = null;
+        editingCommentId = null;
+        draftPin = null;
+        closeEditor();
+        renderPins();
+        setHint("All notes cleared. Click image to create a new pinned note.", "info");
+      } finally {
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        deleteBtn.disabled = false;
       }
-      updateCount();
-      renderPins();
-      setHint("All notes cleared. Click image to create a new pinned note.", "info");
     });
 
     window.addEventListener("resize", () => {
@@ -294,6 +416,11 @@
 
     updateCount();
     renderPins();
-    setHint("Click on the image to place a pin and add a note.", "info");
+    setHint("Connecting to shared notes...", "info");
+
+    syncFromShared(false);
+    setInterval(() => {
+      syncFromShared(true);
+    }, 12000);
   });
 })();
