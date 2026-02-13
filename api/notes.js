@@ -36,11 +36,13 @@ function normalizeNote(note) {
   if (!note || typeof note !== "object") return null;
   const id = String(note.id || "").trim();
   const text = String(note.text || "").trim();
+  const author = String(note.author || "Anonymous").trim() || "Anonymous";
   const pin = normalizePin(note.pin);
   if (!id || !text || !pin) return null;
   return {
     id,
     text,
+    author,
     pin,
     createdAt: String(note.createdAt || new Date().toISOString()),
   };

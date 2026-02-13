@@ -3,6 +3,7 @@
   if (!sections.length) return;
 
   const API_ENDPOINT = "/api/notes";
+  const AUTHOR_STORAGE_KEY = "image-timeline-author";
 
   const safeRead = (key) => {
     try {
@@ -49,6 +50,7 @@
         return {
           id: String(item.id || makeId()),
           text,
+          author: String(item.author || "Anonymous").trim() || "Anonymous",
           createdAt: String(item.createdAt || new Date().toISOString()),
           pin: { x: clamp01(pinX), y: clamp01(pinY) },
         };
@@ -82,6 +84,7 @@
     const editor = document.createElement("div");
     editor.className = "pin-note-editor";
     editor.innerHTML =
+      '<p class="pin-note-meta"></p>' +
       '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
       '<div class="pin-note-actions">' +
       '<button class="pin-note-save" type="button">Save</button>' +
@@ -98,9 +101,10 @@
     const layout = section.closest(".layout");
     const image = layout?.querySelector(".media-viewer");
     const hint = section.querySelector(".comment-hint");
+    const authorInput = section.querySelector(".comment-author");
     const count = section.querySelector(".comment-count");
     const clearBtn = section.querySelector(".comment-clear");
-    if (!image || !layout || !hint || !count || !clearBtn) return;
+    if (!image || !layout || !hint || !authorInput || !count || !clearBtn) return;
 
     const localStorageKey = `image-timeline-comments:${pageKey}`;
     let usingShared = true;
@@ -127,10 +131,11 @@
     }
 
     const input = editor.querySelector(".pin-note-input");
+    const meta = editor.querySelector(".pin-note-meta");
     const saveBtn = editor.querySelector(".pin-note-save");
     const cancelBtn = editor.querySelector(".pin-note-cancel");
     const deleteBtn = editor.querySelector(".pin-note-delete");
-    if (!input || !saveBtn || !cancelBtn || !deleteBtn) return;
+    if (!input || !meta || !saveBtn || !cancelBtn || !deleteBtn) return;
 
     editor.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -141,6 +146,12 @@
     let draftPin = null;
     let editorPin = null;
     let editingCommentId = null;
+
+    authorInput.value = localStorage.getItem(AUTHOR_STORAGE_KEY) || "";
+    authorInput.addEventListener("input", () => {
+      const value = authorInput.value.trim().slice(0, 40);
+      localStorage.setItem(AUTHOR_STORAGE_KEY, value);
+    });
 
     const setHint = (text, mode) => {
       hint.textContent = text;
@@ -158,12 +169,33 @@
       safeWrite(localStorageKey, comments);
     };
 
-    const openEditor = (pin, initialText, mode) => {
+    const getAuthorName = () => {
+      const value = authorInput.value.trim();
+      return value || "";
+    };
+
+    const setEditorMeta = (mode, item) => {
+      if (mode === "edit" && item) {
+        const date = new Date(item.createdAt);
+        const timestamp = Number.isNaN(date.getTime())
+          ? ""
+          : ` • ${date.toLocaleString()}`;
+        meta.textContent = `${item.author || "Anonymous"}${timestamp}`;
+        return;
+      }
+      const author = getAuthorName();
+      meta.textContent = author
+        ? `New note by ${author}`
+        : "Add your name in the side panel before saving";
+    };
+
+    const openEditor = (pin, initialText, mode, item) => {
       editorPin = pin;
       input.value = initialText || "";
       editor.classList.add("is-open");
       editor.classList.toggle("is-edit", mode === "edit");
       deleteBtn.style.display = mode === "edit" ? "inline-flex" : "none";
+      setEditorMeta(mode, item);
       positionEditor();
       setTimeout(() => input.focus(), 0);
     };
@@ -204,7 +236,7 @@
         marker.style.left = `${item.pin.x * 100}%`;
         marker.style.top = `${item.pin.y * 100}%`;
         marker.textContent = String(index + 1);
-        marker.title = item.text;
+        marker.title = `${item.author || "Anonymous"}: ${item.text}`;
         if (item.id === activeCommentId) {
           marker.classList.add("is-active");
         }
@@ -213,8 +245,8 @@
           activeCommentId = item.id;
           editingCommentId = item.id;
           draftPin = null;
-          openEditor(item.pin, item.text, "edit");
-          setHint("Editing note.", "info");
+          openEditor(item.pin, item.text, "edit", item);
+          setHint(`Editing note by ${item.author || "Anonymous"}.`, "info");
           renderPins();
         });
         pinLayer.appendChild(marker);
@@ -285,7 +317,7 @@
       draftPin = { x, y };
       activeCommentId = null;
       editingCommentId = null;
-      openEditor(draftPin, "", "create");
+      openEditor(draftPin, "", "create", null);
       setHint("Pin placed. Add your note and save.", "info");
       renderPins();
     });
@@ -294,6 +326,12 @@
       const text = input.value.trim();
       if (!text) {
         setHint("Type a note before saving.", "warning");
+        return;
+      }
+      const author = getAuthorName();
+      if (!author) {
+        setHint("Add your name in the side panel first.", "warning");
+        authorInput.focus();
         return;
       }
 
@@ -322,6 +360,7 @@
           const newItem = {
             id: makeId(),
             text,
+            author,
             createdAt: new Date().toISOString(),
             pin: { x: draftPin.x, y: draftPin.y },
           };

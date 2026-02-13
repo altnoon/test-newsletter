@@ -176,6 +176,12 @@ body {
   display: block;
 }
 
+.pin-note-meta {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  color: #4b5563;
+}
+
 .pin-note-input {
   width: 100%;
   min-height: 84px;
@@ -254,6 +260,22 @@ body {
   margin: 0 0 0.7rem;
   font-size: 0.82rem;
   color: var(--muted);
+}
+
+.comment-author-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0 0 0.3rem;
+}
+
+.comment-author {
+  width: 100%;
+  margin: 0 0 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
 }
 
 .comment-hint.is-warning {

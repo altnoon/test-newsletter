@@ -118,6 +118,11 @@ def render_page(
             '<p class="comment-hint">'
             "Click on the image to place a pin and add a note."
             "</p>"
+            '<label class="comment-author-label" for="comment-author">'
+            "Your name"
+            "</label>"
+            '<input id="comment-author" class="comment-author" '
+            'type="text" maxlength="40" placeholder="e.g. Ana" />'
             '<p class="comment-count">0 notes</p>'
             '<button class="comment-clear" type="button">Clear all notes</button>'
             "</aside>"
