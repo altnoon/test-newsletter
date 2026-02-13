@@ -96,12 +96,53 @@ body {
   padding: 0.75rem;
 }
 
+.media-stage {
+  position: relative;
+  width: min(100%, 900px);
+  margin: 0 auto;
+  cursor: crosshair;
+}
+
 .media-viewer {
   display: block;
-  width: min(100%, 900px);
+  width: 100%;
   height: auto;
-  margin: 0 auto;
   border-radius: 6px;
+}
+
+.pin-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pin-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #ffffff;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.3);
+}
+
+.pin-marker.is-active {
+  background: #0ea5e9;
+}
+
+.pin-marker.is-draft {
+  background: rgba(15, 23, 42, 0.35);
+  border: 2px dashed #ffffff;
+  pointer-events: none;
 }
 
 .empty-state {
@@ -130,6 +171,20 @@ body {
 .comments h2 {
   margin: 0 0 0.7rem;
   font-size: 1rem;
+}
+
+.comment-hint {
+  margin: 0 0 0.7rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.comment-hint.is-warning {
+  color: #b45309;
+}
+
+.comment-hint.is-info {
+  color: #334155;
 }
 
 .comment-form {
@@ -183,6 +238,20 @@ body {
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   background: #fff;
+  cursor: pointer;
+}
+
+.comment-item.is-active {
+  border-color: #0f172a;
+  box-shadow: inset 0 0 0 1px #0f172a;
+}
+
+.comment-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .comment-text {
