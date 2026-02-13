@@ -153,8 +153,8 @@ def main() -> None:
 
     docs: list[dict] = []
     seen: set[str] = set()
-    for index, path in enumerate(media_files, start=1):
-        label = f"Page {index}"
+    for path in media_files:
+        label = html.escape(path.name)
         slug = unique_slug(seen, slugify(path.name))
         docs.append(
             {
