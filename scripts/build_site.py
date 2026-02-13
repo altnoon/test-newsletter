@@ -74,7 +74,7 @@ def nav_for_root(docs: list[dict], active_slug: str) -> str:
         href = "index.html" if i == 0 else f"pages/{doc['slug']}.html"
         active = " is-active" if doc["slug"] == active_slug else ""
         items.append(
-            f'<a class="nav-link{active}" href="{href}">{doc["label"]}</a>'
+            f'<a class="nav-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
         )
     return "\n".join(items)
 
@@ -91,7 +91,7 @@ def nav_for_page(docs: list[dict], active_slug: str) -> str:
             href = f"{doc['slug']}.html"
         active = " is-active" if doc["slug"] == active_slug else ""
         items.append(
-            f'<a class="nav-link{active}" href="{href}">{doc["label"]}</a>'
+            f'<a class="nav-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
         )
     return "\n".join(items)
 
@@ -114,17 +114,12 @@ def render_page(
             "</div>"
             "</section>"
             f'<aside class="comments" data-page-key="{page_key or ""}">'
-            "<h2>Comments</h2>"
-            '<form class="comment-form">'
-            '<textarea class="comment-input" rows="3" '
-            'placeholder="Add a comment"></textarea>'
-            '<div class="comment-actions">'
-            '<button class="comment-submit" type="submit">Save</button>'
-            '<button class="comment-clear" type="button">Clear</button>'
-            "</div>"
-            "</form>"
-            '<p class="comment-empty">No comments yet.</p>'
-            '<ul class="comment-list"></ul>'
+            "<h2>Pin Notes</h2>"
+            '<p class="comment-hint">'
+            "Click on the image to place a pin and add a note."
+            "</p>"
+            '<p class="comment-count">0 notes</p>'
+            '<button class="comment-clear" type="button">Clear all notes</button>'
             "</aside>"
             "</div>"
         )

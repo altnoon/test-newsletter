@@ -27,7 +27,7 @@
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
       return crypto.randomUUID();
     }
-    return `c-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   };
 
   const normalizeComments = (items) =>
@@ -38,19 +38,32 @@
         const text = String(item.text ?? "").trim();
         if (!text) return null;
 
-        const pinSource = item.pin && typeof item.pin === "object" ? item.pin : item;
-        const x = Number(pinSource.x);
-        const y = Number(pinSource.y);
-        const hasPin = Number.isFinite(x) && Number.isFinite(y);
+        const sourcePin = item.pin && typeof item.pin === "object" ? item.pin : item;
+        const pinX = Number(sourcePin.x);
+        const pinY = Number(sourcePin.y);
+        const hasPin = Number.isFinite(pinX) && Number.isFinite(pinY);
 
         return {
           id: String(item.id || makeId()),
           text,
           createdAt: String(item.createdAt || new Date().toISOString()),
-          pin: hasPin ? { x: clamp01(x), y: clamp01(y) } : null,
+          pin: hasPin ? { x: clamp01(pinX), y: clamp01(pinY) } : { x: 0.5, y: 0.5 },
         };
       })
       .filter(Boolean);
+
+  const createEditor = () => {
+    const editor = document.createElement("div");
+    editor.className = "pin-note-editor";
+    editor.innerHTML =
+      '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
+      '<div class="pin-note-actions">' +
+      '<button class="pin-note-save" type="button">Save</button>' +
+      '<button class="pin-note-cancel" type="button">Cancel</button>' +
+      '<button class="pin-note-delete" type="button">Delete</button>' +
+      "</div>";
+    return editor;
+  };
 
   sections.forEach((section) => {
     const pageKey = section.getAttribute("data-page-key");
@@ -58,15 +71,12 @@
 
     const layout = section.closest(".layout");
     const image = layout?.querySelector(".media-viewer");
+    const hint = section.querySelector(".comment-hint");
+    const count = section.querySelector(".comment-count");
+    const clearBtn = section.querySelector(".comment-clear");
+    if (!image || !layout || !hint || !count || !clearBtn) return;
 
     const storageKey = `image-timeline-comments:${pageKey}`;
-    const form = section.querySelector(".comment-form");
-    const input = section.querySelector(".comment-input");
-    const list = section.querySelector(".comment-list");
-    const empty = section.querySelector(".comment-empty");
-    const clearBtn = section.querySelector(".comment-clear");
-
-    if (!image || !form || !input || !list || !empty || !clearBtn) return;
 
     let stage = layout.querySelector(".media-stage");
     if (!stage) {
@@ -83,47 +93,101 @@
       stage.appendChild(pinLayer);
     }
 
-    let hint = section.querySelector(".comment-hint");
-    if (!hint) {
-      hint = document.createElement("p");
-      hint.className = "comment-hint";
-      section.insertBefore(hint, form);
+    let editor = stage.querySelector(".pin-note-editor");
+    if (!editor) {
+      editor = createEditor();
+      stage.appendChild(editor);
     }
 
-    let comments = normalizeComments(safeRead(storageKey));
-    let draftPin = null;
-    let activeCommentId = null;
+    const input = editor.querySelector(".pin-note-input");
+    const saveBtn = editor.querySelector(".pin-note-save");
+    const cancelBtn = editor.querySelector(".pin-note-cancel");
+    const deleteBtn = editor.querySelector(".pin-note-delete");
+    if (!input || !saveBtn || !cancelBtn || !deleteBtn) return;
 
-    const saveComments = () => safeWrite(storageKey, comments);
+    editor.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    let comments = normalizeComments(safeRead(storageKey));
+    let activeCommentId = null;
+    let draftPin = null;
+    let editorPin = null;
+    let editingCommentId = null;
 
     const setHint = (text, mode) => {
       hint.textContent = text;
       hint.classList.toggle("is-warning", mode === "warning");
-      hint.classList.toggle("is-info", mode === "info");
+      hint.classList.toggle("is-info", mode !== "warning");
     };
 
-    const renderPins = (pinIndexById) => {
+    const updateCount = () => {
+      const total = comments.length;
+      count.textContent = `${total} ${total === 1 ? "note" : "notes"}`;
+    };
+
+    const saveComments = () => {
+      safeWrite(storageKey, comments);
+    };
+
+    const openEditor = (pin, initialText, mode) => {
+      editorPin = pin;
+      input.value = initialText || "";
+      editor.classList.add("is-open");
+      editor.classList.toggle("is-edit", mode === "edit");
+      deleteBtn.style.display = mode === "edit" ? "inline-flex" : "none";
+      positionEditor();
+      setTimeout(() => input.focus(), 0);
+    };
+
+    const closeEditor = () => {
+      editor.classList.remove("is-open");
+      editor.classList.remove("is-edit");
+      editingCommentId = null;
+      editorPin = null;
+      input.value = "";
+    };
+
+    const positionEditor = () => {
+      if (!editorPin) return;
+      const rect = stage.getBoundingClientRect();
+      const editorWidth = Math.min(260, Math.max(220, rect.width - 24));
+      const editorHeight = 170;
+      let left = editorPin.x * rect.width + 14;
+      let top = editorPin.y * rect.height - 20;
+      left = Math.min(left, rect.width - editorWidth - 8);
+      left = Math.max(left, 8);
+      top = Math.max(top, 8);
+      if (top + editorHeight > rect.height - 8) {
+        top = Math.max(8, editorPin.y * rect.height - editorHeight - 18);
+      }
+      editor.style.left = `${left}px`;
+      editor.style.top = `${top}px`;
+      editor.style.width = `${editorWidth}px`;
+    };
+
+    const renderPins = () => {
       pinLayer.innerHTML = "";
 
-      comments.forEach((item) => {
-        if (!item.pin) return;
-
+      comments.forEach((item, index) => {
         const marker = document.createElement("button");
         marker.type = "button";
         marker.className = "pin-marker";
+        marker.style.left = `${item.pin.x * 100}%`;
+        marker.style.top = `${item.pin.y * 100}%`;
+        marker.textContent = String(index + 1);
+        marker.title = item.text;
         if (item.id === activeCommentId) {
           marker.classList.add("is-active");
         }
-        marker.style.left = `${item.pin.x * 100}%`;
-        marker.style.top = `${item.pin.y * 100}%`;
-        marker.textContent = String(pinIndexById.get(item.id) || "");
-        marker.title = item.text;
         marker.addEventListener("click", (event) => {
           event.stopPropagation();
           activeCommentId = item.id;
-          render();
-          const linked = list.querySelector(`[data-comment-id="${item.id}"]`);
-          linked?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          editingCommentId = item.id;
+          draftPin = null;
+          openEditor(item.pin, item.text, "edit");
+          setHint("Editing note.", "info");
+          renderPins();
         });
         pinLayer.appendChild(marker);
       });
@@ -137,113 +201,99 @@
       }
     };
 
-    const renderList = (pinIndexById) => {
-      list.innerHTML = "";
-      if (!comments.length) {
-        empty.style.display = "block";
-        return;
-      }
-
-      empty.style.display = "none";
-
-      comments.forEach((item) => {
-        const li = document.createElement("li");
-        li.className = "comment-item";
-        li.dataset.commentId = item.id;
-        if (item.id === activeCommentId) {
-          li.classList.add("is-active");
-        }
-
-        const label = document.createElement("div");
-        label.className = "comment-label";
-        label.textContent = item.pin
-          ? `Pin ${pinIndexById.get(item.id) || ""}`
-          : "Comment";
-
-        const text = document.createElement("p");
-        text.className = "comment-text";
-        text.textContent = item.text;
-
-        const time = document.createElement("time");
-        time.className = "comment-time";
-        const date = new Date(item.createdAt);
-        time.textContent = Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
-
-        li.appendChild(label);
-        li.appendChild(text);
-        li.appendChild(time);
-        li.addEventListener("click", () => {
-          activeCommentId = item.id;
-          render();
-        });
-        list.appendChild(li);
-      });
-    };
-
-    const render = () => {
-      const pinIndexById = new Map();
-      let pinCounter = 0;
-      comments.forEach((item) => {
-        if (!item.pin) return;
-        pinCounter += 1;
-        pinIndexById.set(item.id, pinCounter);
-      });
-      renderPins(pinIndexById);
-      renderList(pinIndexById);
-    };
-
     stage.addEventListener("click", (event) => {
       const rect = stage.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
+
       const x = clamp01((event.clientX - rect.left) / rect.width);
       const y = clamp01((event.clientY - rect.top) / rect.height);
 
       draftPin = { x, y };
       activeCommentId = null;
-      setHint("Pin selected. Write a comment and click Save.", "info");
-      render();
-      input.focus();
+      editingCommentId = null;
+      openEditor(draftPin, "", "create");
+      setHint("Pin placed. Add your note and save.", "info");
+      renderPins();
     });
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
+    saveBtn.addEventListener("click", () => {
       const text = input.value.trim();
-      if (!text) return;
-      if (!draftPin) {
-        setHint("Click the image first to place a pin.", "warning");
+      if (!text) {
+        setHint("Type a note before saving.", "warning");
         return;
       }
 
-      const item = {
-        id: makeId(),
-        text,
-        createdAt: new Date().toISOString(),
-        pin: { x: draftPin.x, y: draftPin.y },
-      };
-      comments.push(item);
-      saveComments();
+      if (editingCommentId) {
+        comments = comments.map((item) =>
+          item.id === editingCommentId
+            ? { ...item, text, createdAt: new Date().toISOString() }
+            : item
+        );
+        activeCommentId = editingCommentId;
+        setHint("Note updated.", "info");
+      } else if (draftPin) {
+        const newItem = {
+          id: makeId(),
+          text,
+          createdAt: new Date().toISOString(),
+          pin: { x: draftPin.x, y: draftPin.y },
+        };
+        comments.push(newItem);
+        activeCommentId = newItem.id;
+        setHint("Note saved.", "info");
+      }
 
-      input.value = "";
       draftPin = null;
-      activeCommentId = item.id;
-      setHint("Saved. Click anywhere else on the image to add another pin.", "info");
-      render();
+      saveComments();
+      updateCount();
+      closeEditor();
+      renderPins();
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      if (!editingCommentId) {
+        draftPin = null;
+      }
+      closeEditor();
+      renderPins();
+      setHint("Click on the image to place a pin and add a note.", "info");
+    });
+
+    deleteBtn.addEventListener("click", () => {
+      if (!editingCommentId) return;
+      comments = comments.filter((item) => item.id !== editingCommentId);
+      activeCommentId = null;
+      saveComments();
+      updateCount();
+      closeEditor();
+      renderPins();
+      setHint("Note deleted.", "info");
     });
 
     clearBtn.addEventListener("click", () => {
       comments = [];
-      draftPin = null;
       activeCommentId = null;
+      editingCommentId = null;
+      draftPin = null;
+      closeEditor();
       try {
         localStorage.removeItem(storageKey);
       } catch (_) {
         // Ignore storage errors.
       }
-      setHint("All comments cleared. Click the image to create a new pin.", "info");
-      render();
+      updateCount();
+      renderPins();
+      setHint("All notes cleared. Click image to create a new pinned note.", "info");
     });
 
-    setHint("Click anywhere on the image to place a pin comment.", "info");
-    render();
+    window.addEventListener("resize", () => {
+      if (editor.classList.contains("is-open")) {
+        positionEditor();
+      }
+    });
+
+    updateCount();
+    renderPins();
+    setHint("Click on the image to place a pin and add a note.", "info");
   });
 })();
