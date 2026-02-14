@@ -59,7 +59,7 @@
   --shadow-glass-float: 0 8px 32px rgba(0, 0, 0, 0.18),
     0 0 0 1px rgba(255, 255, 255, 0.1);
 
-  --sticky-offset: calc(4.8rem + var(--safe-top));
+  --sticky-offset: calc(var(--safe-top) + var(--space-8));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -432,8 +432,9 @@ body {
 }
 
 .comments-top {
-  position: relative;
-  z-index: var(--z-sticky);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-popover);
   padding-bottom: var(--space-10);
   margin-bottom: var(--space-6);
   background: linear-gradient(
