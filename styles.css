@@ -1,9 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Poppins:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --font-serif: "Lora", Georgia, "Times New Roman", serif;
-  --font-ui: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  --font-serif: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
   --font-system: var(--font-ui);
 
   --safe-top: env(safe-area-inset-top, 0px);
@@ -14,6 +15,7 @@
   --space-4: 4px;
   --space-6: 6px;
   --space-8: 8px;
+  --space-10: 10px;
   --space-12: 12px;
   --space-16: 16px;
   --space-20: 20px;
@@ -105,8 +107,8 @@ body {
   margin: 0;
   background: var(--surface-bg);
   color: var(--glass-text-primary);
-  font-family: var(--font-serif);
-  line-height: 1.6;
+  font-family: var(--font-ui);
+  line-height: 1.58;
 }
 
 .topbar,
@@ -215,13 +217,13 @@ body {
 .content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: var(--sticky-offset) var(--space-16) var(--space-16);
+  padding: var(--sticky-offset) var(--space-20) var(--space-20);
 }
 
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
-  gap: var(--space-16);
+  gap: var(--space-20);
   align-items: start;
   position: relative;
 }
@@ -343,7 +345,7 @@ body {
 .pin-note-input {
   min-height: 84px;
   resize: vertical;
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
 }
 
 .pin-note-author:focus,
@@ -414,17 +416,18 @@ body {
 }
 
 .comments h2 {
-  margin: 0 0 var(--space-8);
-  font-size: 1.2rem;
+  margin: 0 0 var(--space-10);
+  font-size: 1.18rem;
   font-family: var(--font-ui);
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .comments-top {
   position: sticky;
   top: 0;
   z-index: var(--z-popover);
-  padding-bottom: var(--space-10);
+  padding-bottom: var(--space-12);
   margin-bottom: var(--space-6);
   background: transparent;
   border-bottom: 0;
@@ -435,6 +438,7 @@ body {
   font-size: 0.84rem;
   color: var(--glass-text-secondary);
   font-family: var(--font-ui);
+  line-height: 1.45;
 }
 
 .comment-hint.is-warning {
@@ -485,9 +489,9 @@ body {
 
 .comment-log-title {
   margin: 0 0 var(--space-8);
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   color: var(--glass-text-secondary);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.07em;
   font-family: var(--font-ui);
   text-transform: uppercase;
 }
