@@ -1,4 +1,27 @@
 (() => {
+  const topbar = document.querySelector(".topbar");
+  if (topbar) {
+    const syncTopOffset = () => {
+      const height = Math.ceil(topbar.getBoundingClientRect().height);
+      if (height > 0) {
+        document.documentElement.style.setProperty("--sticky-offset", `${height}px`);
+      }
+    };
+
+    syncTopOffset();
+    window.addEventListener("resize", syncTopOffset, { passive: true });
+    window.addEventListener("orientationchange", syncTopOffset, { passive: true });
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(syncTopOffset).catch(() => {});
+    }
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(syncTopOffset);
+      observer.observe(topbar);
+    }
+  }
+
   const sections = document.querySelectorAll(".comments[data-page-key]");
   if (!sections.length) return;
 

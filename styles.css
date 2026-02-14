@@ -698,10 +698,6 @@ code {
 }
 
 @media (max-width: 700px) {
-  :root {
-    --sticky-offset: calc(8.6rem + var(--safe-top));
-  }
-
   .topbar {
     padding: calc(var(--space-6) + var(--safe-top))
       calc(var(--space-8) + var(--safe-right)) var(--space-8)
