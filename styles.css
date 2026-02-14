@@ -53,6 +53,9 @@
   --accent-blue: #007aff;
   --accent-orange: #ff9f0a;
   --accent-red: #ff453a;
+  --note-chip-bg: rgba(255, 159, 10, 0.34);
+  --note-chip-border: rgba(180, 83, 9, 0.52);
+  --note-chip-text: #5f2f00;
 
   --shadow-glass-sm: 0 2px 8px rgba(0, 0, 0, 0.08),
     0 1px 2px rgba(0, 0, 0, 0.06);
@@ -78,6 +81,9 @@
     --surface-bg: #111214;
     --surface-panel: #191b20;
     --line-subtle: rgba(255, 255, 255, 0.14);
+    --note-chip-bg: rgba(255, 181, 71, 0.42);
+    --note-chip-border: rgba(255, 199, 112, 0.62);
+    --note-chip-text: rgba(255, 245, 224, 0.98);
   }
 }
 
@@ -555,8 +561,10 @@ body {
   border-radius: var(--radius-full);
   font-size: 0.72rem;
   font-weight: 700;
-  background: rgba(0, 122, 255, 0.16);
-  color: #0b4fa1;
+  border: 1px solid var(--note-chip-border);
+  background: var(--note-chip-bg);
+  color: var(--note-chip-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
 .comment-log-author {
