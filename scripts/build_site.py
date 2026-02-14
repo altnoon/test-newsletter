@@ -164,6 +164,7 @@ def render_page(
     script_href: str | None,
     page_key: str | None,
     mobile_nav: str,
+    mobile_brand: str,
 ) -> str:
     if media_path:
         content = (
@@ -214,7 +215,10 @@ def render_page(
   </head>
   <body>
     <header class="topbar">
-      <div class="brand">Image Timeline</div>
+      <div class="brand">
+        <span class="brand-app">Image Timeline</span>
+        <span class="brand-page">{mobile_brand}</span>
+      </div>
       <nav class="nav">{nav}</nav>
     </header>
     <main class="content">
@@ -275,6 +279,7 @@ def main() -> None:
             script_href="comments.js",
             page_key=first["slug"],
             mobile_nav=mobile_controls(root_prev_href, root_next_href, root_menu_links),
+            mobile_brand=first["label"],
         )
         INDEX_FILE.write_text(index_html, encoding="utf-8")
 
@@ -301,6 +306,7 @@ def main() -> None:
                 script_href="../comments.js",
                 page_key=doc["slug"],
                 mobile_nav=mobile_controls(prev_href, next_href, page_menu_links),
+                mobile_brand=doc["label"],
             )
             (PAGES_DIR / f"{doc['slug']}.html").write_text(page_html, encoding="utf-8")
     else:
@@ -314,6 +320,7 @@ def main() -> None:
                 script_href=None,
                 page_key=None,
                 mobile_nav="",
+                mobile_brand="Image Timeline",
             ),
             encoding="utf-8",
         )
