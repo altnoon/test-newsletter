@@ -269,8 +269,21 @@
       noteAuthorInput.value = "";
     };
 
+    const isMobileViewport = () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 700px)").matches;
+
     const positionEditor = () => {
       if (!editorPin) return;
+      if (isMobileViewport()) {
+        editor.style.removeProperty("left");
+        editor.style.removeProperty("top");
+        editor.style.removeProperty("width");
+        editor.style.removeProperty("right");
+        editor.style.removeProperty("bottom");
+        return;
+      }
+
       const rect = stage.getBoundingClientRect();
       const editorWidth = Math.min(260, Math.max(220, rect.width - 24));
       const editorHeight = 182;
@@ -282,10 +295,28 @@
       if (top + editorHeight > rect.height - 8) {
         top = Math.max(8, editorPin.y * rect.height - editorHeight - 18);
       }
+      editor.style.removeProperty("right");
+      editor.style.removeProperty("bottom");
       editor.style.left = `${left}px`;
       editor.style.top = `${top}px`;
       editor.style.width = `${editorWidth}px`;
     };
+
+    window.addEventListener(
+      "resize",
+      () => {
+        if (editor.classList.contains("is-open")) positionEditor();
+      },
+      { passive: true }
+    );
+
+    window.addEventListener(
+      "orientationchange",
+      () => {
+        if (editor.classList.contains("is-open")) positionEditor();
+      },
+      { passive: true }
+    );
 
     const renderLog = (ordered) => {
       log.innerHTML = "";
