@@ -114,6 +114,7 @@ def render_page(
             "</div>"
             "</section>"
             f'<aside class="comments" data-page-key="{page_key or ""}">'
+            '<div class="comments-top">'
             "<h2>Pin Notes</h2>"
             '<p class="comment-hint">'
             "Click on the image to place a pin and add a note."
@@ -125,6 +126,7 @@ def render_page(
             'type="text" maxlength="40" placeholder="e.g. Ana" />'
             '<p class="comment-count">0 notes</p>'
             '<button class="comment-clear" type="button">Clear all notes</button>'
+            "</div>"
             '<div class="comment-log-wrap">'
             '<h3 class="comment-log-title">Chronological Notes</h3>'
             '<p class="comment-log-empty">No notes yet.</p>'
