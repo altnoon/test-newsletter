@@ -105,8 +105,30 @@ def render_page(
     script_href: str | None,
     page_key: str | None,
 ) -> str:
+    palette_strip = (
+        '<section class="palette-strip" aria-label="UI color states">'
+        '<h2 class="palette-title">UI Color States</h2>'
+        '<div class="palette-grid">'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--surface-bg);"></span><span class="palette-label">Canvas</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--surface-panel);"></span><span class="palette-label">Panel</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--brand-dark-green);"></span><span class="palette-label">Nav Bar</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--brand-medium-green);"></span><span class="palette-label">Tab Inactive</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: #7c879a;"></span><span class="palette-label">Tab Hover</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--accent-orange);"></span><span class="palette-label">Tab Active</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--accent-orange);"></span><span class="palette-label">Save Button</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--accent-red);"></span><span class="palette-label">Delete Button</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--note-chip-bg);"></span><span class="palette-label">Note Chip</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: #b85a3a;"></span><span class="palette-label">Pin Active</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--accent-blue);"></span><span class="palette-label">Accent</span></div>'
+        '<div class="palette-item"><span class="palette-swatch" style="background: var(--accent-orange);"></span><span class="palette-label">Focus Ring</span></div>'
+        "</div>"
+        "</section>"
+    )
+
     if media_path:
         content = (
+            palette_strip
+            +
             '<div class="layout">'
             '<section class="main-pane">'
             '<div class="viewer-wrap">'
