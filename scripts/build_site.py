@@ -106,7 +106,7 @@ def render_page(
     page_key: str | None,
 ) -> str:
     palette_strip = (
-        '<section class="palette-strip" aria-label="UI color states">'
+        '<section class="palette-strip palette-strip-sidebar" aria-label="UI color states">'
         '<h2 class="palette-title">UI Color States</h2>'
         '<div class="palette-grid">'
         '<div class="palette-item"><span class="palette-swatch" style="background: var(--surface-bg);"></span><span class="palette-label">Canvas</span></div>'
@@ -127,8 +127,6 @@ def render_page(
 
     if media_path:
         content = (
-            palette_strip
-            +
             '<div class="layout">'
             '<section class="main-pane">'
             '<div class="viewer-wrap">'
@@ -149,6 +147,8 @@ def render_page(
             '<p class="comment-count">0 notes</p>'
             '<button class="comment-clear" type="button">Clear all notes</button>'
             "</div>"
+            + palette_strip
+            +
             '<div class="comment-log-wrap">'
             '<h3 class="comment-log-title">Chronological Notes</h3>'
             '<p class="comment-log-empty">No notes yet.</p>'
