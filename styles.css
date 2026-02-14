@@ -451,13 +451,8 @@ body {
   z-index: var(--z-popover);
   padding-bottom: var(--space-10);
   margin-bottom: var(--space-6);
-  background: linear-gradient(
-    180deg,
-    rgba(245, 245, 247, 0.96) 0%,
-    rgba(245, 245, 247, 0.86) 78%,
-    rgba(245, 245, 247, 0) 100%
-  );
-  border-bottom: 1px solid var(--glass-border-subtle);
+  background: transparent;
+  border-bottom: 0;
 }
 
 .comment-hint {
@@ -630,7 +625,6 @@ code {
   .pin-note-author,
   .pin-note-input,
   .nav-link,
-  .comments-top,
   .pin-note-save,
   .pin-note-cancel,
   .pin-note-delete,
@@ -644,7 +638,6 @@ code {
 @media (prefers-reduced-transparency: reduce) {
   .topbar,
   .comments,
-  .comments-top,
   .pin-note-editor,
   .comment-author,
   .pin-note-author,
