@@ -405,12 +405,11 @@ body {
 .comments {
   border-radius: var(--radius-lg);
   padding: var(--space-16);
-  position: sticky;
-  top: var(--sticky-offset);
-  max-height: calc(100vh - var(--sticky-offset) - var(--space-16));
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  position: static;
+  top: auto;
+  max-height: none;
+  overflow: visible;
+  display: block;
 }
 
 .comments::before {
@@ -432,9 +431,9 @@ body {
 }
 
 .comments-top {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-popover);
+  position: static;
+  top: auto;
+  z-index: var(--z-sticky);
   padding-bottom: var(--space-10);
   margin-bottom: var(--space-6);
   background: linear-gradient(
@@ -490,10 +489,10 @@ body {
 
 .comment-log-wrap {
   margin-top: var(--space-12);
-  min-height: 0;
-  overflow: auto;
-  flex: 1 1 auto;
-  padding-right: var(--space-4);
+  min-height: auto;
+  overflow: visible;
+  flex: 0 0 auto;
+  padding-right: 0;
 }
 
 .comment-log-title {
