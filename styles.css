@@ -722,7 +722,8 @@ code {
   }
 
   .content {
-    padding: var(--space-8);
+    padding: calc(var(--sticky-offset) + var(--space-8)) var(--space-8)
+      var(--space-8);
   }
 
   .viewer-wrap {
