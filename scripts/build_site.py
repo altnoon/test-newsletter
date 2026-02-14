@@ -96,6 +96,65 @@ def nav_for_page(docs: list[dict], active_slug: str) -> str:
     return "\n".join(items)
 
 
+def mobile_menu_for_root(docs: list[dict], active_slug: str) -> str:
+    if not docs:
+        return '<span class="mobile-menu-empty">No images found</span>'
+
+    items = []
+    for i, doc in enumerate(docs):
+        href = "index.html" if i == 0 else f"pages/{doc['slug']}.html"
+        active = " is-active" if doc["slug"] == active_slug else ""
+        items.append(
+            f'<a class="mobile-menu-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
+        )
+    return "\n".join(items)
+
+
+def mobile_menu_for_page(docs: list[dict], active_slug: str) -> str:
+    if not docs:
+        return '<span class="mobile-menu-empty">No images found</span>'
+
+    items = []
+    for i, doc in enumerate(docs):
+        href = "../index.html" if i == 0 else f"{doc['slug']}.html"
+        active = " is-active" if doc["slug"] == active_slug else ""
+        items.append(
+            f'<a class="mobile-menu-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
+        )
+    return "\n".join(items)
+
+
+def mobile_controls(prev_href: str | None, next_href: str | None, menu_links: str) -> str:
+    prev_btn = (
+        f'<a class="mobile-step-btn" href="{prev_href}" aria-label="Previous page">←</a>'
+        if prev_href
+        else '<span class="mobile-step-btn is-disabled" aria-hidden="true">←</span>'
+    )
+    next_btn = (
+        f'<a class="mobile-step-btn" href="{next_href}" aria-label="Next page">→</a>'
+        if next_href
+        else '<span class="mobile-step-btn is-disabled" aria-hidden="true">→</span>'
+    )
+    return (
+        '<div class="mobile-fab-stack" aria-label="Mobile navigation controls">'
+        '<details class="mobile-menu">'
+        '<summary class="mobile-menu-toggle" aria-label="Open pages menu">'
+        '<span class="mobile-menu-bars" aria-hidden="true"></span>'
+        '<span class="mobile-menu-bars" aria-hidden="true"></span>'
+        '<span class="mobile-menu-bars" aria-hidden="true"></span>'
+        '<span class="sr-only">Pages</span>'
+        "</summary>"
+        f'<nav class="mobile-menu-panel">{menu_links}</nav>'
+        "</details>"
+        '<div class="mobile-stepper" role="navigation" aria-label="Page steps">'
+        f"{prev_btn}"
+        '<span class="mobile-step-divider" aria-hidden="true"></span>'
+        f"{next_btn}"
+        "</div>"
+        "</div>"
+    )
+
+
 def render_page(
     title: str,
     nav: str,
@@ -104,6 +163,7 @@ def render_page(
     css_href: str,
     script_href: str | None,
     page_key: str | None,
+    mobile_nav: str,
 ) -> str:
     if media_path:
         content = (
@@ -160,6 +220,7 @@ def render_page(
     <main class="content">
       {content}
     </main>
+    {mobile_nav}
   </body>
 </html>
 """
@@ -200,6 +261,11 @@ def main() -> None:
 
     if docs:
         first = docs[0]
+        root_menu_links = mobile_menu_for_root(docs, first["slug"])
+        root_prev_href = None
+        root_next_href = (
+            f"pages/{docs[1]['slug']}.html" if len(docs) > 1 else None
+        )
         index_html = render_page(
             title=f"{first['label']} | Image Timeline",
             nav=nav_for_root(docs, first["slug"]),
@@ -208,10 +274,24 @@ def main() -> None:
             css_href="styles.css",
             script_href="comments.js",
             page_key=first["slug"],
+            mobile_nav=mobile_controls(root_prev_href, root_next_href, root_menu_links),
         )
         INDEX_FILE.write_text(index_html, encoding="utf-8")
 
-        for doc in docs[1:]:
+        for i, doc in enumerate(docs[1:], start=1):
+            page_menu_links = mobile_menu_for_page(docs, doc["slug"])
+            prev_idx = i - 1
+            next_idx = i + 1
+            prev_href = "../index.html" if prev_idx == 0 else f"{docs[prev_idx]['slug']}.html"
+            next_href = (
+                None
+                if next_idx >= len(docs)
+                else (
+                    "../index.html"
+                    if next_idx == 0
+                    else f"{docs[next_idx]['slug']}.html"
+                )
+            )
             page_html = render_page(
                 title=f"{doc['label']} | Image Timeline",
                 nav=nav_for_page(docs, doc["slug"]),
@@ -220,6 +300,7 @@ def main() -> None:
                 css_href="../styles.css",
                 script_href="../comments.js",
                 page_key=doc["slug"],
+                mobile_nav=mobile_controls(prev_href, next_href, page_menu_links),
             )
             (PAGES_DIR / f"{doc['slug']}.html").write_text(page_html, encoding="utf-8")
     else:
@@ -232,6 +313,7 @@ def main() -> None:
                 css_href="styles.css",
                 script_href=None,
                 page_key=None,
+                mobile_nav="",
             ),
             encoding="utf-8",
         )
