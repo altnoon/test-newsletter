@@ -33,6 +33,11 @@
     return `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   };
 
+  const toTimestamp = (value) => {
+    const ts = Date.parse(String(value || ""));
+    return Number.isNaN(ts) ? 0 : ts;
+  };
+
   const normalizeComments = (items) =>
     items
       .map((item) => {
@@ -47,15 +52,28 @@
         const hasPin = Number.isFinite(pinX) && Number.isFinite(pinY);
         if (!hasPin) return null;
 
+        const createdAt = String(item.createdAt || new Date().toISOString());
         return {
           id: String(item.id || makeId()),
           text,
           author: String(item.author || "Anonymous").trim() || "Anonymous",
-          createdAt: String(item.createdAt || new Date().toISOString()),
+          createdAt,
           pin: { x: clamp01(pinX), y: clamp01(pinY) },
         };
       })
       .filter(Boolean);
+
+  const sortChronological = (items) =>
+    [...items].sort((a, b) => {
+      const t = toTimestamp(a.createdAt) - toTimestamp(b.createdAt);
+      if (t !== 0) return t;
+      return a.id.localeCompare(b.id);
+    });
+
+  const formatDate = (value) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+  };
 
   const requestNotes = async (page, method, body) => {
     const query = `?page=${encodeURIComponent(page)}`;
@@ -106,7 +124,20 @@
     const authorInput = section.querySelector(".comment-author");
     const count = section.querySelector(".comment-count");
     const clearBtn = section.querySelector(".comment-clear");
-    if (!image || !layout || !hint || !authorInput || !count || !clearBtn) return;
+    const log = section.querySelector(".comment-log");
+    const logEmpty = section.querySelector(".comment-log-empty");
+    if (
+      !image ||
+      !layout ||
+      !hint ||
+      !authorInput ||
+      !count ||
+      !clearBtn ||
+      !log ||
+      !logEmpty
+    ) {
+      return;
+    }
 
     const localStorageKey = `image-timeline-comments:${pageKey}`;
     let usingShared = true;
@@ -149,9 +180,7 @@
       return;
     }
 
-    editor.addEventListener("click", (event) => {
-      event.stopPropagation();
-    });
+    editor.addEventListener("click", (event) => event.stopPropagation());
 
     let comments = normalizeComments(safeRead(localStorageKey));
     let activeCommentId = null;
@@ -181,18 +210,12 @@
       safeWrite(localStorageKey, comments);
     };
 
-    const getAuthorName = () => {
-      const value = authorInput.value.trim();
-      return value || "";
-    };
+    const getAuthorName = () => authorInput.value.trim();
 
     const setEditorMeta = (mode, item) => {
       if (mode === "edit" && item) {
-        const date = new Date(item.createdAt);
-        const timestamp = Number.isNaN(date.getTime())
-          ? ""
-          : ` • ${date.toLocaleString()}`;
-        meta.textContent = `${item.author || "Anonymous"}${timestamp}`;
+        const timestamp = formatDate(item.createdAt);
+        meta.textContent = `${item.author || "Anonymous"}${timestamp ? ` • ${timestamp}` : ""}`;
         return;
       }
       const author = noteAuthorInput.value.trim() || getAuthorName();
@@ -205,9 +228,7 @@
       editorPin = pin;
       input.value = initialText || "";
       noteAuthorInput.value =
-        mode === "edit" && item
-          ? item.author || getAuthorName()
-          : getAuthorName();
+        mode === "edit" && item ? item.author || getAuthorName() : getAuthorName();
       editor.classList.add("is-open");
       editor.classList.toggle("is-edit", mode === "edit");
       deleteBtn.style.display = mode === "edit" ? "inline-flex" : "none";
@@ -229,7 +250,7 @@
       if (!editorPin) return;
       const rect = stage.getBoundingClientRect();
       const editorWidth = Math.min(260, Math.max(220, rect.width - 24));
-      const editorHeight = 170;
+      const editorHeight = 182;
       let left = editorPin.x * rect.width + 14;
       let top = editorPin.y * rect.height - 20;
       left = Math.min(left, rect.width - editorWidth - 8);
@@ -243,10 +264,62 @@
       editor.style.width = `${editorWidth}px`;
     };
 
-    const renderPins = () => {
+    const renderLog = (ordered) => {
+      log.innerHTML = "";
+
+      if (!ordered.length) {
+        logEmpty.style.display = "block";
+        return;
+      }
+      logEmpty.style.display = "none";
+
+      ordered.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.className = "comment-log-item";
+        if (item.id === activeCommentId) li.classList.add("is-active");
+
+        const header = document.createElement("div");
+        header.className = "comment-log-header";
+
+        const pin = document.createElement("span");
+        pin.className = "comment-log-pin";
+        pin.textContent = `#${index + 1}`;
+
+        const author = document.createElement("span");
+        author.className = "comment-log-author";
+        author.textContent = item.author || "Anonymous";
+
+        const when = document.createElement("span");
+        when.className = "comment-log-date";
+        when.textContent = formatDate(item.createdAt);
+
+        header.appendChild(pin);
+        header.appendChild(author);
+        header.appendChild(when);
+
+        const body = document.createElement("p");
+        body.className = "comment-log-text";
+        body.textContent = item.text;
+
+        li.appendChild(header);
+        li.appendChild(body);
+        li.addEventListener("click", () => {
+          activeCommentId = item.id;
+          editingCommentId = item.id;
+          draftPin = null;
+          openEditor(item.pin, item.text, "edit", item);
+          setHint(`Editing note by ${item.author || "Anonymous"}.`, "info");
+          renderAll();
+        });
+
+        log.appendChild(li);
+      });
+    };
+
+    const renderPins = (ordered) => {
       pinLayer.innerHTML = "";
 
-      comments.forEach((item, index) => {
+      ordered.forEach((item, index) => {
         const marker = document.createElement("button");
         marker.type = "button";
         marker.className = "pin-marker";
@@ -254,9 +327,7 @@
         marker.style.top = `${item.pin.y * 100}%`;
         marker.textContent = String(index + 1);
         marker.title = `${item.author || "Anonymous"}: ${item.text}`;
-        if (item.id === activeCommentId) {
-          marker.classList.add("is-active");
-        }
+        if (item.id === activeCommentId) marker.classList.add("is-active");
         marker.addEventListener("click", (event) => {
           event.stopPropagation();
           activeCommentId = item.id;
@@ -264,7 +335,7 @@
           draftPin = null;
           openEditor(item.pin, item.text, "edit", item);
           setHint(`Editing note by ${item.author || "Anonymous"}.`, "info");
-          renderPins();
+          renderAll();
         });
         pinLayer.appendChild(marker);
       });
@@ -278,29 +349,29 @@
       }
     };
 
+    const renderAll = () => {
+      const ordered = sortChronological(comments);
+      renderPins(ordered);
+      renderLog(ordered);
+      updateCount();
+    };
+
     const applyServerNotes = (serverNotes) => {
       comments = normalizeComments(serverNotes);
       persistLocal();
-      updateCount();
-      renderPins();
+      renderAll();
     };
 
     const syncFromShared = async (silent) => {
-      if (!usingShared) return;
-      if (editor.classList.contains("is-open")) return;
+      if (!usingShared || editor.classList.contains("is-open")) return;
       try {
         const sharedNotes = await requestNotes(pageKey, "GET");
         applyServerNotes(sharedNotes);
-        if (!silent) {
-          setHint("Shared notes synced.", "info");
-        }
+        if (!silent) setHint("Shared notes synced.", "info");
       } catch (_) {
         usingShared = false;
-        updateCount();
-        setHint(
-          "Shared notes unavailable. Using local notes in this browser.",
-          "warning"
-        );
+        renderAll();
+        setHint("Shared notes unavailable. Using local notes in this browser.", "warning");
       }
     };
 
@@ -315,14 +386,17 @@
         return true;
       } catch (_) {
         usingShared = false;
-        updateCount();
-        setHint(
-          "Could not update shared notes. Switched to local notes.",
-          "warning"
-        );
+        renderAll();
+        setHint("Could not update shared notes. Switched to local notes.", "warning");
         return false;
       }
     };
+
+    noteAuthorInput.addEventListener("input", () => {
+      if (!editor.classList.contains("is-open")) return;
+      if (editor.classList.contains("is-edit")) return;
+      setEditorMeta("create", null);
+    });
 
     stage.addEventListener("click", (event) => {
       const rect = stage.getBoundingClientRect();
@@ -336,7 +410,7 @@
       editingCommentId = null;
       openEditor(draftPin, "", "create", null);
       setHint("Pin placed. Add your note and save.", "info");
-      renderPins();
+      renderAll();
     });
 
     saveBtn.addEventListener("click", async () => {
@@ -370,12 +444,9 @@
           });
           if (!sharedOk) {
             comments = comments.map((item) =>
-              item.id === editingCommentId
-                ? { ...item, text, author, createdAt: new Date().toISOString() }
-                : item
+              item.id === editingCommentId ? { ...item, text, author } : item
             );
             persistLocal();
-            updateCount();
           }
           activeCommentId = editingCommentId;
           setHint("Note updated.", "info");
@@ -392,7 +463,6 @@
           if (!sharedOk) {
             comments.push(newItem);
             persistLocal();
-            updateCount();
           }
           activeCommentId = newItem.id;
           setHint("Note saved.", "info");
@@ -400,7 +470,7 @@
 
         draftPin = null;
         closeEditor();
-        renderPins();
+        renderAll();
       } finally {
         saveBtn.disabled = false;
         cancelBtn.disabled = false;
@@ -409,11 +479,9 @@
     });
 
     cancelBtn.addEventListener("click", () => {
-      if (!editingCommentId) {
-        draftPin = null;
-      }
+      if (!editingCommentId) draftPin = null;
       closeEditor();
-      renderPins();
+      renderAll();
       setHint("Click on the image to place a pin and add a note.", "info");
     });
 
@@ -430,12 +498,10 @@
         if (!sharedOk) {
           comments = comments.filter((item) => item.id !== deletedId);
           persistLocal();
-          updateCount();
         }
-
         activeCommentId = null;
         closeEditor();
-        renderPins();
+        renderAll();
         setHint("Note deleted.", "info");
       } finally {
         saveBtn.disabled = false;
@@ -454,14 +520,13 @@
         if (!sharedOk) {
           comments = [];
           persistLocal();
-          updateCount();
         }
 
         activeCommentId = null;
         editingCommentId = null;
         draftPin = null;
         closeEditor();
-        renderPins();
+        renderAll();
         setHint("All notes cleared. Click image to create a new pinned note.", "info");
       } finally {
         saveBtn.disabled = false;
@@ -471,23 +536,14 @@
     });
 
     window.addEventListener("resize", () => {
-      if (editor.classList.contains("is-open")) {
-        positionEditor();
-      }
+      if (editor.classList.contains("is-open")) positionEditor();
     });
 
-    updateCount();
-    renderPins();
+    renderAll();
     setHint("Connecting to shared notes...", "info");
-
     syncFromShared(false);
     setInterval(() => {
       syncFromShared(true);
     }, 12000);
   });
 })();
-    noteAuthorInput.addEventListener("input", () => {
-      if (!editor.classList.contains("is-open")) return;
-      if (editor.classList.contains("is-edit")) return;
-      setEditorMeta("create", null);
-    });

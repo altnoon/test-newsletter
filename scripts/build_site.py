@@ -125,6 +125,11 @@ def render_page(
             'type="text" maxlength="40" placeholder="e.g. Ana" />'
             '<p class="comment-count">0 notes</p>'
             '<button class="comment-clear" type="button">Clear all notes</button>'
+            '<div class="comment-log-wrap">'
+            '<h3 class="comment-log-title">Chronological Notes</h3>'
+            '<p class="comment-log-empty">No notes yet.</p>'
+            '<ol class="comment-log"></ol>'
+            "</div>"
             "</aside>"
             "</div>"
         )

@@ -123,7 +123,6 @@ module.exports = async function handler(req, res) {
               ...item,
               text,
               author: author || item.author || "Anonymous",
-              createdAt: new Date().toISOString(),
             }
           : item
       );
