@@ -256,11 +256,13 @@ body {
   display: grid;
   gap: var(--space-8);
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  left: auto;
+  transform: none;
+  right: max(var(--space-16), calc((100vw - 1400px) / 2 + var(--space-16)));
+  width: 340px;
   bottom: var(--space-16);
   z-index: var(--z-toast);
-  justify-items: end;
+  justify-items: start;
 }
 
 .mobile-stepper {
@@ -334,7 +336,8 @@ body {
 
 .mobile-menu-panel {
   position: absolute;
-  right: 0;
+  left: 0;
+  right: auto;
   bottom: calc(100% + var(--space-6));
   width: min(84vw, 320px);
   max-height: 55vh;
@@ -912,6 +915,13 @@ textarea:focus-visible {
     left: auto;
     transform: none;
     right: calc(var(--space-8) + var(--safe-right));
+    width: auto;
     bottom: calc(var(--space-8) + var(--safe-bottom));
+    justify-items: end;
+  }
+
+  .mobile-menu-panel {
+    left: auto;
+    right: 0;
   }
 }
