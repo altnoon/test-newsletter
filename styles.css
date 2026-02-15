@@ -256,7 +256,8 @@ body {
   display: grid;
   gap: var(--space-8);
   position: fixed;
-  right: var(--space-16);
+  left: 50%;
+  transform: translateX(-50%);
   bottom: var(--space-16);
   z-index: var(--z-toast);
   justify-items: end;
@@ -908,6 +909,8 @@ textarea:focus-visible {
   }
 
   .mobile-fab-stack {
+    left: auto;
+    transform: none;
     right: calc(var(--space-8) + var(--safe-right));
     bottom: calc(var(--space-8) + var(--safe-bottom));
   }
