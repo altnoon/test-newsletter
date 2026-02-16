@@ -242,7 +242,11 @@ def render_page(
       <div class="brand">
         <span class="brand-page">{mobile_brand}</span>
       </div>
-      <nav class="nav">{nav}</nav>
+      <div class="topbar-nav" role="navigation" aria-label="Page navigation">
+        <button class="nav-arrow nav-arrow-left" type="button" aria-label="Scroll navigation left">←</button>
+        <nav class="nav">{nav}</nav>
+        <button class="nav-arrow nav-arrow-right" type="button" aria-label="Scroll navigation right">→</button>
+      </div>
     </header>
     <main class="content">
       {content}

@@ -1,6 +1,8 @@
 (() => {
   const topbar = document.querySelector(".topbar");
   if (topbar) {
+    const navPrev = topbar.querySelector(".nav-arrow-left");
+    const navNext = topbar.querySelector(".nav-arrow-right");
     const nav = topbar.querySelector(".nav");
     const isDesktopViewport = () =>
       typeof window !== "undefined" && window.matchMedia("(min-width: 701px)").matches;
@@ -18,6 +20,22 @@
         (activeRect.left - navRect.left) -
         (navRect.width / 2 - activeRect.width / 2);
       nav.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
+    };
+
+    const updateNavArrows = () => {
+      if (!nav || !navPrev || !navNext) return;
+      const maxScroll = Math.max(0, nav.scrollWidth - nav.clientWidth);
+      const atStart = nav.scrollLeft <= 1;
+      const atEnd = nav.scrollLeft >= maxScroll - 1;
+      const hasOverflow = maxScroll > 1;
+      navPrev.disabled = !hasOverflow || atStart;
+      navNext.disabled = !hasOverflow || atEnd;
+    };
+
+    const scrollNavBy = (direction) => {
+      if (!nav) return;
+      const amount = Math.max(180, Math.floor(nav.clientWidth * 0.55));
+      nav.scrollBy({ left: direction * amount, behavior: "smooth" });
     };
 
     if (nav) {
@@ -80,6 +98,20 @@
         },
         { passive: false }
       );
+
+      nav.addEventListener("scroll", updateNavArrows, { passive: true });
+    }
+
+    if (navPrev) {
+      navPrev.addEventListener("click", () => {
+        scrollNavBy(-1);
+      });
+    }
+
+    if (navNext) {
+      navNext.addEventListener("click", () => {
+        scrollNavBy(1);
+      });
     }
 
     const syncTopOffset = () => {
@@ -87,10 +119,12 @@
       if (height > 0) {
         document.documentElement.style.setProperty("--sticky-offset", `${height}px`);
       }
+      updateNavArrows();
     };
 
     syncTopOffset();
     centerActiveNavLink();
+    updateNavArrows();
     window.addEventListener("resize", syncTopOffset, { passive: true });
     window.addEventListener("orientationchange", syncTopOffset, { passive: true });
 
