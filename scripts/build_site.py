@@ -240,7 +240,6 @@ def render_page(
   <body>
     <header class="topbar">
       <div class="brand">
-        <span class="brand-app">Image Timeline</span>
         <span class="brand-page">{mobile_brand}</span>
       </div>
       <nav class="nav">{nav}</nav>

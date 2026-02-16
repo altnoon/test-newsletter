@@ -166,12 +166,13 @@ body {
   display: flex;
   gap: var(--space-16);
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   background: var(--brand-dark-green);
 }
 
 .brand {
+  display: none;
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -190,6 +191,11 @@ body {
   gap: var(--space-6);
   flex-wrap: nowrap;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
   width: 100%;
   padding-bottom: var(--space-4);
@@ -214,6 +220,7 @@ body {
   text-overflow: ellipsis;
   background: var(--brand-medium-green);
   box-shadow: var(--shadow-glass-sm);
+  scroll-snap-align: center;
 }
 
 .nav-link:hover {
@@ -829,6 +836,7 @@ textarea:focus-visible {
   }
 
   .brand {
+    display: block;
     font-size: 0.76rem;
     text-align: center;
     width: 100%;

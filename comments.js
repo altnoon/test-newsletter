@@ -1,11 +1,29 @@
 (() => {
   const topbar = document.querySelector(".topbar");
   if (topbar) {
+    const nav = topbar.querySelector(".nav");
+    const centerActiveNavLink = () => {
+      if (!nav) return;
+      const active = nav.querySelector(".nav-link.is-active");
+      if (!active) return;
+
+      const navRect = nav.getBoundingClientRect();
+      if (!navRect.width || nav.scrollWidth <= navRect.width + 1) return;
+
+      const activeRect = active.getBoundingClientRect();
+      const targetLeft =
+        nav.scrollLeft +
+        (activeRect.left - navRect.left) -
+        (navRect.width / 2 - activeRect.width / 2);
+      nav.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
+    };
+
     const syncTopOffset = () => {
       const height = Math.ceil(topbar.getBoundingClientRect().height);
       if (height > 0) {
         document.documentElement.style.setProperty("--sticky-offset", `${height}px`);
       }
+      centerActiveNavLink();
     };
 
     syncTopOffset();
