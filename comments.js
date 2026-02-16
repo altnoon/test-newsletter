@@ -21,6 +21,52 @@
     };
 
     if (nav) {
+      let dragging = false;
+      let dragStartX = 0;
+      let dragStartScroll = 0;
+      let movedDuringDrag = false;
+      let suppressClick = false;
+
+      nav.addEventListener("pointerdown", (event) => {
+        if (!isDesktopViewport()) return;
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        dragging = true;
+        movedDuringDrag = false;
+        dragStartX = event.clientX;
+        dragStartScroll = nav.scrollLeft;
+        nav.classList.add("is-dragging");
+      });
+
+      nav.addEventListener("pointermove", (event) => {
+        if (!dragging) return;
+        const delta = event.clientX - dragStartX;
+        if (Math.abs(delta) > 2) movedDuringDrag = true;
+        nav.scrollLeft = dragStartScroll - delta;
+        if (movedDuringDrag) event.preventDefault();
+      });
+
+      const endDrag = () => {
+        if (!dragging) return;
+        dragging = false;
+        nav.classList.remove("is-dragging");
+        if (movedDuringDrag) suppressClick = true;
+      };
+
+      nav.addEventListener("pointerup", endDrag);
+      nav.addEventListener("pointercancel", endDrag);
+      nav.addEventListener("pointerleave", endDrag);
+
+      nav.addEventListener(
+        "click",
+        (event) => {
+          if (!suppressClick) return;
+          event.preventDefault();
+          event.stopPropagation();
+          suppressClick = false;
+        },
+        true
+      );
+
       nav.addEventListener(
         "wheel",
         (event) => {

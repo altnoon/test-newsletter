@@ -193,7 +193,7 @@ body {
   max-width: 100%;
   gap: var(--space-6);
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-behavior: smooth;
@@ -203,6 +203,13 @@ body {
   -webkit-overflow-scrolling: touch;
   width: 100%;
   padding-bottom: var(--space-4);
+  cursor: grab;
+  touch-action: pan-x;
+}
+
+.nav.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
 }
 
 .nav-link {
