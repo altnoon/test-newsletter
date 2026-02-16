@@ -2,6 +2,8 @@
   const topbar = document.querySelector(".topbar");
   if (topbar) {
     const nav = topbar.querySelector(".nav");
+    const isDesktopViewport = () =>
+      typeof window !== "undefined" && window.matchMedia("(min-width: 701px)").matches;
     const centerActiveNavLink = () => {
       if (!nav) return;
       const active = nav.querySelector(".nav-link.is-active");
@@ -17,6 +19,22 @@
         (navRect.width / 2 - activeRect.width / 2);
       nav.scrollTo({ left: Math.max(0, targetLeft), behavior: "auto" });
     };
+
+    if (nav) {
+      nav.addEventListener(
+        "wheel",
+        (event) => {
+          if (!isDesktopViewport()) return;
+          const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+            ? event.deltaX
+            : event.deltaY;
+          if (!delta) return;
+          nav.scrollLeft += delta;
+          event.preventDefault();
+        },
+        { passive: false }
+      );
+    }
 
     const syncTopOffset = () => {
       const height = Math.ceil(topbar.getBoundingClientRect().height);
