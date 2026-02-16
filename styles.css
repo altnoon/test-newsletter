@@ -160,8 +160,8 @@ body {
   right: 0;
   z-index: var(--z-glass-bar);
   margin: 0;
-  padding: calc(var(--space-8) + var(--safe-top))
-    calc(var(--space-16) + var(--safe-right)) var(--space-12)
+  padding: calc(var(--space-10) + var(--safe-top))
+    calc(var(--space-16) + var(--safe-right)) var(--space-10)
     calc(var(--space-16) + var(--safe-left));
   display: flex;
   gap: var(--space-16);
@@ -232,12 +232,12 @@ body {
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-behavior: smooth;
-  scrollbar-gutter: stable both-edges;
-  scrollbar-width: thin;
+  scrollbar-gutter: auto;
+  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   width: 100%;
   padding-right: var(--space-12);
-  padding-bottom: var(--space-4);
+  padding-bottom: 0;
   cursor: grab;
   touch-action: pan-x;
 }
@@ -269,7 +269,7 @@ body {
 }
 
 .nav::-webkit-scrollbar {
-  height: 10px;
+  height: 0;
 }
 
 .nav::-webkit-scrollbar-track {
