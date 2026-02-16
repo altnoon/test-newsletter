@@ -208,7 +208,7 @@ def render_page(
             "Your name"
             "</label>"
             '<input id="comment-author" class="comment-author" '
-            'type="text" maxlength="40" placeholder="e.g. Ana" />'
+            'type="text" maxlength="40" placeholder="Sofía, Manuela, Olvier, Philip" />'
             '<p class="comment-count">0 notes</p>'
             '<button class="comment-clear" type="button">Clear all notes</button>'
             "</div>"

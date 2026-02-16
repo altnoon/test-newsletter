@@ -248,7 +248,7 @@
     editor.innerHTML =
       '<p class="pin-note-meta"></p>' +
       '<label class="pin-note-author-label" for="pin-note-author">Name</label>' +
-      '<input id="pin-note-author" class="pin-note-author" type="text" maxlength="40" placeholder="e.g. Ana" />' +
+      '<input id="pin-note-author" class="pin-note-author" type="text" maxlength="40" placeholder="Sofía, Manuela, Olvier, Philip" />' +
       '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
       '<div class="pin-note-actions">' +
       '<button class="pin-note-save" type="button">Save</button>' +
@@ -577,7 +577,12 @@
       try {
         const sharedNotes = await requestNotes(pageKey, "GET");
         applyServerNotes(sharedNotes);
-        if (!silent) setHint("Shared notes synced.", "info", true);
+        if (!silent)
+          setHint(
+            "Please leave your feedback clicking anywhere on the image and adding a short comment describing your thoughts.",
+            "info",
+            true
+          );
       } catch (_) {
         usingShared = false;
         renderAll();
