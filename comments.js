@@ -143,6 +143,7 @@
 
     const layout = section.closest(".layout");
     const image = layout?.querySelector(".media-viewer");
+    const commentsTop = section.querySelector(".comments-top");
     const hint = section.querySelector(".comment-hint");
     const authorInput = section.querySelector(".comment-author");
     const count = section.querySelector(".comment-count");
@@ -152,6 +153,7 @@
     if (
       !image ||
       !layout ||
+      !commentsTop ||
       !hint ||
       !authorInput ||
       !count ||
@@ -161,6 +163,38 @@
     ) {
       return;
     }
+
+    const ensureLiveRegion = (className, liveMode, role) => {
+      let region = section.querySelector(`.${className}`);
+      if (!region) {
+        region = document.createElement("p");
+        region.className = `${className} sr-only`;
+        region.setAttribute("aria-live", liveMode);
+        region.setAttribute("aria-atomic", "true");
+        if (role) region.setAttribute("role", role);
+        commentsTop.appendChild(region);
+      }
+      return region;
+    };
+
+    const liveRegion = ensureLiveRegion("comment-live", "polite", "status");
+    const liveAlertRegion = ensureLiveRegion("comment-live-alert", "assertive");
+
+    let announceToken = 0;
+    const announce = (text, mode) => {
+      const message = String(text || "").trim();
+      if (!message) return;
+      const target = mode === "warning" ? liveAlertRegion : liveRegion;
+      if (!target) return;
+
+      announceToken += 1;
+      const token = announceToken;
+      target.textContent = "";
+      window.requestAnimationFrame(() => {
+        if (token !== announceToken) return;
+        target.textContent = message;
+      });
+    };
 
     const localStorageKey = `image-timeline-comments:${pageKey}`;
     let usingShared = true;
@@ -217,10 +251,11 @@
       localStorage.setItem(AUTHOR_STORAGE_KEY, value);
     });
 
-    const setHint = (text, mode) => {
+    const setHint = (text, mode, shouldAnnounce = false) => {
       hint.textContent = text;
       hint.classList.toggle("is-warning", mode === "warning");
       hint.classList.toggle("is-info", mode !== "warning");
+      if (shouldAnnounce) announce(text, mode);
     };
 
     const updateCount = () => {
@@ -421,11 +456,15 @@
       try {
         const sharedNotes = await requestNotes(pageKey, "GET");
         applyServerNotes(sharedNotes);
-        if (!silent) setHint("Shared notes synced.", "info");
+        if (!silent) setHint("Shared notes synced.", "info", true);
       } catch (_) {
         usingShared = false;
         renderAll();
-        setHint("Shared notes unavailable. Using local notes in this browser.", "warning");
+        setHint(
+          "Shared notes unavailable. Using local notes in this browser.",
+          "warning",
+          true
+        );
       }
     };
 
@@ -441,7 +480,11 @@
       } catch (_) {
         usingShared = false;
         renderAll();
-        setHint("Could not update shared notes. Switched to local notes.", "warning");
+        setHint(
+          "Could not update shared notes. Switched to local notes.",
+          "warning",
+          true
+        );
         return false;
       }
     };
@@ -463,19 +506,19 @@
       activeCommentId = null;
       editingCommentId = null;
       openEditor(draftPin, "", "create", null);
-      setHint("Pin placed. Add your note and save.", "info");
+      setHint("Pin placed. Add your note and save.", "info", true);
       renderAll();
     });
 
     saveBtn.addEventListener("click", async () => {
       const text = input.value.trim();
       if (!text) {
-        setHint("Type a note before saving.", "warning");
+        setHint("Type a note before saving.", "warning", true);
         return;
       }
       const author = noteAuthorInput.value.trim() || getAuthorName();
       if (!author) {
-        setHint("Add your name before saving.", "warning");
+        setHint("Add your name before saving.", "warning", true);
         noteAuthorInput.focus();
         return;
       }
@@ -503,7 +546,7 @@
             persistLocal();
           }
           activeCommentId = editingCommentId;
-          setHint("Note updated.", "info");
+          setHint("Note updated.", "info", true);
         } else if (draftPin) {
           const newItem = {
             id: makeId(),
@@ -519,7 +562,7 @@
             persistLocal();
           }
           activeCommentId = newItem.id;
-          setHint("Note saved.", "info");
+          setHint("Note saved.", "info", true);
         }
 
         draftPin = null;
@@ -556,7 +599,7 @@
         activeCommentId = null;
         closeEditor();
         renderAll();
-        setHint("Note deleted.", "info");
+        setHint("Note deleted.", "info", true);
       } finally {
         saveBtn.disabled = false;
         cancelBtn.disabled = false;
@@ -581,7 +624,11 @@
         draftPin = null;
         closeEditor();
         renderAll();
-        setHint("All notes cleared. Click image to create a new pinned note.", "info");
+        setHint(
+          "All notes cleared. Click image to create a new pinned note.",
+          "info",
+          true
+        );
       } finally {
         saveBtn.disabled = false;
         cancelBtn.disabled = false;
@@ -594,7 +641,7 @@
     });
 
     renderAll();
-    setHint("Connecting to shared notes...", "info");
+    setHint("Connecting to shared notes...", "info", true);
     syncFromShared(false);
     setInterval(() => {
       syncFromShared(true);

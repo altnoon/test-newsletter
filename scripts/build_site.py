@@ -50,7 +50,7 @@ def media_sort_key(path: Path):
     Non-matching files are sorted after by creation time then name.
     """
     pattern = re.compile(
-        r"^\[Fase\s*(\d+)\]\s*Nuevos destinos\s*-\s*"
+        r"^\[(?:Fase\s*|F)\s*(\d+)\]\s*(?:Nuevos destinos\s*-\s*)?"
         r"(Propietarios|No propietarios)\s*-\s*(ES|EN)$",
         re.IGNORECASE,
     )
@@ -63,6 +63,26 @@ def media_sort_key(path: Path):
         language_rank = 0 if language == "ES" else 1
         return (0, phase, audience_rank, language_rank, path.name.lower())
     return (1, created_at(path), path.name.lower())
+
+
+def display_label(path: Path) -> str:
+    """
+    Format UI labels from source file names:
+    - [Fase 1] Nuevos destinos - Propietarios - ES -> [F1] - Propietarios - ES
+    - [Fase 2] Nuevos destinos - No propietarios - EN -> [F2] - No propietarios - EN
+    Other names are returned as-is (without extension).
+    """
+    stem = path.stem.strip()
+    pattern = re.compile(
+        r"^\[Fase\s*(\d+)\]\s*Nuevos destinos\s*-\s*(.+)$",
+        re.IGNORECASE,
+    )
+    match = pattern.match(stem)
+    if not match:
+        return stem
+    phase = match.group(1)
+    rest = match.group(2).strip()
+    return f"[F{phase}] - {rest}"
 
 
 def nav_for_root(docs: list[dict], active_slug: str) -> str:
@@ -180,6 +200,10 @@ def render_page(
             '<p class="comment-hint">'
             "Click on the image to place a pin and add a note."
             "</p>"
+            '<p class="comment-live sr-only" aria-live="polite" '
+            'aria-atomic="true" role="status"></p>'
+            '<p class="comment-live-alert sr-only" aria-live="assertive" '
+            'aria-atomic="true"></p>'
             '<label class="comment-author-label" for="comment-author">'
             "Your name"
             "</label>"
@@ -252,14 +276,14 @@ def main() -> None:
     docs: list[dict] = []
     seen: set[str] = set()
     for path in media_files:
-        label = html.escape(path.stem)
+        label = html.escape(display_label(path))
         slug = unique_slug(seen, slugify(path.name))
         docs.append(
             {
                 "path": path,
                 "label": label,
                 "slug": slug,
-                "alt": html.escape(path.stem),
+                "alt": html.escape(display_label(path)),
             }
         )
 
