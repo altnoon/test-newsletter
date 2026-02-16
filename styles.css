@@ -197,11 +197,11 @@ body {
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-behavior: smooth;
-  scroll-snap-type: x proximity;
   scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
   width: 100%;
+  padding-right: var(--space-12);
   padding-bottom: var(--space-4);
   cursor: grab;
   touch-action: pan-x;
@@ -209,7 +209,6 @@ body {
 
 .nav.is-dragging {
   cursor: grabbing;
-  scroll-snap-type: none;
 }
 
 .nav-link {
@@ -232,7 +231,6 @@ body {
   text-overflow: clip;
   background: var(--brand-medium-green);
   box-shadow: var(--shadow-glass-sm);
-  scroll-snap-align: center;
 }
 
 .nav::-webkit-scrollbar {

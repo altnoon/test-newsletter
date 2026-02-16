@@ -87,15 +87,20 @@
       if (height > 0) {
         document.documentElement.style.setProperty("--sticky-offset", `${height}px`);
       }
-      centerActiveNavLink();
     };
 
     syncTopOffset();
+    centerActiveNavLink();
     window.addEventListener("resize", syncTopOffset, { passive: true });
     window.addEventListener("orientationchange", syncTopOffset, { passive: true });
 
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(syncTopOffset).catch(() => {});
+      document.fonts.ready
+        .then(() => {
+          syncTopOffset();
+          centerActiveNavLink();
+        })
+        .catch(() => {});
     }
 
     if (typeof ResizeObserver !== "undefined") {
