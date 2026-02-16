@@ -248,7 +248,7 @@
     editor.innerHTML =
       '<p class="pin-note-meta"></p>' +
       '<label class="pin-note-author-label" for="pin-note-author">Name</label>' +
-      '<input id="pin-note-author" class="pin-note-author" type="text" maxlength="40" placeholder="Sofía, Manuela, Olvier, Philip" />' +
+      '<input id="pin-note-author" class="pin-note-author" type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />' +
       '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
       '<div class="pin-note-actions">' +
       '<button class="pin-note-save" type="button">Save</button>' +
