@@ -262,6 +262,8 @@ body {
   min-height: var(--control-min-height);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   overflow: visible;
   text-overflow: clip;
   background: var(--brand-medium-green);
@@ -290,7 +292,7 @@ body {
 .nav-link.is-active {
   color: #ffffff;
   border-color: transparent;
-  background: var(--accent-orange);
+  background: #e08b6d;
 }
 
 .nav-empty {
@@ -916,6 +918,10 @@ textarea:focus-visible {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    background: #e08b6d;
+    color: #ffffff;
+    padding: 0.32rem 0.72rem;
+    border-radius: var(--radius-full);
   }
 
   .nav {
