@@ -85,13 +85,14 @@ def display_label(path: Path) -> str:
     return f"[F{phase}] - {rest}"
 
 
-def nav_for_root(docs: list[dict], active_slug: str) -> str:
-    if not docs:
-        return '<span class="nav-empty">No images found</span>'
-
+def nav_for_root(docs: list[dict], active_slug: str | None) -> str:
     items = []
-    for i, doc in enumerate(docs):
-        href = "index.html" if i == 0 else f"pages/{doc['slug']}.html"
+    timeline_active = " is-active" if active_slug is None else ""
+    items.append(
+        f'<a class="nav-link{timeline_active}" href="index.html" title="Timeline">Timeline</a>'
+    )
+    for doc in docs:
+        href = f"pages/{doc['slug']}.html"
         active = " is-active" if doc["slug"] == active_slug else ""
         items.append(
             f'<a class="nav-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
@@ -100,15 +101,10 @@ def nav_for_root(docs: list[dict], active_slug: str) -> str:
 
 
 def nav_for_page(docs: list[dict], active_slug: str) -> str:
-    if not docs:
-        return '<span class="nav-empty">No images found</span>'
-
     items = []
-    for i, doc in enumerate(docs):
-        if i == 0:
-            href = "../index.html"
-        else:
-            href = f"{doc['slug']}.html"
+    items.append('<a class="nav-link" href="../index.html" title="Timeline">Timeline</a>')
+    for doc in docs:
+        href = f"{doc['slug']}.html"
         active = " is-active" if doc["slug"] == active_slug else ""
         items.append(
             f'<a class="nav-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
@@ -116,13 +112,14 @@ def nav_for_page(docs: list[dict], active_slug: str) -> str:
     return "\n".join(items)
 
 
-def mobile_menu_for_root(docs: list[dict], active_slug: str) -> str:
-    if not docs:
-        return '<span class="mobile-menu-empty">No images found</span>'
-
+def mobile_menu_for_root(docs: list[dict], active_slug: str | None) -> str:
     items = []
-    for i, doc in enumerate(docs):
-        href = "index.html" if i == 0 else f"pages/{doc['slug']}.html"
+    timeline_active = " is-active" if active_slug is None else ""
+    items.append(
+        f'<a class="mobile-menu-link{timeline_active}" href="index.html" title="Timeline">Timeline</a>'
+    )
+    for doc in docs:
+        href = f"pages/{doc['slug']}.html"
         active = " is-active" if doc["slug"] == active_slug else ""
         items.append(
             f'<a class="mobile-menu-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
@@ -131,12 +128,12 @@ def mobile_menu_for_root(docs: list[dict], active_slug: str) -> str:
 
 
 def mobile_menu_for_page(docs: list[dict], active_slug: str) -> str:
-    if not docs:
-        return '<span class="mobile-menu-empty">No images found</span>'
-
     items = []
-    for i, doc in enumerate(docs):
-        href = "../index.html" if i == 0 else f"{doc['slug']}.html"
+    items.append(
+        '<a class="mobile-menu-link" href="../index.html" title="Timeline">Timeline</a>'
+    )
+    for doc in docs:
+        href = f"{doc['slug']}.html"
         active = " is-active" if doc["slug"] == active_slug else ""
         items.append(
             f'<a class="mobile-menu-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
@@ -185,8 +182,11 @@ def render_page(
     page_key: str | None,
     mobile_nav: str,
     mobile_brand: str,
+    custom_content: str | None = None,
 ) -> str:
-    if media_path:
+    if custom_content is not None:
+        content = custom_content
+    elif media_path:
         content = (
             '<div class="layout">'
             '<section class="main-pane">'
@@ -259,6 +259,55 @@ def render_page(
     return html_page.replace("  </body>", f"{script_tag}\n  </body>")
 
 
+def timeline_content_for_root(docs: list[dict]) -> str:
+    if not docs:
+        return (
+            '<div class="empty-state">'
+            "<h1>No image files found</h1>"
+            "<p>Add files to the <code>pdfs/</code> folder and run "
+            "<code>python3 scripts/build_site.py</code>.</p>"
+            "</div>"
+        )
+
+    first = docs[0]
+    points = []
+    for i, doc in enumerate(docs):
+        selected = " is-active" if i == 0 else ""
+        pressed = "true" if i == 0 else "false"
+        points.append(
+            "<li>"
+            f'<button class="timeline-point{selected}" type="button" '
+            f'data-image="pdfs/{quote(doc["path"].name)}" '
+            f'data-label="{doc["alt"]}" '
+            f'data-target="pages/{doc["slug"]}.html" '
+            f'aria-pressed="{pressed}">'
+            '<span class="timeline-point-dot" aria-hidden="true"></span>'
+            f'<span class="timeline-point-index">{i + 1}</span>'
+            f'<span class="timeline-point-name">{doc["label"]}</span>'
+            "</button>"
+            "</li>"
+        )
+
+    return (
+        '<div class="timeline-summary" data-timeline-root>'
+        '<section class="timeline-rail-wrap">'
+        '<h1 class="timeline-title">Timeline</h1>'
+        '<p class="timeline-subtitle">Select any moment to preview its image.</p>'
+        f'<ol class="timeline-rail">{"".join(points)}</ol>'
+        "</section>"
+        '<section class="timeline-preview-wrap">'
+        '<div class="timeline-preview-top">'
+        f'<p class="timeline-preview-label">{first["label"]}</p>'
+        f'<a class="timeline-open-link" href="pages/{first["slug"]}.html">Open selected page</a>'
+        "</div>"
+        '<div class="viewer-wrap timeline-viewer-wrap">'
+        f'<img class="media-viewer timeline-preview-image" src="pdfs/{quote(first["path"].name)}" alt="{first["alt"]}" />'
+        "</div>"
+        "</section>"
+        "</div>"
+    )
+
+
 def main() -> None:
     PDF_DIR.mkdir(parents=True, exist_ok=True)
     PAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -291,38 +340,32 @@ def main() -> None:
         )
 
     if docs:
-        first = docs[0]
-        root_menu_links = mobile_menu_for_root(docs, first["slug"])
+        root_menu_links = mobile_menu_for_root(docs, None)
         root_prev_href = None
-        root_next_href = (
-            f"pages/{docs[1]['slug']}.html" if len(docs) > 1 else None
-        )
+        root_next_href = f"pages/{docs[0]['slug']}.html"
         index_html = render_page(
-            title=f"{first['label']} | Image Timeline",
-            nav=nav_for_root(docs, first["slug"]),
-            media_path=f"pdfs/{quote(first['path'].name)}",
-            media_alt=first["alt"],
+            title="Timeline | Image Timeline",
+            nav=nav_for_root(docs, None),
+            media_path=None,
+            media_alt=None,
             css_href="styles.css",
             script_href="comments.js",
-            page_key=first["slug"],
+            page_key=None,
             mobile_nav=mobile_controls(root_prev_href, root_next_href, root_menu_links),
-            mobile_brand=first["label"],
+            mobile_brand="Timeline",
+            custom_content=timeline_content_for_root(docs),
         )
         INDEX_FILE.write_text(index_html, encoding="utf-8")
 
-        for i, doc in enumerate(docs[1:], start=1):
+        for i, doc in enumerate(docs):
             page_menu_links = mobile_menu_for_page(docs, doc["slug"])
             prev_idx = i - 1
             next_idx = i + 1
-            prev_href = "../index.html" if prev_idx == 0 else f"{docs[prev_idx]['slug']}.html"
+            prev_href = "../index.html" if prev_idx < 0 else f"{docs[prev_idx]['slug']}.html"
             next_href = (
                 None
                 if next_idx >= len(docs)
-                else (
-                    "../index.html"
-                    if next_idx == 0
-                    else f"{docs[next_idx]['slug']}.html"
-                )
+                else f"{docs[next_idx]['slug']}.html"
             )
             page_html = render_page(
                 title=f"{doc['label']} | Image Timeline",

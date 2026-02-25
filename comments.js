@@ -144,10 +144,10 @@
   }
 
   const sections = document.querySelectorAll(".comments[data-page-key]");
-  if (!sections.length) return;
+  if (sections.length) {
 
-  const API_ENDPOINT = "/api/notes";
-  const AUTHOR_STORAGE_KEY = "image-timeline-author";
+    const API_ENDPOINT = "/api/notes";
+    const AUTHOR_STORAGE_KEY = "image-timeline-author";
 
   const safeRead = (key) => {
     try {
@@ -258,7 +258,7 @@
     return editor;
   };
 
-  sections.forEach((section) => {
+    sections.forEach((section) => {
     const pageKey = section.getAttribute("data-page-key");
     if (!pageKey) return;
 
@@ -772,5 +772,37 @@
     setInterval(() => {
       syncFromShared(true);
     }, 12000);
-  });
+    });
+  }
+
+  const timelineRoot = document.querySelector("[data-timeline-root]");
+  if (timelineRoot) {
+    const points = Array.from(timelineRoot.querySelectorAll(".timeline-point"));
+    const previewImage = timelineRoot.querySelector(".timeline-preview-image");
+    const previewLabel = timelineRoot.querySelector(".timeline-preview-label");
+    const openLink = timelineRoot.querySelector(".timeline-open-link");
+
+    const setActivePoint = (point) => {
+      if (!point || !previewImage || !previewLabel || !openLink) return;
+      points.forEach((item) => {
+        const isActive = item === point;
+        item.classList.toggle("is-active", isActive);
+        item.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+
+      const imagePath = point.getAttribute("data-image");
+      const label = point.getAttribute("data-label");
+      const target = point.getAttribute("data-target");
+      if (imagePath) previewImage.setAttribute("src", imagePath);
+      if (label) {
+        previewImage.setAttribute("alt", label);
+        previewLabel.textContent = label;
+      }
+      if (target) openLink.setAttribute("href", target);
+    };
+
+    points.forEach((point) => {
+      point.addEventListener("click", () => setActivePoint(point));
+    });
+  }
 })();
