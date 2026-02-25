@@ -269,42 +269,30 @@ def timeline_content_for_root(docs: list[dict]) -> str:
             "</div>"
         )
 
-    first = docs[0]
-    points = []
-    for i, doc in enumerate(docs):
-        selected = " is-active" if i == 0 else ""
-        pressed = "true" if i == 0 else "false"
-        points.append(
-            "<li>"
-            f'<button class="timeline-point{selected}" type="button" '
-            f'data-image="pdfs/{quote(doc["path"].name)}" '
-            f'data-label="{doc["alt"]}" '
-            f'data-target="pages/{doc["slug"]}.html" '
-            f'aria-pressed="{pressed}">'
-            '<span class="timeline-point-dot" aria-hidden="true"></span>'
-            f'<span class="timeline-point-index">{i + 1}</span>'
-            f'<span class="timeline-point-name">{doc["label"]}</span>'
-            "</button>"
-            "</li>"
+    cards = []
+    for i, doc in enumerate(docs, start=1):
+        cards.append(
+            '<article class="miro-card">'
+            '<div class="miro-card-head">'
+            f'<span class="miro-card-index">#{i}</span>'
+            f'<p class="miro-card-title">{doc["label"]}</p>'
+            "</div>"
+            f'<a class="miro-card-link" href="pages/{doc["slug"]}.html" title="Open {doc["label"]}">'
+            f'<img class="miro-card-image" src="pdfs/{quote(doc["path"].name)}" alt="{doc["alt"]}" loading="lazy" />'
+            "</a>"
+            "</article>"
         )
 
     return (
-        '<div class="timeline-summary" data-timeline-root>'
-        '<section class="timeline-rail-wrap">'
-        '<h1 class="timeline-title">Timeline</h1>'
-        '<p class="timeline-subtitle">Select any moment to preview its image.</p>'
-        f'<ol class="timeline-rail">{"".join(points)}</ol>'
-        "</section>"
-        '<section class="timeline-preview-wrap">'
-        '<div class="timeline-preview-top">'
-        f'<p class="timeline-preview-label">{first["label"]}</p>'
-        f'<a class="timeline-open-link" href="pages/{first["slug"]}.html">Open selected page</a>'
+        '<section class="timeline-summary">'
+        '<div class="miro-board-head">'
+        "<h1>Timeline Board</h1>"
+        "<p>All pages arranged left to right. Scroll horizontally and click any image.</p>"
         "</div>"
-        '<div class="viewer-wrap timeline-viewer-wrap">'
-        f'<img class="media-viewer timeline-preview-image" src="pdfs/{quote(first["path"].name)}" alt="{first["alt"]}" />'
+        '<div class="miro-board-scroller" role="region" aria-label="Timeline board">'
+        f'<div class="miro-board-track">{"".join(cards)}</div>'
         "</div>"
         "</section>"
-        "</div>"
     )
 
 
