@@ -499,6 +499,13 @@ body {
 }
 
 .miro-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.miro-card-meta {
   display: grid;
   gap: var(--space-4);
 }
@@ -524,21 +531,38 @@ body {
   line-height: 1.35;
 }
 
-.miro-card-link {
-  display: block;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--line-subtle);
+.miro-open-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 0.2rem 0.58rem;
+  font-size: 0.74rem;
+  line-height: 1;
+  color: var(--glass-text-primary);
+  text-decoration: none;
+  background: var(--glass-bg);
 }
 
-.miro-card-link:hover {
+.miro-open-link:hover {
   border-color: var(--accent-orange);
+}
+
+.miro-card-stage {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: visible;
+  border: 1px solid var(--line-subtle);
+  cursor: crosshair;
+  touch-action: manipulation;
 }
 
 .miro-card-image {
   display: block;
   width: 100%;
   height: auto;
+  border-radius: var(--radius-sm);
 }
 
 .layout {

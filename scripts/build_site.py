@@ -274,25 +274,55 @@ def timeline_content_for_root(docs: list[dict]) -> str:
         cards.append(
             '<article class="miro-card">'
             '<div class="miro-card-head">'
+            '<div class="miro-card-meta">'
             f'<span class="miro-card-index">#{i}</span>'
             f'<p class="miro-card-title">{doc["label"]}</p>'
             "</div>"
-            f'<a class="miro-card-link" href="pages/{doc["slug"]}.html" title="Open {doc["label"]}">'
+            f'<a class="miro-open-link" href="pages/{doc["slug"]}.html" title="Open {doc["label"]}">Open</a>'
+            "</div>"
+            f'<div class="miro-card-stage" data-card-slug="{doc["slug"]}" data-card-label="{doc["label"]}">'
             f'<img class="miro-card-image" src="pdfs/{quote(doc["path"].name)}" alt="{doc["alt"]}" loading="lazy" />'
-            "</a>"
+            '<div class="pin-layer"></div>'
+            "</div>"
             "</article>"
         )
 
     return (
-        '<section class="timeline-summary">'
+        '<div class="layout">'
+        '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
         "<h1>Timeline Board</h1>"
-        "<p>All pages arranged left to right. Scroll horizontally and click any image.</p>"
+        "<p>All pages arranged left to right. Click on any image to pin feedback on the timeline board.</p>"
         "</div>"
         '<div class="miro-board-scroller" role="region" aria-label="Timeline board">'
         f'<div class="miro-board-track">{"".join(cards)}</div>'
         "</div>"
         "</section>"
+        '<aside class="comments" data-board-key="timeline-board">'
+        '<div class="comments-top">'
+        "<h2>Pin Notes</h2>"
+        '<p class="comment-hint">'
+        "Click on a timeline image to place a pin and add a note."
+        "</p>"
+        '<p class="comment-live sr-only" aria-live="polite" '
+        'aria-atomic="true" role="status"></p>'
+        '<p class="comment-live-alert sr-only" aria-live="assertive" '
+        'aria-atomic="true"></p>'
+        '<label class="comment-author-label" for="comment-author">'
+        "Your name"
+        "</label>"
+        '<input id="comment-author" class="comment-author" '
+        'type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />'
+        '<p class="comment-count">0 notes</p>'
+        '<button class="comment-clear" type="button">Clear all notes</button>'
+        "</div>"
+        '<div class="comment-log-wrap">'
+        '<h3 class="comment-log-title">Chronological Notes</h3>'
+        '<p class="comment-log-empty">No notes yet.</p>'
+        '<ol class="comment-log"></ol>'
+        "</div>"
+        "</aside>"
+        "</div>"
     )
 
 
