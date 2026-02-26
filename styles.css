@@ -77,7 +77,8 @@
   --mobile-editor-gutter: 12px;
   --control-min-height: 40px;
   --timeline-zoom: 1;
-  --timeline-card-base: 380px;
+  --timeline-card-base: 320px;
+  --content-max-width: 1720px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -277,7 +278,7 @@ body {
 }
 
 .content {
-  max-width: 1400px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   padding: calc(var(--sticky-offset) + var(--desktop-nav-gap)) var(--space-20)
     var(--space-20);
@@ -300,7 +301,10 @@ body {
   position: fixed;
   left: auto;
   transform: none;
-  right: max(var(--space-16), calc((100vw - 1400px) / 2 + var(--space-16)));
+  right: max(
+    var(--space-16),
+    calc((100vw - var(--content-max-width)) / 2 + var(--space-16))
+  );
   width: 340px;
   bottom: var(--space-16);
   z-index: var(--z-toast);
@@ -733,7 +737,10 @@ body {
   padding: var(--space-16);
   position: fixed;
   top: calc(var(--sticky-offset) + var(--desktop-nav-gap));
-  right: max(var(--space-16), calc((100vw - 1400px) / 2 + var(--space-16)));
+  right: max(
+    var(--space-16),
+    calc((100vw - var(--content-max-width)) / 2 + var(--space-16))
+  );
   width: 340px;
   max-height: calc(
     100vh - var(--sticky-offset) - var(--desktop-nav-gap) - var(--space-16)
