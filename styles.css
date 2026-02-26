@@ -1055,6 +1055,8 @@ textarea:focus-visible {
   .miro-board-head h1,
   .miro-board-head h2 {
     text-align: center;
+    justify-self: center;
+    width: 100%;
   }
 
   .topbar {
@@ -1088,6 +1090,8 @@ textarea:focus-visible {
     color: #ffffff;
     padding: 0.32rem 0.72rem;
     border-radius: var(--radius-full);
+    font-size: 0.61rem;
+    text-align: center;
   }
 
   .nav {
