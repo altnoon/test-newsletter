@@ -62,7 +62,13 @@ def media_sort_key(path: Path):
         audience_rank = 0 if audience == "propietarios" else 1
         language_rank = 0 if language == "ES" else 1
         return (0, phase, audience_rank, language_rank, path.name.lower())
-    return (1, created_at(path), path.name.lower())
+    numeric_prefix = re.match(r"^(\d+)\s*([a-z])?\b", path.stem.strip(), re.IGNORECASE)
+    if numeric_prefix:
+        number = int(numeric_prefix.group(1))
+        letter = (numeric_prefix.group(2) or "").lower()
+        letter_rank = ord(letter) - 96 if letter else 0
+        return (1, number, letter_rank, path.name.lower())
+    return (2, created_at(path), path.name.lower())
 
 
 def display_label(path: Path) -> str:
@@ -184,17 +190,7 @@ def mobile_menu_for_page_tabs(tabs: list[dict], active_key: str) -> str:
     return "\n".join(items)
 
 
-def mobile_controls(prev_href: str | None, next_href: str | None, menu_links: str) -> str:
-    prev_btn = (
-        f'<a class="mobile-step-btn" href="{prev_href}" aria-label="Previous page">←</a>'
-        if prev_href
-        else '<span class="mobile-step-btn is-disabled" aria-hidden="true">←</span>'
-    )
-    next_btn = (
-        f'<a class="mobile-step-btn" href="{next_href}" aria-label="Next page">→</a>'
-        if next_href
-        else '<span class="mobile-step-btn is-disabled" aria-hidden="true">→</span>'
-    )
+def mobile_controls(menu_links: str) -> str:
     return (
         '<div class="mobile-fab-stack" aria-label="Mobile navigation controls">'
         '<details class="mobile-menu">'
@@ -206,11 +202,6 @@ def mobile_controls(prev_href: str | None, next_href: str | None, menu_links: st
         "</summary>"
         f'<nav class="mobile-menu-panel">{menu_links}</nav>'
         "</details>"
-        '<div class="mobile-stepper" role="navigation" aria-label="Page steps">'
-        f"{prev_btn}"
-        '<span class="mobile-step-divider" aria-hidden="true"></span>'
-        f"{next_btn}"
-        "</div>"
         "</div>"
     )
 
@@ -286,9 +277,7 @@ def render_page(
         <span class="brand-page">{mobile_brand}</span>
       </div>
       <div class="topbar-nav" role="navigation" aria-label="Page navigation">
-        <button class="nav-arrow nav-arrow-left" type="button" aria-label="Scroll navigation left">←</button>
         <nav class="nav">{nav}</nav>
-        <button class="nav-arrow nav-arrow-right" type="button" aria-label="Scroll navigation right">→</button>
       </div>
     </header>
     <main class="content">
@@ -355,8 +344,6 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
         '<div class="layout">'
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
-        "<h1>Timeline Board</h1>"
-        "<p>Timelines are grouped by folders in <code>Images/</code>.</p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
@@ -515,8 +502,6 @@ def main() -> None:
             )
 
         root_menu_links = mobile_menu_for_root_tabs(tabs, "timeline")
-        root_prev_href = None
-        root_next_href = tabs[1]["href_root"] if len(tabs) > 1 else None
         INDEX_FILE.write_text(
             render_page(
                 title="Timeline | Image Timeline",
@@ -526,16 +511,14 @@ def main() -> None:
                 css_href="styles.css",
                 script_href="comments.js",
                 page_key=None,
-                mobile_nav=mobile_controls(root_prev_href, root_next_href, root_menu_links),
+                mobile_nav=mobile_controls(root_menu_links),
                 mobile_brand="Timeline",
                 custom_content=timeline_content_for_root(timeline_groups),
             ),
             encoding="utf-8",
         )
 
-        for idx, group in enumerate(timeline_groups, start=1):
-            prev_tab = tabs[idx - 1]["href_page"] if idx - 1 >= 0 else None
-            next_tab = tabs[idx + 1]["href_page"] if idx + 1 < len(tabs) else None
+        for group in timeline_groups:
             group_menu_links = mobile_menu_for_page_tabs(tabs, group["key"])
             group_html = render_page(
                 title=f"{group['label']} | Image Timeline",
@@ -545,7 +528,7 @@ def main() -> None:
                 css_href="../styles.css",
                 script_href="../comments.js",
                 page_key=None,
-                mobile_nav=mobile_controls(prev_tab, next_tab, group_menu_links),
+                mobile_nav=mobile_controls(group_menu_links),
                 mobile_brand=group["label"],
                 custom_content=timeline_content_for_group(group),
             )
@@ -556,14 +539,10 @@ def main() -> None:
             for doc in group["docs"]:
                 group_by_doc_slug[doc["slug"]] = group
 
-        for i, doc in enumerate(docs):
+        for doc in docs:
             group = group_by_doc_slug.get(doc["slug"])
             active_tab_key = group["key"] if group else "timeline"
             page_menu_links = mobile_menu_for_page_tabs(tabs, active_tab_key)
-            prev_idx = i - 1
-            next_idx = i + 1
-            prev_href = "../index.html" if prev_idx < 0 else f"{docs[prev_idx]['slug']}.html"
-            next_href = None if next_idx >= len(docs) else f"{docs[next_idx]['slug']}.html"
             page_html = render_page(
                 title=f"{doc['label']} | Image Timeline",
                 nav=nav_for_page_tabs(tabs, active_tab_key),
@@ -572,7 +551,7 @@ def main() -> None:
                 css_href="../styles.css",
                 script_href="../comments.js",
                 page_key=doc["slug"],
-                mobile_nav=mobile_controls(prev_href, next_href, page_menu_links),
+                mobile_nav=mobile_controls(page_menu_links),
                 mobile_brand=doc["label"],
             )
             (PAGES_DIR / f"{doc['slug']}.html").write_text(page_html, encoding="utf-8")
