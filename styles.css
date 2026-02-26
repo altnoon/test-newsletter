@@ -410,13 +410,14 @@ body {
 
 .timeline-summary > .miro-board-head h1 {
   grid-area: title;
-  justify-self: center;
-  text-align: center;
+  justify-self: start;
+  text-align: left;
 }
 
 .timeline-summary > .miro-board-head p {
   grid-area: helper;
-  justify-self: center;
+  justify-self: start;
+  text-align: left;
 }
 
 .timeline-controls {
