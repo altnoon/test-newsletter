@@ -1057,6 +1057,8 @@ textarea:focus-visible {
     text-align: center;
     justify-self: center;
     width: 100%;
+    padding-top: 7px;
+    padding-bottom: 7px;
   }
 
   .topbar {
