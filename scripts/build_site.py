@@ -98,6 +98,8 @@ def timeline_label_from_name(name: str) -> str:
     cleaned = re.sub(r"\s+", " ", cleaned)
     if not cleaned:
         return "Timeline"
+    if cleaned.lower() == "timeline 3 - flujo nurturing 3":
+        return "Timeline 3 - Flujo Nurturing 3 EN"
     return cleaned
 
 
@@ -410,7 +412,6 @@ def timeline_content_for_group(group: dict) -> str:
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
         f"<h1>{group['label']}</h1>"
-        "<p>Images from this folder.</p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
@@ -484,7 +485,7 @@ def main() -> None:
         tabs = [
             {
                 "key": "timeline",
-                "label": "Timeline",
+                "label": "Timeline Board",
                 "href_root": "index.html",
                 "href_page": "../index.html",
             }

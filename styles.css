@@ -197,6 +197,7 @@ body {
 
 .nav {
   display: flex;
+  justify-content: center;
   flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
@@ -372,6 +373,7 @@ body {
   font-size: 0.82rem;
   line-height: 1.35;
   background: var(--glass-bg);
+  text-align: center;
 }
 
 .mobile-menu-link.is-active {
@@ -998,6 +1000,11 @@ textarea:focus-visible {
 
   .miro-board-track {
     grid-auto-columns: max(260px, min(88vw, calc(var(--timeline-card-base) * var(--timeline-zoom))));
+  }
+
+  .miro-board-head h1,
+  .miro-board-head h2 {
+    text-align: center;
   }
 
   .topbar {
