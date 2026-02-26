@@ -1052,8 +1052,8 @@ textarea:focus-visible {
     grid-auto-columns: max(260px, min(88vw, calc(var(--timeline-card-base) * var(--timeline-zoom))));
   }
 
-  .miro-board-head h1,
-  .miro-board-head h2 {
+  .timeline-summary > .miro-board-head h1,
+  .timeline-summary > .miro-board-head h2 {
     text-align: center;
     justify-self: center;
     width: 100%;
