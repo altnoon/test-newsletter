@@ -344,7 +344,7 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
         '<div class="layout">'
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
-        "<h1>Timeline Board</h1>"
+        "<h1 class=\"timeline-root-title\">VIVLA HS FLOWS</h1>"
         "<p>Left-to-right sequence.<span class=\"timeline-helper-break\">Click on any image to pin feedback.</span></p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
@@ -487,7 +487,7 @@ def main() -> None:
         tabs = [
             {
                 "key": "timeline",
-                "label": "Timeline Board",
+                "label": "VIVLA HS FLOWS",
                 "href_root": "index.html",
                 "href_page": "../index.html",
             }

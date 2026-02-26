@@ -464,6 +464,10 @@ body {
   line-height: 1.2;
 }
 
+.timeline-root-title {
+  padding-top: 5px;
+}
+
 .timeline-group .miro-board-head h2 {
   text-align: center;
 }
@@ -1063,6 +1067,10 @@ textarea:focus-visible {
     width: 100%;
     padding-top: 7px;
     padding-bottom: 7px;
+  }
+
+  .timeline-summary > .miro-board-head h1.timeline-root-title {
+    padding-top: 5px;
   }
 
   .timeline-summary > .miro-board-head p {
