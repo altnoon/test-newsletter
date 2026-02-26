@@ -329,7 +329,7 @@ body {
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
   background: var(--accent-orange);
-  color: #fff;
+  color: #1a1918;
   box-shadow: var(--shadow-glass-md);
   display: grid;
   align-content: center;
@@ -641,7 +641,7 @@ body {
   border-radius: var(--radius-full);
   border: 2px solid #faf9f5;
   background: var(--accent-orange);
-  color: #faf9f5;
+  color: #1a1918;
   font-size: 0.75rem;
   font-weight: 700;
   display: flex;
@@ -753,7 +753,7 @@ body {
 .pin-note-save {
   background: var(--accent-orange);
   border-color: var(--accent-orange);
-  color: #faf9f5;
+  color: #1a1918;
 }
 
 .pin-note-delete {
