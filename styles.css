@@ -464,6 +464,10 @@ body {
   line-height: 1.2;
 }
 
+.timeline-group .miro-board-head h2 {
+  text-align: center;
+}
+
 .miro-board-head p {
   margin: 0;
   color: var(--glass-text-secondary);
