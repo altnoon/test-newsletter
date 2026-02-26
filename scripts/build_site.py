@@ -312,7 +312,6 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
                 f'<span class="miro-card-index">#{i}</span>'
                 f'<p class="miro-card-title">{doc["label"]}</p>'
                 "</div>"
-                f'<a class="miro-open-link" href="pages/{doc["slug"]}.html" title="Open {doc["label"]}">Open</a>'
                 "</div>"
                 f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
                 f'data-card-label="{group["label"]} • {doc["label"]}">'
@@ -391,7 +390,6 @@ def timeline_content_for_group(group: dict) -> str:
             f'<span class="miro-card-index">#{i}</span>'
             f'<p class="miro-card-title">{doc["label"]}</p>'
             "</div>"
-            f'<a class="miro-open-link" href="{doc["slug"]}.html" title="Open {doc["label"]}">Open</a>'
             "</div>"
             f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
             f'data-card-label="{group["label"]} • {doc["label"]}">'
