@@ -345,7 +345,7 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
         "<h1>Timeline Board</h1>"
-        "<p>Left-to-right sequence.<br />Click on any image to pin feedback.</p>"
+        "<p>Left-to-right sequence.<span class=\"timeline-helper-break\">Click on any image to pin feedback.</span></p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
@@ -413,7 +413,7 @@ def timeline_content_for_group(group: dict) -> str:
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
         f"<h1>{group['label']}</h1>"
-        "<p>Left-to-right sequence.<br />Click on any image to pin feedback.</p>"
+        "<p>Left-to-right sequence.<span class=\"timeline-helper-break\">Click on any image to pin feedback.</span></p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
