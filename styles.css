@@ -691,7 +691,7 @@ body {
 .pin-note-author-label {
   display: block;
   margin: 0 0 var(--space-4);
-  font-size: 0.72rem;
+  font-size: 0.48rem;
   color: var(--glass-text-secondary);
   font-family: var(--font-ui);
 }
