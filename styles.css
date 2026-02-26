@@ -95,7 +95,7 @@
     --surface-bg: #1a1918;
     --surface-panel: #242320;
     --line-subtle: rgba(255, 255, 255, 0.14);
-    --accent-orange: #e08b6d;
+    --accent-orange: #c97a5c;
     --accent-red: #d96a5c;
     --brand-dark-green: #1f1e1b;
     --brand-medium-green: #2e2d29;
@@ -268,7 +268,7 @@ body {
 .nav-link.is-active {
   color: #ffffff;
   border-color: transparent;
-  background: #e08b6d;
+  background: #c97a5c;
 }
 
 .nav-empty {
@@ -1107,7 +1107,7 @@ textarea:focus-visible {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    background: #e08b6d;
+    background: #c97a5c;
     color: #ffffff;
     padding: 0.32rem 0.72rem;
     border-radius: var(--radius-full);
