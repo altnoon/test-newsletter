@@ -8,7 +8,7 @@ from urllib.parse import quote
 
 
 ROOT = Path(__file__).resolve().parent.parent
-PDF_DIR = ROOT / "pdfs"
+IMAGE_DIR = ROOT / "Images"
 PAGES_DIR = ROOT / "pages"
 STYLE_FILE = ROOT / "styles.css"
 INDEX_FILE = ROOT / "index.html"
@@ -85,58 +85,101 @@ def display_label(path: Path) -> str:
     return f"[F{phase}] - {rest}"
 
 
-def nav_for_root(docs: list[dict], active_slug: str | None) -> str:
-    items = []
-    timeline_active = " is-active" if active_slug is None else ""
-    items.append(
-        f'<a class="nav-link{timeline_active}" href="index.html" title="Timeline">Timeline</a>'
+def timeline_label_from_name(name: str) -> str:
+    cleaned = name.strip()
+    cleaned = re.sub(r"_+", " ", cleaned)
+    cleaned = re.sub(r"\s*-\s*", " - ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    if not cleaned:
+        return "Timeline"
+    return cleaned
+
+
+def timeline_group_sort_key(label: str) -> tuple[int, str]:
+    normalized = re.sub(r"\s+", " ", label.strip().lower())
+    match = re.search(r"timeline\s*(\d+)", normalized)
+    if match:
+        return (-int(match.group(1)), normalized)
+    return (0, normalized)
+
+
+def collect_timeline_groups() -> list[dict]:
+    root_files = sorted(
+        [p for p in IMAGE_DIR.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTS],
+        key=media_sort_key,
     )
-    for doc in docs:
-        href = f"pages/{doc['slug']}.html"
-        active = " is-active" if doc["slug"] == active_slug else ""
+    subdirs = sorted([p for p in IMAGE_DIR.iterdir() if p.is_dir()], key=lambda p: p.name.lower())
+
+    groups: list[dict] = []
+
+    for folder in subdirs:
+        files = sorted(
+            [
+                p
+                for p in folder.iterdir()
+                if p.is_file() and p.suffix.lower() in IMAGE_EXTS
+            ],
+            key=media_sort_key,
+        )
+        groups.append(
+            {
+                "key": slugify(folder.name),
+                "label": timeline_label_from_name(folder.name),
+                "files": files,
+            }
+        )
+
+    if not groups and root_files:
+        groups.append(
+            {
+                "key": "timeline-root",
+                "label": "Timeline",
+                "files": root_files,
+            }
+        )
+    return sorted(groups, key=lambda g: timeline_group_sort_key(g["label"]))
+
+
+def nav_for_root_tabs(tabs: list[dict], active_key: str) -> str:
+    items = []
+    for tab in tabs:
+        href = tab["href_root"]
+        active = " is-active" if tab["key"] == active_key else ""
         items.append(
-            f'<a class="nav-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
+            f'<a class="nav-link{active}" href="{href}" title="{tab["label"]}">{tab["label"]}</a>'
         )
     return "\n".join(items)
 
 
-def nav_for_page(docs: list[dict], active_slug: str) -> str:
+def nav_for_page_tabs(tabs: list[dict], active_key: str) -> str:
     items = []
-    items.append('<a class="nav-link" href="../index.html" title="Timeline">Timeline</a>')
-    for doc in docs:
-        href = f"{doc['slug']}.html"
-        active = " is-active" if doc["slug"] == active_slug else ""
+    for tab in tabs:
+        href = tab["href_page"]
+        active = " is-active" if tab["key"] == active_key else ""
         items.append(
-            f'<a class="nav-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
+            f'<a class="nav-link{active}" href="{href}" title="{tab["label"]}">{tab["label"]}</a>'
         )
     return "\n".join(items)
 
 
-def mobile_menu_for_root(docs: list[dict], active_slug: str | None) -> str:
+def mobile_menu_for_root_tabs(tabs: list[dict], active_key: str) -> str:
     items = []
-    timeline_active = " is-active" if active_slug is None else ""
-    items.append(
-        f'<a class="mobile-menu-link{timeline_active}" href="index.html" title="Timeline">Timeline</a>'
-    )
-    for doc in docs:
-        href = f"pages/{doc['slug']}.html"
-        active = " is-active" if doc["slug"] == active_slug else ""
+    for tab in tabs:
+        href = tab["href_root"]
+        active = " is-active" if tab["key"] == active_key else ""
         items.append(
-            f'<a class="mobile-menu-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
+            f'<a class="mobile-menu-link{active}" href="{href}" title="{tab["label"]}">{tab["label"]}</a>'
         )
     return "\n".join(items)
 
 
-def mobile_menu_for_page(docs: list[dict], active_slug: str) -> str:
+def mobile_menu_for_page_tabs(tabs: list[dict], active_key: str) -> str:
     items = []
-    items.append(
-        '<a class="mobile-menu-link" href="../index.html" title="Timeline">Timeline</a>'
-    )
-    for doc in docs:
-        href = f"{doc['slug']}.html"
-        active = " is-active" if doc["slug"] == active_slug else ""
+    for tab in tabs:
+        href = tab["href_page"]
+        active = " is-active" if tab["key"] == active_key else ""
         items.append(
-            f'<a class="mobile-menu-link{active}" href="{href}" title="{doc["label"]}">{doc["label"]}</a>'
+            f'<a class="mobile-menu-link{active}" href="{href}" title="{tab["label"]}">{tab["label"]}</a>'
         )
     return "\n".join(items)
 
@@ -224,7 +267,7 @@ def render_page(
         content = (
             '<div class="empty-state">'
             "<h1>No image files found</h1>"
-            "<p>Add files to the <code>pdfs/</code> folder and run "
+            "<p>Add files to the <code>Images/</code> folder and run "
             "<code>python3 scripts/build_site.py</code>.</p>"
             "</div>"
         )
@@ -259,32 +302,53 @@ def render_page(
     return html_page.replace("  </body>", f"{script_tag}\n  </body>")
 
 
-def timeline_content_for_root(docs: list[dict]) -> str:
-    if not docs:
+def timeline_content_for_root(timelines: list[dict]) -> str:
+    if not timelines:
         return (
             '<div class="empty-state">'
             "<h1>No image files found</h1>"
-            "<p>Add files to the <code>pdfs/</code> folder and run "
+            "<p>Add files to the <code>Images/</code> folder and run "
             "<code>python3 scripts/build_site.py</code>.</p>"
             "</div>"
         )
 
-    cards = []
-    for i, doc in enumerate(docs, start=1):
-        cards.append(
-            '<article class="miro-card">'
-            '<div class="miro-card-head">'
-            '<div class="miro-card-meta">'
-            f'<span class="miro-card-index">#{i}</span>'
-            f'<p class="miro-card-title">{doc["label"]}</p>'
+    groups_markup = []
+    for group in timelines:
+        cards = []
+        for i, doc in enumerate(group["docs"], start=1):
+            cards.append(
+                '<article class="miro-card">'
+                '<div class="miro-card-head">'
+                '<div class="miro-card-meta">'
+                f'<span class="miro-card-index">#{i}</span>'
+                f'<p class="miro-card-title">{doc["label"]}</p>'
+                "</div>"
+                f'<a class="miro-open-link" href="pages/{doc["slug"]}.html" title="Open {doc["label"]}">Open</a>'
+                "</div>"
+                f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
+                f'data-card-label="{group["label"]} • {doc["label"]}">'
+                f'<img class="miro-card-image" src="Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
+                '<div class="pin-layer"></div>'
+                "</div>"
+                "</article>"
+            )
+
+        track_content = (
+            f'<div class="miro-board-track">{"".join(cards)}</div>'
+            if cards
+            else '<p class="timeline-empty-group">No images in this folder yet.</p>'
+        )
+
+        groups_markup.append(
+            '<section class="timeline-group">'
+            '<div class="miro-board-head">'
+            f"<h2>{group['label']}</h2>"
+            "<p>Left-to-right sequence. Click on any image to pin feedback.</p>"
             "</div>"
-            f'<a class="miro-open-link" href="pages/{doc["slug"]}.html" title="Open {doc["label"]}">Open</a>'
+            '<div class="miro-board-scroller" role="region" aria-label="Timeline board">'
+            f"{track_content}"
             "</div>"
-            f'<div class="miro-card-stage" data-card-slug="{doc["slug"]}" data-card-label="{doc["label"]}">'
-            f'<img class="miro-card-image" src="pdfs/{quote(doc["path"].name)}" alt="{doc["alt"]}" loading="lazy" />'
-            '<div class="pin-layer"></div>'
-            "</div>"
-            "</article>"
+            "</section>"
         )
 
     return (
@@ -292,11 +356,15 @@ def timeline_content_for_root(docs: list[dict]) -> str:
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
         "<h1>Timeline Board</h1>"
-        "<p>All pages arranged left to right. Click on any image to pin feedback on the timeline board.</p>"
+        "<p>Timelines are grouped by folders in <code>Images/</code>.</p>"
+        '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
+        '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
         "</div>"
-        '<div class="miro-board-scroller" role="region" aria-label="Timeline board">'
-        f'<div class="miro-board-track">{"".join(cards)}</div>'
         "</div>"
+        f'{"".join(groups_markup)}'
         "</section>"
         '<aside class="comments" data-board-key="timeline-board">'
         '<div class="comments-top">'
@@ -326,69 +394,180 @@ def timeline_content_for_root(docs: list[dict]) -> str:
     )
 
 
+def timeline_content_for_group(group: dict) -> str:
+    cards = []
+    for i, doc in enumerate(group["docs"], start=1):
+        cards.append(
+            '<article class="miro-card">'
+            '<div class="miro-card-head">'
+            '<div class="miro-card-meta">'
+            f'<span class="miro-card-index">#{i}</span>'
+            f'<p class="miro-card-title">{doc["label"]}</p>'
+            "</div>"
+            f'<a class="miro-open-link" href="{doc["slug"]}.html" title="Open {doc["label"]}">Open</a>'
+            "</div>"
+            f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
+            f'data-card-label="{group["label"]} • {doc["label"]}">'
+            f'<img class="miro-card-image" src="../Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
+            '<div class="pin-layer"></div>'
+            "</div>"
+            "</article>"
+        )
+
+    track_content = (
+        f'<div class="miro-board-track">{"".join(cards)}</div>'
+        if cards
+        else '<p class="timeline-empty-group">No images in this folder yet.</p>'
+    )
+
+    return (
+        '<div class="layout">'
+        '<section class="main-pane timeline-summary">'
+        '<div class="miro-board-head">'
+        f"<h1>{group['label']}</h1>"
+        "<p>Images from this folder.</p>"
+        '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
+        '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
+        "</div>"
+        "</div>"
+        '<section class="timeline-group">'
+        '<div class="miro-board-scroller" role="region" aria-label="Timeline board">'
+        f"{track_content}"
+        "</div>"
+        "</section>"
+        "</section>"
+        f'<aside class="comments" data-board-key="timeline-board-{group["key"]}">'
+        '<div class="comments-top">'
+        "<h2>Pin Notes</h2>"
+        '<p class="comment-hint">'
+        "Click on a timeline image to place a pin and add a note."
+        "</p>"
+        '<p class="comment-live sr-only" aria-live="polite" '
+        'aria-atomic="true" role="status"></p>'
+        '<p class="comment-live-alert sr-only" aria-live="assertive" '
+        'aria-atomic="true"></p>'
+        '<label class="comment-author-label" for="comment-author">'
+        "Your name"
+        "</label>"
+        '<input id="comment-author" class="comment-author" '
+        'type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />'
+        '<p class="comment-count">0 notes</p>'
+        '<button class="comment-clear" type="button">Clear all notes</button>'
+        "</div>"
+        '<div class="comment-log-wrap">'
+        '<h3 class="comment-log-title">Chronological Notes</h3>'
+        '<p class="comment-log-empty">No notes yet.</p>'
+        '<ol class="comment-log"></ol>'
+        "</div>"
+        "</aside>"
+        "</div>"
+    )
+
+
 def main() -> None:
-    PDF_DIR.mkdir(parents=True, exist_ok=True)
+    IMAGE_DIR.mkdir(parents=True, exist_ok=True)
     PAGES_DIR.mkdir(parents=True, exist_ok=True)
     STYLE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     for page in PAGES_DIR.glob("*.html"):
         page.unlink()
 
-    media_files = sorted(
-        [
-            p
-            for p in PDF_DIR.iterdir()
-            if p.is_file() and p.suffix.lower() in IMAGE_EXTS
-        ],
-        key=media_sort_key,
-    )
-
+    timeline_groups = collect_timeline_groups()
     docs: list[dict] = []
     seen: set[str] = set()
-    for path in media_files:
-        label = html.escape(display_label(path))
-        slug = unique_slug(seen, slugify(path.name))
-        docs.append(
-            {
+    for group in timeline_groups:
+        group_docs: list[dict] = []
+        for path in group["files"]:
+            rel_path = path.relative_to(IMAGE_DIR).as_posix()
+            label = html.escape(display_label(path))
+            slug = unique_slug(seen, slugify(rel_path))
+            doc = {
                 "path": path,
+                "rel_path": rel_path,
                 "label": label,
                 "slug": slug,
                 "alt": html.escape(display_label(path)),
             }
-        )
+            docs.append(doc)
+            group_docs.append(doc)
+        group["docs"] = group_docs
 
     if docs:
-        root_menu_links = mobile_menu_for_root(docs, None)
+        tabs = [
+            {
+                "key": "timeline",
+                "label": "Timeline",
+                "href_root": "index.html",
+                "href_page": "../index.html",
+            }
+        ]
+        for group in timeline_groups:
+            tabs.append(
+                {
+                    "key": group["key"],
+                    "label": group["label"],
+                    "href_root": f"pages/timeline-{group['key']}.html",
+                    "href_page": f"timeline-{group['key']}.html",
+                }
+            )
+
+        root_menu_links = mobile_menu_for_root_tabs(tabs, "timeline")
         root_prev_href = None
-        root_next_href = f"pages/{docs[0]['slug']}.html"
-        index_html = render_page(
-            title="Timeline | Image Timeline",
-            nav=nav_for_root(docs, None),
-            media_path=None,
-            media_alt=None,
-            css_href="styles.css",
-            script_href="comments.js",
-            page_key=None,
-            mobile_nav=mobile_controls(root_prev_href, root_next_href, root_menu_links),
-            mobile_brand="Timeline",
-            custom_content=timeline_content_for_root(docs),
+        root_next_href = tabs[1]["href_root"] if len(tabs) > 1 else None
+        INDEX_FILE.write_text(
+            render_page(
+                title="Timeline | Image Timeline",
+                nav=nav_for_root_tabs(tabs, "timeline"),
+                media_path=None,
+                media_alt=None,
+                css_href="styles.css",
+                script_href="comments.js",
+                page_key=None,
+                mobile_nav=mobile_controls(root_prev_href, root_next_href, root_menu_links),
+                mobile_brand="Timeline",
+                custom_content=timeline_content_for_root(timeline_groups),
+            ),
+            encoding="utf-8",
         )
-        INDEX_FILE.write_text(index_html, encoding="utf-8")
+
+        for idx, group in enumerate(timeline_groups, start=1):
+            prev_tab = tabs[idx - 1]["href_page"] if idx - 1 >= 0 else None
+            next_tab = tabs[idx + 1]["href_page"] if idx + 1 < len(tabs) else None
+            group_menu_links = mobile_menu_for_page_tabs(tabs, group["key"])
+            group_html = render_page(
+                title=f"{group['label']} | Image Timeline",
+                nav=nav_for_page_tabs(tabs, group["key"]),
+                media_path=None,
+                media_alt=None,
+                css_href="../styles.css",
+                script_href="../comments.js",
+                page_key=None,
+                mobile_nav=mobile_controls(prev_tab, next_tab, group_menu_links),
+                mobile_brand=group["label"],
+                custom_content=timeline_content_for_group(group),
+            )
+            (PAGES_DIR / f"timeline-{group['key']}.html").write_text(group_html, encoding="utf-8")
+
+        group_by_doc_slug = {}
+        for group in timeline_groups:
+            for doc in group["docs"]:
+                group_by_doc_slug[doc["slug"]] = group
 
         for i, doc in enumerate(docs):
-            page_menu_links = mobile_menu_for_page(docs, doc["slug"])
+            group = group_by_doc_slug.get(doc["slug"])
+            active_tab_key = group["key"] if group else "timeline"
+            page_menu_links = mobile_menu_for_page_tabs(tabs, active_tab_key)
             prev_idx = i - 1
             next_idx = i + 1
             prev_href = "../index.html" if prev_idx < 0 else f"{docs[prev_idx]['slug']}.html"
-            next_href = (
-                None
-                if next_idx >= len(docs)
-                else f"{docs[next_idx]['slug']}.html"
-            )
+            next_href = None if next_idx >= len(docs) else f"{docs[next_idx]['slug']}.html"
             page_html = render_page(
                 title=f"{doc['label']} | Image Timeline",
-                nav=nav_for_page(docs, doc["slug"]),
-                media_path=f"../pdfs/{quote(doc['path'].name)}",
+                nav=nav_for_page_tabs(tabs, active_tab_key),
+                media_path=f"../Images/{quote(doc['rel_path'])}",
                 media_alt=doc["alt"],
                 css_href="../styles.css",
                 script_href="../comments.js",
@@ -401,7 +580,17 @@ def main() -> None:
         INDEX_FILE.write_text(
             render_page(
                 title="Image Timeline",
-                nav=nav_for_root([], ""),
+                nav=nav_for_root_tabs(
+                    [
+                        {
+                            "key": "timeline",
+                            "label": "Timeline",
+                            "href_root": "index.html",
+                            "href_page": "../index.html",
+                        }
+                    ],
+                    "timeline",
+                ),
                 media_path=None,
                 media_alt=None,
                 css_href="styles.css",

@@ -76,6 +76,8 @@
   --desktop-nav-gap: 16px;
   --mobile-editor-gutter: 12px;
   --control-min-height: 40px;
+  --timeline-zoom: 1;
+  --timeline-card-base: 380px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -452,12 +454,43 @@ body {
   gap: var(--space-12);
 }
 
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.timeline-control-btn {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: var(--surface-panel);
+  color: var(--glass-text-primary);
+  padding: 0.32rem 0.66rem;
+  min-height: var(--control-min-height);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.timeline-zoom-readout {
+  font-size: 0.78rem;
+  color: var(--glass-text-secondary);
+  min-width: 3.3rem;
+  text-align: right;
+}
+
+.timeline-group {
+  display: grid;
+  gap: var(--space-8);
+}
+
 .miro-board-head {
   display: grid;
   gap: var(--space-6);
 }
 
-.miro-board-head h1 {
+.miro-board-head h1,
+.miro-board-head h2 {
   margin: 0;
   font-size: 1.45rem;
   line-height: 1.2;
@@ -482,10 +515,21 @@ body {
 .miro-board-track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(340px, 420px);
+  grid-auto-columns: max(220px, calc(var(--timeline-card-base) * var(--timeline-zoom)));
   gap: var(--space-16);
   align-items: start;
   min-width: max-content;
+}
+
+.timeline-empty-group {
+  margin: 0;
+  padding: var(--space-10) var(--space-12);
+  border: 1px dashed var(--line-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-panel);
+  color: var(--glass-text-secondary);
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .miro-card {
@@ -976,7 +1020,7 @@ textarea:focus-visible {
   }
 
   .miro-board-track {
-    grid-auto-columns: minmax(260px, 72vw);
+    grid-auto-columns: max(220px, min(72vw, calc(var(--timeline-card-base) * var(--timeline-zoom))));
     gap: var(--space-10);
   }
 

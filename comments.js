@@ -828,8 +828,9 @@
       .map((item) => {
         if (!item || typeof item !== "object") return null;
         const text = String(item.text ?? "").trim();
-        const cardSlug = String(item.cardSlug ?? "").trim();
-        if (!text || !cardSlug) return null;
+        const legacySlug = String(item.cardSlug ?? "").trim();
+        const cardKey = String(item.cardKey ?? legacySlug).trim();
+        if (!text || !cardKey) return null;
         const sourcePin = item.pin && typeof item.pin === "object" ? item.pin : item;
         const pinX = Number(sourcePin.x);
         const pinY = Number(sourcePin.y);
@@ -839,7 +840,7 @@
           text,
           author: String(item.author || "Anonymous").trim() || "Anonymous",
           createdAt: String(item.createdAt || new Date().toISOString()),
-          cardSlug,
+          cardKey,
           pin: { x: clamp01(pinX), y: clamp01(pinY) },
         };
       })
@@ -887,13 +888,13 @@
     const layout = section.closest(".layout");
     if (!boardKey || !layout) return;
 
-    const stages = Array.from(layout.querySelectorAll(".miro-card-stage[data-card-slug]"));
+    const stages = Array.from(layout.querySelectorAll(".miro-card-stage[data-card-key]"));
     if (!stages.length) return;
 
     const stageMap = new Map();
     const labelMap = new Map();
     stages.forEach((stage) => {
-      const slug = stage.getAttribute("data-card-slug");
+      const slug = stage.getAttribute("data-card-key");
       const label = stage.getAttribute("data-card-label");
       if (!slug) return;
       stageMap.set(slug, stage);
@@ -1011,7 +1012,7 @@
     const setEditorMeta = (mode, item) => {
       if (mode === "edit" && item) {
         const stamp = formatDate(item.createdAt);
-        const card = labelMap.get(item.cardSlug) || item.cardSlug;
+        const card = labelMap.get(item.cardKey) || item.cardKey;
         meta.textContent = `${item.author || "Anonymous"}${stamp ? ` • ${stamp}` : ""} • ${card}`;
         return;
       }
@@ -1042,7 +1043,7 @@
       });
 
       ordered.forEach((item, index) => {
-        const stage = stageMap.get(item.cardSlug);
+        const stage = stageMap.get(item.cardKey);
         const layer = stage?.querySelector(".pin-layer");
         if (!stage || !layer) return;
         const marker = document.createElement("button");
@@ -1065,7 +1066,7 @@
       });
 
       if (draft) {
-        const stage = stageMap.get(draft.cardSlug);
+        const stage = stageMap.get(draft.cardKey);
         const layer = stage?.querySelector(".pin-layer");
         if (layer) {
           const draftMarker = document.createElement("div");
@@ -1106,13 +1107,13 @@
 
           const body = document.createElement("p");
           body.className = "comment-log-text";
-          const cardName = labelMap.get(item.cardSlug) || item.cardSlug;
+          const cardName = labelMap.get(item.cardKey) || item.cardKey;
           body.textContent = `${cardName}\n${item.text}`;
 
           li.appendChild(header);
           li.appendChild(body);
           li.addEventListener("click", () => {
-            const stage = stageMap.get(item.cardSlug);
+            const stage = stageMap.get(item.cardKey);
             if (!stage) return;
             activeCommentId = item.id;
             editingCommentId = item.id;
@@ -1180,7 +1181,7 @@
         if (!rect.width || !rect.height) return;
         const x = clamp01((event.clientX - rect.left) / rect.width);
         const y = clamp01((event.clientY - rect.top) / rect.height);
-        draft = { cardSlug: stage.getAttribute("data-card-slug"), pin: { x, y } };
+        draft = { cardKey: stage.getAttribute("data-card-key"), pin: { x, y } };
         activeCommentId = null;
         editingCommentId = null;
         openEditor(stage, draft.pin, "", "create", null);
@@ -1221,13 +1222,13 @@
           }
           activeCommentId = editingCommentId;
           setHint("Note updated.", "info", true);
-        } else if (draft && draft.cardSlug) {
+        } else if (draft && draft.cardKey) {
           const newItem = {
             id: makeId(),
             text,
             author,
             createdAt: new Date().toISOString(),
-            cardSlug: draft.cardSlug,
+            cardKey: draft.cardKey,
             pin: draft.pin,
           };
           const sharedOk = await mutateShared("add", { note: newItem });
@@ -1309,4 +1310,72 @@
     syncFromShared(false);
     setInterval(() => syncFromShared(true), 12000);
   });
+})();
+
+(() => {
+  const summary = document.querySelector(".timeline-summary");
+  if (!summary) return;
+
+  const controls = summary.querySelector(".timeline-controls");
+  if (!controls) return;
+
+  const fitBtn = controls.querySelector('[data-timeline-action="fit"]');
+  const zoomInBtn = controls.querySelector('[data-timeline-action="zoom-in"]');
+  const zoomOutBtn = controls.querySelector('[data-timeline-action="zoom-out"]');
+  const readout = controls.querySelector(".timeline-zoom-readout");
+
+  let zoom = 1;
+  const clampZoom = (value) => Math.min(2.5, Math.max(0.35, value));
+
+  const applyZoom = () => {
+    summary.style.setProperty("--timeline-zoom", zoom.toFixed(2));
+    if (readout) readout.textContent = `${Math.round(zoom * 100)}%`;
+  };
+
+  const fitToScreen = () => {
+    const groups = Array.from(summary.querySelectorAll(".timeline-group"));
+    if (!groups.length) return;
+
+    let fitZoom = zoom;
+    groups.forEach((group) => {
+      const scroller = group.querySelector(".miro-board-scroller");
+      const track = group.querySelector(".miro-board-track");
+      if (!scroller || !track) return;
+      const viewport = scroller.clientWidth;
+      const content = track.scrollWidth;
+      if (!viewport || !content) return;
+      const candidate = zoom * (viewport / content);
+      fitZoom = Math.min(fitZoom, candidate);
+    });
+
+    zoom = clampZoom(fitZoom);
+    applyZoom();
+
+    groups.forEach((group) => {
+      const scroller = group.querySelector(".miro-board-scroller");
+      if (scroller) scroller.scrollLeft = 0;
+    });
+  };
+
+  if (fitBtn) {
+    fitBtn.addEventListener("click", () => {
+      fitToScreen();
+    });
+  }
+
+  if (zoomInBtn) {
+    zoomInBtn.addEventListener("click", () => {
+      zoom = clampZoom(zoom + 0.1);
+      applyZoom();
+    });
+  }
+
+  if (zoomOutBtn) {
+    zoomOutBtn.addEventListener("click", () => {
+      zoom = clampZoom(zoom - 0.1);
+      applyZoom();
+    });
+  }
+
+  applyZoom();
 })();
