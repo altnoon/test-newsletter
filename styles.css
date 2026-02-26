@@ -55,15 +55,15 @@
   --surface-panel: #faf9f5;
   --line-subtle: #e8e6dc;
   --accent-blue: #6a9bcc;
-  --accent-orange: #d97757;
-  --accent-red: #c44d3d;
+  --accent-orange: #f7bf4f;
+  --accent-red: #e2a52b;
   --brand-dark-green: #faf9f5;
   --brand-medium-green: #ffffff;
   --brand-light-green: #d0cec4;
-  --note-chip-bg: #f5e6de;
-  --note-chip-border: #e5cbbf;
-  --note-chip-text: #b85a3a;
-  --focus-ring: rgba(217, 119, 87, 0.25);
+  --note-chip-bg: #fff2d2;
+  --note-chip-border: #f2cd7a;
+  --note-chip-text: #9a6a00;
+  --focus-ring: rgba(247, 191, 79, 0.3);
 
   --shadow-glass-sm: 0 1px 3px rgba(20, 20, 19, 0.06),
     0 1px 2px rgba(20, 20, 19, 0.04);
@@ -95,15 +95,15 @@
     --surface-bg: #1a1918;
     --surface-panel: #242320;
     --line-subtle: rgba(255, 255, 255, 0.14);
-    --accent-orange: #5cc9b0;
-    --accent-red: #d96a5c;
+    --accent-orange: #f7bf4f;
+    --accent-red: #d8a140;
     --brand-dark-green: #1f1e1b;
     --brand-medium-green: #2e2d29;
     --brand-light-green: rgba(255, 255, 255, 0.2);
-    --note-chip-bg: rgba(224, 139, 109, 0.18);
-    --note-chip-border: rgba(224, 139, 109, 0.45);
-    --note-chip-text: #e8a58e;
-    --focus-ring: rgba(224, 139, 109, 0.3);
+    --note-chip-bg: rgba(247, 191, 79, 0.2);
+    --note-chip-border: rgba(247, 191, 79, 0.45);
+    --note-chip-text: #ffd981;
+    --focus-ring: rgba(247, 191, 79, 0.35);
   }
 }
 
@@ -266,9 +266,9 @@ body {
 }
 
 .nav-link.is-active {
-  color: #ffffff;
+  color: #2f2200;
   border-color: transparent;
-  background: #5cc9b0;
+  background: var(--accent-orange);
 }
 
 .nav-empty {
@@ -819,7 +819,7 @@ body {
 }
 
 .comment-hint.is-warning {
-  color: #b45309;
+  color: #9a6a00;
 }
 
 .comment-hint.is-info {
@@ -1107,8 +1107,8 @@ textarea:focus-visible {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    background: #5cc9b0;
-    color: #ffffff;
+    background: var(--accent-orange);
+    color: #2f2200;
     padding: 0.32rem 0.72rem;
     border-radius: var(--radius-full);
     font-size: 0.61rem;
