@@ -398,11 +398,19 @@ body {
   gap: var(--space-12);
 }
 
+.timeline-summary > .miro-board-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
 .timeline-controls {
   display: flex;
   align-items: center;
   gap: var(--space-6);
   flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .timeline-control-btn {
@@ -1002,6 +1010,12 @@ textarea:focus-visible {
 }
 
 @media (max-width: 700px) {
+  .timeline-summary > .miro-board-head {
+    display: grid;
+    justify-content: initial;
+    gap: var(--space-6);
+  }
+
   .timeline-controls {
     display: none;
   }
