@@ -1061,6 +1061,12 @@ textarea:focus-visible {
     padding-bottom: 7px;
   }
 
+  .timeline-summary > .miro-board-head p {
+    justify-self: center;
+    text-align: center;
+    width: 100%;
+  }
+
   .topbar {
     display: none;
   }
