@@ -333,7 +333,7 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
             '<section class="timeline-group">'
             '<div class="miro-board-head">'
             f"<h2>{group['label']}</h2>"
-            "<p>Left-to-right sequence. Click on any image to pin feedback.</p>"
+            "<p>Left-to-right sequence.<br />Click on any image to pin feedback.</p>"
             "</div>"
             '<div class="miro-board-scroller" role="region" aria-label="Timeline board">'
             f"{track_content}"
