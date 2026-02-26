@@ -399,10 +399,24 @@ body {
 }
 
 .timeline-summary > .miro-board-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title controls"
+    "helper controls";
+  align-items: start;
   gap: var(--space-12);
+}
+
+.timeline-summary > .miro-board-head h1 {
+  grid-area: title;
+  justify-self: center;
+  text-align: center;
+}
+
+.timeline-summary > .miro-board-head p {
+  grid-area: helper;
+  justify-self: center;
 }
 
 .timeline-controls {
@@ -410,7 +424,8 @@ body {
   align-items: center;
   gap: var(--space-6);
   flex-wrap: wrap;
-  margin-left: auto;
+  grid-area: controls;
+  margin-left: 0;
 }
 
 .timeline-control-btn {
@@ -1012,7 +1027,11 @@ textarea:focus-visible {
 @media (max-width: 700px) {
   .timeline-summary > .miro-board-head {
     display: grid;
-    justify-content: initial;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "title"
+      "helper"
+      "controls";
     gap: var(--space-6);
   }
 
