@@ -661,27 +661,46 @@ body {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 46px;
-  height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  width: 104px;
+  height: 104px;
+  border: 2px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--radius-full);
-  background: rgba(0, 0, 0, 0.35);
-  color: #ffffff;
-  font-size: 1.4rem;
-  line-height: 1;
-  font-weight: 700;
+  background: rgba(27, 28, 31, 0.88);
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 26px rgba(0, 0, 0, 0.34);
+}
+
+.image-lightbox-nav::before {
+  content: "";
+  width: 28px;
+  height: 28px;
+  border-top: 5px solid rgba(255, 255, 255, 0.96);
+  border-right: 5px solid rgba(255, 255, 255, 0.96);
+  border-radius: 2px;
 }
 
 .image-lightbox-prev {
   left: 16px;
 }
 
+.image-lightbox-prev::before {
+  transform: rotate(-135deg);
+  margin-left: 8px;
+}
+
 .image-lightbox-next {
   right: 16px;
+}
+
+.image-lightbox-next::before {
+  transform: rotate(45deg);
+  margin-right: 8px;
 }
 
 .image-lightbox-nav:disabled {
@@ -690,7 +709,7 @@ body {
 }
 
 .image-lightbox-nav:not(:disabled):hover {
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(33, 34, 38, 0.94);
 }
 
 .layout {
