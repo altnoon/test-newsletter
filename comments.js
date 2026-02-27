@@ -830,14 +830,25 @@
   };
 
   const closeLightbox = () => {
+    const currentItem = currentList[currentIndex] || null;
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
     lightboxImage.removeAttribute("src");
-    currentList = [];
-    currentIndex = -1;
+    if (currentItem) {
+      currentItem.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+      if (typeof currentItem.focus === "function") {
+        currentItem.focus({ preventScroll: true });
+      }
+    }
     if (lastFocused && typeof lastFocused.focus === "function") {
       lastFocused.focus();
     }
+    currentList = [];
+    currentIndex = -1;
     lastFocused = null;
   };
 
