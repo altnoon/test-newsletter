@@ -687,6 +687,14 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 
+@media (min-width: 701px) {
+  .image-lightbox-zoom {
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 5px;
+  }
+}
+
 .image-lightbox-zoom-btn {
   width: 28px;
   height: 28px;
