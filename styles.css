@@ -580,7 +580,7 @@ body {
   border-radius: var(--radius-sm);
   overflow: visible;
   border: 1px solid var(--line-subtle);
-  cursor: crosshair;
+  cursor: default;
   touch-action: manipulation;
 }
 
@@ -599,6 +599,16 @@ body {
   position: relative;
 }
 
+/* Temporarily hide feedback/comment UI while preserving page content layout. */
+.layout > .comments {
+  display: none;
+}
+
+.layout {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
 .main-pane {
   min-width: 0;
 }
@@ -615,7 +625,7 @@ body {
   position: relative;
   width: min(100%, 900px);
   margin: 0 auto;
-  cursor: crosshair;
+  cursor: default;
   touch-action: manipulation;
 }
 

@@ -1,4 +1,5 @@
 (() => {
+  const COMMENTS_ENABLED = false;
   const topbar = document.querySelector(".topbar");
   if (topbar) {
     const navPrev = topbar.querySelector(".nav-arrow-left");
@@ -144,7 +145,7 @@
   }
 
   const sections = document.querySelectorAll(".comments[data-page-key]");
-  if (sections.length) {
+  if (COMMENTS_ENABLED && sections.length) {
 
     const API_ENDPOINT = "/api/notes";
     const AUTHOR_STORAGE_KEY = "image-timeline-author";
@@ -778,6 +779,8 @@
 })();
 
 (() => {
+  const COMMENTS_ENABLED = false;
+  if (!COMMENTS_ENABLED) return;
   const boardSections = document.querySelectorAll(".comments[data-board-key]");
   if (!boardSections.length) return;
 
