@@ -849,13 +849,8 @@
     const bounded = clampPan(panX, panY);
     panX = bounded.x;
     panY = bounded.y;
-    if (isDesktopViewport()) {
-      lightboxFrame.style.transform = `translate(${panX}px, ${panY}px)`;
-      lightboxImage.style.transform = `scale(${zoomLevel})`;
-    } else {
-      lightboxFrame.style.transform = "translate(0px, 0px)";
-      lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
-    }
+    lightboxFrame.style.transform = "translate(0px, 0px)";
+    lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
     lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
   };
   const resetPan = () => {
