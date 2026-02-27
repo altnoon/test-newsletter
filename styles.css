@@ -635,6 +635,8 @@ body {
 }
 
 .image-lightbox-image {
+  position: relative;
+  z-index: 1;
   max-width: min(96vw, 2200px);
   max-height: 94vh;
   width: auto;
@@ -648,6 +650,7 @@ body {
 
 .image-lightbox-close {
   position: absolute;
+  z-index: 3;
   top: 12px;
   right: 12px;
   width: 42px;
@@ -669,6 +672,7 @@ body {
 
 .image-lightbox-zoom {
   position: absolute;
+  z-index: 3;
   top: 12px;
   right: 62px;
   display: inline-flex;
@@ -708,6 +712,7 @@ body {
 
 .image-lightbox-nav {
   position: absolute;
+  z-index: 3;
   top: 50%;
   transform: translateY(-50%);
   width: 46px;
