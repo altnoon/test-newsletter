@@ -779,6 +779,66 @@
 })();
 
 (() => {
+  const selector = ".miro-card-image, .media-viewer";
+  const images = Array.from(document.querySelectorAll(selector));
+  if (!images.length) return;
+
+  const overlay = document.createElement("div");
+  overlay.className = "image-lightbox";
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.innerHTML =
+    '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image">X</button>' +
+    '<img class="image-lightbox-image" alt="" />';
+  document.body.appendChild(overlay);
+
+  const closeBtn = overlay.querySelector(".image-lightbox-close");
+  const lightboxImage = overlay.querySelector(".image-lightbox-image");
+  if (!closeBtn || !lightboxImage) return;
+
+  let lastFocused = null;
+
+  const closeLightbox = () => {
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden", "true");
+    lightboxImage.removeAttribute("src");
+    if (lastFocused && typeof lastFocused.focus === "function") {
+      lastFocused.focus();
+    }
+    lastFocused = null;
+  };
+
+  const openLightbox = (source) => {
+    const src = source.getAttribute("src");
+    if (!src) return;
+    lastFocused = document.activeElement;
+    lightboxImage.setAttribute("src", src);
+    lightboxImage.setAttribute("alt", source.getAttribute("alt") || "");
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden", "false");
+    closeBtn.focus();
+  };
+
+  images.forEach((image) => {
+    image.style.cursor = "zoom-in";
+    image.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openLightbox(image);
+    });
+  });
+
+  closeBtn.addEventListener("click", closeLightbox);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeLightbox();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && overlay.classList.contains("is-open")) {
+      closeLightbox();
+    }
+  });
+})();
+
+(() => {
   const COMMENTS_ENABLED = false;
   if (!COMMENTS_ENABLED) return;
   const boardSections = document.querySelectorAll(".comments[data-board-key]");

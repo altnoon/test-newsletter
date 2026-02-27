@@ -612,6 +612,51 @@ body {
   display: none !important;
 }
 
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(16, 16, 16, 0.92);
+}
+
+.image-lightbox.is-open {
+  display: flex;
+}
+
+.image-lightbox-image {
+  max-width: min(96vw, 2200px);
+  max-height: 94vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-glass-float);
+}
+
+.image-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.image-lightbox-close:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
 .layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
