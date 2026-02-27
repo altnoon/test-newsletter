@@ -691,7 +691,23 @@ body {
   .image-lightbox-zoom {
     flex-direction: column;
     gap: 5px;
-    padding: 7px 5px;
+    width: 42px;
+    box-sizing: border-box;
+    padding: 6px 0;
+    border-radius: 999px;
+  }
+
+  .image-lightbox-zoom-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+  }
+
+  .image-lightbox-zoom-readout {
+    min-width: 0;
+    font-size: 0.64rem;
+    font-weight: 600;
+    line-height: 1;
   }
 }
 
