@@ -766,14 +766,19 @@ body {
   .image-lightbox-close,
   .image-lightbox-zoom {
     position: fixed;
+    z-index: 320;
   }
 
   .image-lightbox-prev {
-    left: calc(var(--safe-left) + 10px);
+    left: calc(var(--safe-left) + 8px);
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   .image-lightbox-next {
-    right: calc(var(--safe-right) + 10px);
+    right: calc(var(--safe-right) + 8px);
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   .image-lightbox-close {
