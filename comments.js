@@ -837,6 +837,10 @@
   let swipeDeltaX = 0;
   let swipeDeltaY = 0;
   let swipeConsumed = false;
+  const activePointers = new Map();
+  let pinchActive = false;
+  let pinchStartDistance = 0;
+  let pinchStartZoom = 1;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -863,6 +867,11 @@
     panX = 0;
     panY = 0;
     updateImageTransform();
+  };
+  const pointerDistance = (a, b) => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    return Math.hypot(dx, dy);
   };
 
   const applyZoom = (value) => {
@@ -927,6 +936,8 @@
     }
     currentList = [];
     currentIndex = -1;
+    activePointers.clear();
+    pinchActive = false;
     lastFocused = null;
   };
 
@@ -971,6 +982,19 @@
     applyZoom(zoomLevel - ZOOM_STEP);
   });
   lightboxImage.addEventListener("pointerdown", (event) => {
+    activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (!isDesktopViewport() && activePointers.size === 2) {
+      const [p1, p2] = [...activePointers.values()];
+      pinchActive = true;
+      pinchStartDistance = pointerDistance(p1, p2) || 1;
+      pinchStartZoom = zoomLevel;
+      swipePointerId = null;
+      draggingPointerId = null;
+      overlay.classList.remove("is-panning");
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (!isDesktopViewport() && zoomLevel <= 1.001) {
       swipePointerId = event.pointerId;
       swipeStartX = event.clientX;
@@ -992,6 +1016,18 @@
     event.stopPropagation();
   });
   lightboxImage.addEventListener("pointermove", (event) => {
+    if (activePointers.has(event.pointerId)) {
+      activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+    if (!isDesktopViewport() && pinchActive && activePointers.size >= 2) {
+      const [p1, p2] = [...activePointers.values()];
+      const distance = pointerDistance(p1, p2) || pinchStartDistance;
+      const nextZoom = pinchStartZoom * (distance / pinchStartDistance);
+      applyZoom(nextZoom);
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (swipePointerId === event.pointerId && zoomLevel <= 1.001 && !isDesktopViewport()) {
       swipeDeltaX = event.clientX - swipeStartX;
       swipeDeltaY = event.clientY - swipeStartY;
@@ -1011,6 +1047,10 @@
     event.stopPropagation();
   });
   const endDrag = (event) => {
+    activePointers.delete(event.pointerId);
+    if (pinchActive && activePointers.size < 2) {
+      pinchActive = false;
+    }
     if (swipePointerId === event.pointerId) {
       if (
         zoomLevel <= 1.001 &&
