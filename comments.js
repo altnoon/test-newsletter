@@ -831,6 +831,12 @@
   let dragOriginPanX = 0;
   let dragOriginPanY = 0;
   let dragMoved = false;
+  let swipePointerId = null;
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let swipeDeltaX = 0;
+  let swipeDeltaY = 0;
+  let swipeConsumed = false;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -965,6 +971,14 @@
     applyZoom(zoomLevel - ZOOM_STEP);
   });
   lightboxImage.addEventListener("pointerdown", (event) => {
+    if (!isDesktopViewport() && zoomLevel <= 1.001) {
+      swipePointerId = event.pointerId;
+      swipeStartX = event.clientX;
+      swipeStartY = event.clientY;
+      swipeDeltaX = 0;
+      swipeDeltaY = 0;
+      swipeConsumed = false;
+    }
     if (zoomLevel <= 1.001) return;
     draggingPointerId = event.pointerId;
     dragStartX = event.clientX;
@@ -978,6 +992,14 @@
     event.stopPropagation();
   });
   lightboxImage.addEventListener("pointermove", (event) => {
+    if (swipePointerId === event.pointerId && zoomLevel <= 1.001 && !isDesktopViewport()) {
+      swipeDeltaX = event.clientX - swipeStartX;
+      swipeDeltaY = event.clientY - swipeStartY;
+      if (Math.abs(swipeDeltaX) > 12 && Math.abs(swipeDeltaX) > Math.abs(swipeDeltaY)) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    }
     if (draggingPointerId !== event.pointerId) return;
     const dx = event.clientX - dragStartX;
     const dy = event.clientY - dragStartY;
@@ -989,6 +1011,18 @@
     event.stopPropagation();
   });
   const endDrag = (event) => {
+    if (swipePointerId === event.pointerId) {
+      if (
+        zoomLevel <= 1.001 &&
+        !isDesktopViewport() &&
+        Math.abs(swipeDeltaX) > 56 &&
+        Math.abs(swipeDeltaX) > Math.abs(swipeDeltaY) * 1.25
+      ) {
+        stepImage(swipeDeltaX < 0 ? 1 : -1);
+        swipeConsumed = true;
+      }
+      swipePointerId = null;
+    }
     if (draggingPointerId !== event.pointerId) return;
     draggingPointerId = null;
     overlay.classList.remove("is-panning");
@@ -1000,6 +1034,12 @@
   lightboxImage.addEventListener("pointercancel", endDrag);
   lightboxImage.addEventListener("pointerleave", endDrag);
   lightboxImage.addEventListener("click", (event) => {
+    if (swipeConsumed) {
+      swipeConsumed = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (dragMoved) {
       dragMoved = false;
       event.preventDefault();

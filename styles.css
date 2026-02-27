@@ -832,7 +832,7 @@ body {
   }
 
   .image-lightbox-zoom {
-    top: calc(var(--safe-top) + 56px) !important;
+    top: calc(var(--safe-top) + 64px) !important;
     right: calc(var(--safe-right) + 8px) !important;
     left: auto !important;
     bottom: auto !important;
@@ -841,6 +841,10 @@ body {
     padding: 7px 5px;
     width: 42px;
     box-sizing: border-box;
+  }
+
+  .image-lightbox-zoom-readout {
+    font-size: 0.66rem;
   }
 }
 
