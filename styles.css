@@ -657,6 +657,42 @@ body {
   background: rgba(0, 0, 0, 0.55);
 }
 
+.image-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font-size: 1.4rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-lightbox-prev {
+  left: 16px;
+}
+
+.image-lightbox-next {
+  right: 16px;
+}
+
+.image-lightbox-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.image-lightbox-nav:not(:disabled):hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
 .layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;

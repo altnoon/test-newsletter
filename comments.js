@@ -787,32 +787,77 @@
   overlay.className = "image-lightbox";
   overlay.setAttribute("aria-hidden", "true");
   overlay.innerHTML =
+    '<button class="image-lightbox-nav image-lightbox-prev" type="button" aria-label="Previous image">&#10094;</button>' +
+    '<button class="image-lightbox-nav image-lightbox-next" type="button" aria-label="Next image">&#10095;</button>' +
     '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image">X</button>' +
     '<img class="image-lightbox-image" alt="" />';
   document.body.appendChild(overlay);
 
   const closeBtn = overlay.querySelector(".image-lightbox-close");
+  const prevBtn = overlay.querySelector(".image-lightbox-prev");
+  const nextBtn = overlay.querySelector(".image-lightbox-next");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
-  if (!closeBtn || !lightboxImage) return;
+  if (!closeBtn || !prevBtn || !nextBtn || !lightboxImage) return;
 
   let lastFocused = null;
+  let currentList = [];
+  let currentIndex = -1;
+
+  const updateNavState = () => {
+    const hasMany = currentList.length > 1;
+    prevBtn.style.display = hasMany ? "inline-flex" : "none";
+    nextBtn.style.display = hasMany ? "inline-flex" : "none";
+    prevBtn.disabled = !hasMany || currentIndex <= 0;
+    nextBtn.disabled = !hasMany || currentIndex >= currentList.length - 1;
+  };
+
+  const showCurrentImage = () => {
+    const item = currentList[currentIndex];
+    if (!item) return;
+    const src = item.getAttribute("src");
+    if (!src) return;
+    lightboxImage.setAttribute("src", src);
+    lightboxImage.setAttribute("alt", item.getAttribute("alt") || "");
+    updateNavState();
+  };
+
+  const stepImage = (delta) => {
+    if (!currentList.length) return;
+    const nextIndex = currentIndex + delta;
+    if (nextIndex < 0 || nextIndex >= currentList.length) return;
+    currentIndex = nextIndex;
+    showCurrentImage();
+  };
 
   const closeLightbox = () => {
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
     lightboxImage.removeAttribute("src");
+    currentList = [];
+    currentIndex = -1;
     if (lastFocused && typeof lastFocused.focus === "function") {
       lastFocused.focus();
     }
     lastFocused = null;
   };
 
+  const getImageList = (source) => {
+    const group = source.closest(".timeline-group");
+    if (group) {
+      const groupImages = Array.from(group.querySelectorAll(".miro-card-image"));
+      if (groupImages.length) return groupImages;
+    }
+    return images.filter((item) => item.matches(selector));
+  };
+
   const openLightbox = (source) => {
-    const src = source.getAttribute("src");
-    if (!src) return;
+    const list = getImageList(source);
+    const index = list.indexOf(source);
+    if (!list.length || index < 0) return;
     lastFocused = document.activeElement;
-    lightboxImage.setAttribute("src", src);
-    lightboxImage.setAttribute("alt", source.getAttribute("alt") || "");
+    currentList = list;
+    currentIndex = index;
+    showCurrentImage();
     overlay.classList.add("is-open");
     overlay.setAttribute("aria-hidden", "false");
     closeBtn.focus();
@@ -828,13 +873,22 @@
   });
 
   closeBtn.addEventListener("click", closeLightbox);
+  prevBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    stepImage(-1);
+  });
+  nextBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    stepImage(1);
+  });
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) closeLightbox();
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && overlay.classList.contains("is-open")) {
-      closeLightbox();
-    }
+    if (!overlay.classList.contains("is-open")) return;
+    if (event.key === "Escape") closeLightbox();
+    if (event.key === "ArrowLeft") stepImage(-1);
+    if (event.key === "ArrowRight") stepImage(1);
   });
 })();
 
