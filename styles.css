@@ -737,6 +737,15 @@ body {
   font-weight: 600;
 }
 
+/* Keep desktop readout compact in the vertical zoom rail. */
+@media (min-width: 701px) {
+  .image-lightbox-zoom-readout {
+    min-width: 0 !important;
+    font-size: 0.54rem !important;
+    line-height: 1 !important;
+  }
+}
+
 .image-lightbox-nav {
   position: absolute;
   z-index: 3;
