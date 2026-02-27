@@ -801,24 +801,26 @@ body {
 
   .image-lightbox-prev {
     left: calc(var(--safe-left) + 8px);
-    top: 50%;
-    transform: translateY(-50%);
+    top: auto;
+    bottom: calc(var(--safe-bottom) + 12px);
+    transform: none;
   }
 
   .image-lightbox-next {
     right: calc(var(--safe-right) + 8px);
-    top: 50%;
-    transform: translateY(-50%);
+    top: auto;
+    bottom: calc(var(--safe-bottom) + 12px);
+    transform: none;
   }
 
   .image-lightbox-close {
-    top: calc(var(--safe-top) + 10px);
-    right: calc(var(--safe-right) + 10px);
+    top: calc(var(--safe-top) + 8px);
+    right: calc(var(--safe-right) + 8px);
   }
 
   .image-lightbox-zoom {
-    top: calc(var(--safe-top) + 10px);
-    left: calc(var(--safe-left) + 10px);
+    top: calc(var(--safe-top) + 8px);
+    left: calc(var(--safe-left) + 8px);
     right: auto;
   }
 }
