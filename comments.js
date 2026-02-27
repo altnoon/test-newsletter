@@ -830,6 +830,7 @@
   let dragStartY = 0;
   let dragOriginPanX = 0;
   let dragOriginPanY = 0;
+  let dragMoved = false;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -970,6 +971,7 @@
     dragStartY = event.clientY;
     dragOriginPanX = panX;
     dragOriginPanY = panY;
+    dragMoved = false;
     lightboxImage.style.cursor = "grabbing";
     event.preventDefault();
     event.stopPropagation();
@@ -978,6 +980,7 @@
     if (draggingPointerId !== event.pointerId) return;
     const dx = event.clientX - dragStartX;
     const dy = event.clientY - dragStartY;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) dragMoved = true;
     panX = dragOriginPanX + dx;
     panY = dragOriginPanY + dy;
     updateImageTransform();
@@ -995,6 +998,19 @@
   lightboxImage.addEventListener("pointercancel", endDrag);
   lightboxImage.addEventListener("pointerleave", endDrag);
   lightboxImage.addEventListener("click", (event) => {
+    if (dragMoved) {
+      dragMoved = false;
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (isDesktopViewport()) {
+      const step = event.shiftKey ? -ZOOM_STEP : ZOOM_STEP;
+      applyZoom(zoomLevel + step);
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (zoomLevel > 1) {
       event.preventDefault();
       event.stopPropagation();
