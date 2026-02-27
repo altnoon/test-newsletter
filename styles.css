@@ -720,17 +720,22 @@ body {
 }
 
 @media (max-width: 700px) {
+  .image-lightbox-nav,
+  .image-lightbox-close {
+    position: fixed;
+  }
+
   .image-lightbox-prev {
-    left: 10px;
+    left: calc(var(--safe-left) + 10px);
   }
 
   .image-lightbox-next {
-    right: 10px;
+    right: calc(var(--safe-right) + 10px);
   }
 
   .image-lightbox-close {
-    top: 10px;
-    right: 10px;
+    top: calc(var(--safe-top) + 10px);
+    right: calc(var(--safe-right) + 10px);
   }
 }
 
