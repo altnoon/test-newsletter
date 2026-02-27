@@ -666,6 +666,10 @@ body {
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   transition: opacity 120ms ease;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .image-lightbox-close:hover {
@@ -677,7 +681,9 @@ body {
   height: 16px;
   display: block;
   object-fit: contain;
+  object-position: center;
   pointer-events: none;
+  margin: 0;
 }
 
 .image-lightbox-zoom {
