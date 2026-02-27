@@ -972,6 +972,7 @@
     dragOriginPanX = panX;
     dragOriginPanY = panY;
     dragMoved = false;
+    overlay.classList.add("is-panning");
     lightboxImage.style.cursor = "grabbing";
     event.preventDefault();
     event.stopPropagation();
@@ -990,6 +991,7 @@
   const endDrag = (event) => {
     if (draggingPointerId !== event.pointerId) return;
     draggingPointerId = null;
+    overlay.classList.remove("is-panning");
     lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
     event.preventDefault();
     event.stopPropagation();
