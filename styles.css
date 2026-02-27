@@ -627,6 +627,13 @@ body {
   display: flex;
 }
 
+.image-lightbox-frame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .image-lightbox-image {
   max-width: min(96vw, 2200px);
   max-height: 94vh;
@@ -639,8 +646,8 @@ body {
 
 .image-lightbox-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: -14px;
+  right: -14px;
   width: 42px;
   height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -686,7 +693,7 @@ body {
 }
 
 .image-lightbox-prev {
-  left: 16px;
+  left: -58px;
 }
 
 .image-lightbox-prev::before {
@@ -695,7 +702,7 @@ body {
 }
 
 .image-lightbox-next {
-  right: 16px;
+  right: -58px;
 }
 
 .image-lightbox-next::before {
@@ -710,6 +717,21 @@ body {
 
 .image-lightbox-nav:not(:disabled):hover {
   background: rgba(33, 34, 38, 0.94);
+}
+
+@media (max-width: 700px) {
+  .image-lightbox-prev {
+    left: 10px;
+  }
+
+  .image-lightbox-next {
+    right: 10px;
+  }
+
+  .image-lightbox-close {
+    top: 10px;
+    right: 10px;
+  }
 }
 
 .layout {

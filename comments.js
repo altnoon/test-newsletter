@@ -787,10 +787,12 @@
   overlay.className = "image-lightbox";
   overlay.setAttribute("aria-hidden", "true");
   overlay.innerHTML =
+    '<div class="image-lightbox-frame">' +
     '<button class="image-lightbox-nav image-lightbox-prev" type="button" aria-label="Previous image">&#10094;</button>' +
     '<button class="image-lightbox-nav image-lightbox-next" type="button" aria-label="Next image">&#10095;</button>' +
     '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image">X</button>' +
-    '<img class="image-lightbox-image" alt="" />';
+    '<img class="image-lightbox-image" alt="" />' +
+    "</div>";
   document.body.appendChild(overlay);
 
   const closeBtn = overlay.querySelector(".image-lightbox-close");
