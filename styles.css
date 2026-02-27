@@ -278,7 +278,8 @@ body {
 }
 
 .content {
-  max-width: var(--content-max-width);
+  max-width: none;
+  width: 100%;
   margin: 0 auto;
   padding: calc(var(--sticky-offset) + var(--desktop-nav-gap)) var(--space-20)
     var(--space-20);
@@ -604,6 +605,13 @@ body {
   display: none;
 }
 
+.comments,
+.pin-note-editor,
+.pin-layer,
+.pin-marker {
+  display: none !important;
+}
+
 .layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
@@ -623,7 +631,8 @@ body {
 
 .media-stage {
   position: relative;
-  width: min(100%, 900px);
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
   cursor: default;
   touch-action: manipulation;
