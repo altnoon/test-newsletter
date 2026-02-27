@@ -790,6 +790,11 @@
     '<div class="image-lightbox-frame">' +
     '<button class="image-lightbox-nav image-lightbox-prev" type="button" aria-label="Previous image">&#10094;</button>' +
     '<button class="image-lightbox-nav image-lightbox-next" type="button" aria-label="Next image">&#10095;</button>' +
+    '<div class="image-lightbox-zoom" role="toolbar" aria-label="Fullscreen zoom controls">' +
+    '<button class="image-lightbox-zoom-btn image-lightbox-zoom-out" type="button" aria-label="Zoom out">-</button>' +
+    '<span class="image-lightbox-zoom-readout" aria-live="polite">100%</span>' +
+    '<button class="image-lightbox-zoom-btn image-lightbox-zoom-in" type="button" aria-label="Zoom in">+</button>' +
+    "</div>" +
     '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image">X</button>' +
     '<img class="image-lightbox-image" alt="" />' +
     "</div>";
@@ -798,12 +803,38 @@
   const closeBtn = overlay.querySelector(".image-lightbox-close");
   const prevBtn = overlay.querySelector(".image-lightbox-prev");
   const nextBtn = overlay.querySelector(".image-lightbox-next");
+  const zoomInBtn = overlay.querySelector(".image-lightbox-zoom-in");
+  const zoomOutBtn = overlay.querySelector(".image-lightbox-zoom-out");
+  const zoomReadout = overlay.querySelector(".image-lightbox-zoom-readout");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
-  if (!closeBtn || !prevBtn || !nextBtn || !lightboxImage) return;
+  if (
+    !closeBtn ||
+    !prevBtn ||
+    !nextBtn ||
+    !zoomInBtn ||
+    !zoomOutBtn ||
+    !zoomReadout ||
+    !lightboxImage
+  ) return;
 
   let lastFocused = null;
   let currentList = [];
   let currentIndex = -1;
+  let zoomLevel = 1;
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 3;
+  const ZOOM_STEP = 0.2;
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  const applyZoom = (value) => {
+    zoomLevel = clamp(value, MIN_ZOOM, MAX_ZOOM);
+    lightboxImage.style.transform = `scale(${zoomLevel})`;
+    zoomReadout.textContent = `${Math.round(zoomLevel * 100)}%`;
+    zoomOutBtn.disabled = zoomLevel <= MIN_ZOOM + 0.001;
+    zoomInBtn.disabled = zoomLevel >= MAX_ZOOM - 0.001;
+  };
+
+  const resetZoom = () => applyZoom(1);
 
   const updateNavState = () => {
     const hasMany = currentList.length > 1;
@@ -821,6 +852,7 @@
     lightboxImage.setAttribute("src", src);
     lightboxImage.setAttribute("alt", item.getAttribute("alt") || "");
     updateNavState();
+    resetZoom();
   };
 
   const stepImage = (delta) => {
@@ -836,6 +868,7 @@
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
     lightboxImage.removeAttribute("src");
+    resetZoom();
     if (currentItem) {
       currentItem.scrollIntoView({
         behavior: "smooth",
@@ -886,6 +919,14 @@
   });
 
   closeBtn.addEventListener("click", closeLightbox);
+  zoomInBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    applyZoom(zoomLevel + ZOOM_STEP);
+  });
+  zoomOutBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    applyZoom(zoomLevel - ZOOM_STEP);
+  });
   prevBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     stepImage(-1);
@@ -902,6 +943,9 @@
     if (event.key === "Escape") closeLightbox();
     if (event.key === "ArrowLeft") stepImage(-1);
     if (event.key === "ArrowRight") stepImage(1);
+    if (event.key === "+" || event.key === "=") applyZoom(zoomLevel + ZOOM_STEP);
+    if (event.key === "-") applyZoom(zoomLevel - ZOOM_STEP);
+    if (event.key === "0") resetZoom();
   });
 })();
 
