@@ -849,7 +849,7 @@
     const bounded = clampPan(panX, panY);
     panX = bounded.x;
     panY = bounded.y;
-    lightboxFrame.style.transform = "translate(0px, 0px)";
+    lightboxFrame.style.transform = "";
     lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
     lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
   };
