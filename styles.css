@@ -652,8 +652,8 @@ body {
 .image-lightbox-close {
   position: absolute;
   z-index: 3;
-  top: 12px;
-  right: 12px;
+  top: 0;
+  right: -62px;
   width: 42px;
   height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.75);
@@ -674,8 +674,8 @@ body {
 .image-lightbox-zoom {
   position: absolute;
   z-index: 3;
-  top: 12px;
-  right: 62px;
+  top: 52px;
+  right: -62px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
