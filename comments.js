@@ -795,7 +795,7 @@
     '<span class="image-lightbox-zoom-readout" aria-live="polite">100%</span>' +
     '<button class="image-lightbox-zoom-btn image-lightbox-zoom-in" type="button" aria-label="Zoom in">+</button>' +
     "</div>" +
-    '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image">X</button>' +
+    '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image"><img class="image-lightbox-close-icon" src="/close.svg" alt="" /></button>' +
     '<img class="image-lightbox-image" alt="" />' +
     "</div>";
   document.body.appendChild(overlay);

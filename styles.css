@@ -672,6 +672,14 @@ body {
   background: rgba(0, 0, 0, 0.8);
 }
 
+.image-lightbox-close-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+}
+
 .image-lightbox-zoom {
   position: absolute;
   z-index: 3;
