@@ -821,14 +821,45 @@
   let currentList = [];
   let currentIndex = -1;
   let zoomLevel = 1;
+  let panX = 0;
+  let panY = 0;
+  let draggingPointerId = null;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragOriginPanX = 0;
+  let dragOriginPanY = 0;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const clampPan = (x, y) => {
+    const maxX = Math.max(0, (lightboxImage.clientWidth * (zoomLevel - 1)) / 2);
+    const maxY = Math.max(0, (lightboxImage.clientHeight * (zoomLevel - 1)) / 2);
+    return {
+      x: clamp(x, -maxX, maxX),
+      y: clamp(y, -maxY, maxY),
+    };
+  };
+  const updateImageTransform = () => {
+    const bounded = clampPan(panX, panY);
+    panX = bounded.x;
+    panY = bounded.y;
+    lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
+  };
+  const resetPan = () => {
+    panX = 0;
+    panY = 0;
+    updateImageTransform();
+  };
 
   const applyZoom = (value) => {
     zoomLevel = clamp(value, MIN_ZOOM, MAX_ZOOM);
-    lightboxImage.style.transform = `scale(${zoomLevel})`;
+    if (zoomLevel <= 1.001) {
+      panX = 0;
+      panY = 0;
+    }
+    updateImageTransform();
     zoomReadout.textContent = `${Math.round(zoomLevel * 100)}%`;
     zoomOutBtn.disabled = zoomLevel <= MIN_ZOOM + 0.001;
     zoomInBtn.disabled = zoomLevel >= MAX_ZOOM - 0.001;
@@ -927,6 +958,43 @@
     event.stopPropagation();
     applyZoom(zoomLevel - ZOOM_STEP);
   });
+  lightboxImage.addEventListener("pointerdown", (event) => {
+    if (zoomLevel <= 1.001) return;
+    draggingPointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    dragOriginPanX = panX;
+    dragOriginPanY = panY;
+    lightboxImage.style.cursor = "grabbing";
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  lightboxImage.addEventListener("pointermove", (event) => {
+    if (draggingPointerId !== event.pointerId) return;
+    const dx = event.clientX - dragStartX;
+    const dy = event.clientY - dragStartY;
+    panX = dragOriginPanX + dx;
+    panY = dragOriginPanY + dy;
+    updateImageTransform();
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  const endDrag = (event) => {
+    if (draggingPointerId !== event.pointerId) return;
+    draggingPointerId = null;
+    lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  lightboxImage.addEventListener("pointerup", endDrag);
+  lightboxImage.addEventListener("pointercancel", endDrag);
+  lightboxImage.addEventListener("pointerleave", endDrag);
+  lightboxImage.addEventListener("click", (event) => {
+    if (zoomLevel > 1) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  });
   prevBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     stepImage(-1);
@@ -946,6 +1014,10 @@
     if (event.key === "+" || event.key === "=") applyZoom(zoomLevel + ZOOM_STEP);
     if (event.key === "-") applyZoom(zoomLevel - ZOOM_STEP);
     if (event.key === "0") resetZoom();
+  });
+  window.addEventListener("resize", () => {
+    if (!overlay.classList.contains("is-open")) return;
+    updateImageTransform();
   });
 })();
 

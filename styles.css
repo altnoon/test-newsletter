@@ -646,6 +646,7 @@ body {
   box-shadow: var(--shadow-glass-float);
   transition: transform 140ms ease;
   transform-origin: center center;
+  touch-action: none;
 }
 
 .image-lightbox-close {
