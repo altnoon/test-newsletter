@@ -806,6 +806,7 @@
   const zoomInBtn = overlay.querySelector(".image-lightbox-zoom-in");
   const zoomOutBtn = overlay.querySelector(".image-lightbox-zoom-out");
   const zoomReadout = overlay.querySelector(".image-lightbox-zoom-readout");
+  const lightboxFrame = overlay.querySelector(".image-lightbox-frame");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
   if (
     !closeBtn ||
@@ -814,6 +815,7 @@
     !zoomInBtn ||
     !zoomOutBtn ||
     !zoomReadout ||
+    !lightboxFrame ||
     !lightboxImage
   ) return;
 
@@ -844,7 +846,8 @@
     const bounded = clampPan(panX, panY);
     panX = bounded.x;
     panY = bounded.y;
-    lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    lightboxFrame.style.transform = `translate(${panX}px, ${panY}px)`;
+    lightboxImage.style.transform = `scale(${zoomLevel})`;
     lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
   };
   const resetPan = () => {
