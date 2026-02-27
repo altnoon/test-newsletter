@@ -801,16 +801,16 @@ body {
 
   .image-lightbox-prev {
     left: calc(var(--safe-left) + 8px);
-    top: auto;
-    bottom: calc(var(--safe-bottom) + 12px);
-    transform: none;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
   }
 
   .image-lightbox-next {
     right: calc(var(--safe-right) + 8px);
-    top: auto;
-    bottom: calc(var(--safe-bottom) + 12px);
-    transform: none;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
   }
 
   .image-lightbox-close {
@@ -819,9 +819,14 @@ body {
   }
 
   .image-lightbox-zoom {
-    top: calc(var(--safe-top) + 8px);
-    left: calc(var(--safe-left) + 8px);
-    right: auto;
+    top: calc(var(--safe-top) + 56px);
+    right: calc(var(--safe-right) + 8px);
+    left: auto;
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 5px;
+    width: 42px;
+    box-sizing: border-box;
   }
 }
 
