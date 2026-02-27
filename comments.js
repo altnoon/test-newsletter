@@ -834,6 +834,8 @@
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const isDesktopViewport = () =>
+    typeof window !== "undefined" && window.matchMedia("(min-width: 701px)").matches;
   const clampPan = (x, y) => {
     const maxX = Math.max(0, (lightboxImage.clientWidth * (zoomLevel - 1)) / 2);
     const maxY = Math.max(0, (lightboxImage.clientHeight * (zoomLevel - 1)) / 2);
@@ -998,6 +1000,19 @@
       event.stopPropagation();
     }
   });
+  overlay.addEventListener(
+    "wheel",
+    (event) => {
+      if (!overlay.classList.contains("is-open")) return;
+      if (!isDesktopViewport()) return;
+      const delta = event.deltaY;
+      if (!delta) return;
+      const direction = delta < 0 ? 1 : -1;
+      applyZoom(zoomLevel + direction * (ZOOM_STEP * 0.6));
+      event.preventDefault();
+    },
+    { passive: false }
+  );
   prevBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     stepImage(-1);
