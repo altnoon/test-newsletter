@@ -805,33 +805,37 @@ body {
   .image-lightbox-nav,
   .image-lightbox-close,
   .image-lightbox-zoom {
-    position: fixed;
-    z-index: 320;
+    position: fixed !important;
+    z-index: 320 !important;
   }
 
   .image-lightbox-prev {
-    left: calc(var(--safe-left) + 8px);
-    top: 50%;
-    bottom: auto;
-    transform: translateY(-50%);
+    left: calc(var(--safe-left) + 8px) !important;
+    right: auto !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
   }
 
   .image-lightbox-next {
-    right: calc(var(--safe-right) + 8px);
-    top: 50%;
-    bottom: auto;
-    transform: translateY(-50%);
+    right: calc(var(--safe-right) + 8px) !important;
+    left: auto !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
   }
 
   .image-lightbox-close {
-    top: calc(var(--safe-top) + 8px);
-    right: calc(var(--safe-right) + 8px);
+    top: calc(var(--safe-top) + 8px) !important;
+    right: calc(var(--safe-right) + 8px) !important;
+    left: auto !important;
   }
 
   .image-lightbox-zoom {
-    top: calc(var(--safe-top) + 56px);
-    right: calc(var(--safe-right) + 8px);
-    left: auto;
+    top: calc(var(--safe-top) + 56px) !important;
+    right: calc(var(--safe-right) + 8px) !important;
+    left: auto !important;
+    bottom: auto !important;
     flex-direction: column;
     gap: 5px;
     padding: 7px 5px;
