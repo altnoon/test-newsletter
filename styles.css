@@ -646,8 +646,8 @@ body {
 
 .image-lightbox-close {
   position: absolute;
-  top: -14px;
-  right: -14px;
+  top: -20px;
+  right: -20px;
   width: 42px;
   height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -693,7 +693,7 @@ body {
 }
 
 .image-lightbox-prev {
-  left: -58px;
+  left: -66px;
 }
 
 .image-lightbox-prev::before {
@@ -702,7 +702,7 @@ body {
 }
 
 .image-lightbox-next {
-  right: -58px;
+  right: -66px;
 }
 
 .image-lightbox-next::before {
