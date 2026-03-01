@@ -958,6 +958,7 @@
     lightboxPinLayer.style.width = `${lightboxImage.clientWidth}px`;
     lightboxPinLayer.style.height = `${lightboxImage.clientHeight}px`;
     lightboxPinLayer.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    overlay.style.setProperty("--lightbox-pin-ui-scale", (1 / zoomLevel).toFixed(4));
   };
   const getCurrentCardKey = () => {
     const source = currentList[currentIndex];
@@ -1685,9 +1686,6 @@
       dragMoved = false;
       event.preventDefault();
       event.stopPropagation();
-      return;
-    }
-    if (zoomLevel > 1.001) {
       return;
     }
     event.preventDefault();
