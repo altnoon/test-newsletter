@@ -959,9 +959,7 @@
     lightboxPinLayer.style.height = `${lightboxImage.clientHeight}px`;
     lightboxPinLayer.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
     const noteScale = 1 / zoomLevel;
-    const markerScale = window.matchMedia("(max-width: 700px)").matches
-      ? 1 / (zoomLevel * zoomLevel)
-      : noteScale;
+    const markerScale = noteScale;
     overlay.style.setProperty("--lightbox-pin-ui-scale", noteScale.toFixed(4));
     overlay.style.setProperty("--lightbox-pin-marker-scale", markerScale.toFixed(4));
   };
