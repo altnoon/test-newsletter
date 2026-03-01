@@ -723,6 +723,11 @@ body {
   position: relative;
 }
 
+/* Hide Pin Notes sidebar block while keeping main timeline/content visible. */
+.layout > .comments {
+  display: none;
+}
+
 .image-lightbox {
   position: fixed;
   inset: 0;
