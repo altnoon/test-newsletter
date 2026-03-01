@@ -962,11 +962,28 @@
     const stage = source?.closest(".miro-card-stage");
     return stage?.getAttribute("data-card-key") || "";
   };
+  const syncPinToggleVisibility = (noteCount) => {
+    const hasNotes = noteCount > 0;
+    pinToggleBtn.style.display = hasNotes ? "inline-flex" : "none";
+    if (!hasNotes) {
+      pinMode = false;
+      pinToggleBtn.setAttribute("aria-pressed", "false");
+      overlay.classList.remove("is-pin-mode");
+      lightboxPinLayer.style.display = "none";
+      return;
+    }
+    pinToggleBtn.setAttribute("aria-pressed", pinMode ? "true" : "false");
+    lightboxPinLayer.style.display = pinMode ? "block" : "none";
+  };
   const renderLightboxPins = () => {
     lightboxPinLayer.innerHTML = "";
     const cardKey = getCurrentCardKey();
-    if (!cardKey) return;
+    if (!cardKey) {
+      syncPinToggleVisibility(0);
+      return;
+    }
     const ordered = sortChronological(lightboxNotes).filter((item) => item.cardKey === cardKey);
+    syncPinToggleVisibility(ordered.length);
     ordered.forEach((item, index) => {
       const marker = document.createElement("button");
       marker.type = "button";
