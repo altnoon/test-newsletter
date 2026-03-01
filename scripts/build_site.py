@@ -17,6 +17,7 @@ STYLE_FILE = ROOT / "styles.css"
 INDEX_FILE = ROOT / "index.html"
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 ANALYTICS_XLSX_CANDIDATES = [
+    Path("/Users/delchev/Downloads/Untitled spreadsheet.xlsx"),
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind (1).xlsx"),
     ROOT / "vivla-mail-analytics-ind.xlsx",
     ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
@@ -49,6 +50,31 @@ def analytics_key(value: str) -> tuple[str, str]:
             if compact_prefixed_variant:
                 variant = compact_prefixed_variant.group(1).lower()
     return (flow, variant)
+
+
+def phase_lang_place_key(value: str) -> tuple[str, str, str] | None:
+    text = value or ""
+    normalized = normalize_text(text)
+    phase_match = re.search(r"\b(?:fase|f)\s*(\d+)\b", normalized)
+    if not phase_match:
+        return None
+    phase = f"f{phase_match.group(1)}"
+    lang = ""
+    if re.search(r"\ben\b", normalized):
+        lang = "en"
+    elif re.search(r"\bes\b", normalized):
+        lang = "es"
+    if not lang:
+        return None
+
+    stripped = normalized
+    stripped = re.sub(r"\b(?:fase|f)\s*\d+\b", "", stripped)
+    stripped = re.sub(r"\bnuevos?\s+destinos?\b", "", stripped)
+    stripped = re.sub(r"\bno\s+propietarios?\b", "", stripped)
+    stripped = re.sub(rf"\b{lang}\b", "", stripped)
+    stripped = re.sub(r"\s+", " ", stripped).strip(" -")
+    place = stripped or "general"
+    return (phase, lang, place)
 
 
 def find_analytics_xlsx() -> Path | None:
@@ -151,7 +177,7 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
     return entries
 
 
-def load_analytics_map() -> dict[tuple[str, str], dict]:
+def load_analytics_map() -> dict[tuple[str, ...], dict]:
     xlsx_path = find_analytics_xlsx()
     if xlsx_path is None:
         return {}
@@ -159,21 +185,34 @@ def load_analytics_map() -> dict[tuple[str, str], dict]:
         entries = parse_analytics_rows(xlsx_path)
     except (OSError, ValueError, KeyError, ET.ParseError, zipfile.BadZipFile):
         return {}
-    result: dict[tuple[str, str], dict] = {}
+    result: dict[tuple[str, ...], dict] = {}
     for entry in entries:
-        key = analytics_key(entry["title"])
-        if key != ("", ""):
-            result[key] = entry
+        flow_key = analytics_key(entry["title"])
+        if flow_key != ("", ""):
+            result[("flow", flow_key[0], flow_key[1])] = entry
+        phase_key = phase_lang_place_key(entry["title"])
+        if phase_key is not None:
+            result[("phase", phase_key[0], phase_key[1], phase_key[2])] = entry
     return result
 
 
-def entry_for_doc(analytics_map: dict[tuple[str, str], dict], label: str) -> dict | None:
+def entry_for_doc(analytics_map: dict[tuple[str, ...], dict], label: str) -> dict | None:
     flow, variant = analytics_key(label)
     if not flow:
+        phase_key = phase_lang_place_key(label)
+        if phase_key is None:
+            return None
+        direct = analytics_map.get(("phase", phase_key[0], phase_key[1], phase_key[2]))
+        if direct:
+            return direct
+        if phase_key[2] != "general":
+            fallback = analytics_map.get(("phase", phase_key[0], phase_key[1], "general"))
+            if fallback:
+                return fallback
         return None
-    if variant and (flow, variant) in analytics_map:
-        return analytics_map[(flow, variant)]
-    return analytics_map.get((flow, ""))
+    if variant and ("flow", flow, variant) in analytics_map:
+        return analytics_map[("flow", flow, variant)]
+    return analytics_map.get(("flow", flow, ""))
 
 
 def format_analytics_value(metric_name: str, raw_value: str) -> str:
@@ -526,7 +565,7 @@ def render_page(
     return html_page.replace("  </body>", f"{script_tag}\n  </body>")
 
 
-def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[str, str], dict]) -> str:
+def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[str, ...], dict]) -> str:
     if not timelines:
         return (
             '<div class="empty-state">'
@@ -624,7 +663,7 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
     )
 
 
-def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, str], dict]) -> str:
+def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, ...], dict]) -> str:
     cards = []
     for i, doc in enumerate(group["docs"], start=1):
         entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
