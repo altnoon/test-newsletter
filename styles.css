@@ -1200,6 +1200,9 @@ body {
     top: calc(var(--safe-top) + 264px) !important;
     right: calc(var(--safe-right) + 8px) !important;
     left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
     width: min(300px, 72vw);
     max-height: min(52vh, 420px);
   }
