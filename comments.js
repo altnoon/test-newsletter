@@ -1251,7 +1251,7 @@
 })();
 
 (() => {
-  const COMMENTS_ENABLED = false;
+  const COMMENTS_ENABLED = true;
   if (!COMMENTS_ENABLED) return;
   const boardSections = document.querySelectorAll(".comments[data-board-key]");
   if (!boardSections.length) return;
