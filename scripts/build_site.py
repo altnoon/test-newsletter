@@ -259,12 +259,33 @@ def media_sort_key(path: Path):
     with phase ascending.
     Non-matching files are sorted after by creation time then name.
     """
+    stem = path.stem.strip()
+    # Primary ordering: phase number regardless of the rest of the filename.
+    phase_match = re.match(r"^\[(?:fase\s*|f)\s*(\d+)\]\s*(.+)$", stem, re.IGNORECASE)
+    if phase_match:
+        phase = int(phase_match.group(1))
+        rest = phase_match.group(2).strip()
+        # Secondary ordering inside a phase: owners first, then non-owners; ES before EN.
+        audience_rank = 2
+        if re.search(r"\bpropietarios\b", rest, re.IGNORECASE) and not re.search(
+            r"\bno\s+propietarios\b", rest, re.IGNORECASE
+        ):
+            audience_rank = 0
+        elif re.search(r"\bno\s+propietarios\b", rest, re.IGNORECASE):
+            audience_rank = 1
+        language_rank = 2
+        if re.search(r"\bES\b", rest, re.IGNORECASE):
+            language_rank = 0
+        elif re.search(r"\bEN\b", rest, re.IGNORECASE):
+            language_rank = 1
+        return (0, phase, audience_rank, language_rank, rest.lower())
+
     pattern = re.compile(
         r"^\[(?:Fase\s*|F)\s*(\d+)\]\s*(?:Nuevos destinos\s*-\s*)?"
         r"(Propietarios|No propietarios)\s*-\s*(ES|EN)$",
         re.IGNORECASE,
     )
-    match = pattern.match(path.stem.strip())
+    match = pattern.match(stem)
     if match:
         phase = int(match.group(1))
         audience = match.group(2).strip().lower()
