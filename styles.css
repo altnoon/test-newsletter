@@ -778,8 +778,11 @@ body {
 .image-lightbox-pin-marker {
   pointer-events: auto;
   cursor: grab;
-  transform: translate(-50%, -50%) scale(var(--lightbox-pin-ui-scale));
+  transform: translate(-50%, -50%);
   transform-origin: center center;
+  width: calc(28px * var(--lightbox-pin-ui-scale));
+  height: calc(28px * var(--lightbox-pin-ui-scale));
+  font-size: calc(0.75rem * var(--lightbox-pin-ui-scale));
 }
 
 .image-lightbox-pin-note {
