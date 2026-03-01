@@ -1253,7 +1253,7 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--space-12);
   min-width: 220px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .pin-note-editor.is-open {
@@ -1354,9 +1354,11 @@ body {
 }
 
 .pin-note-delete {
-  background: var(--accent-red);
-  border-color: var(--accent-red);
-  color: #faf9f5;
+  background: transparent;
+  border-color: var(--glass-border);
+  color: var(--glass-text-secondary);
+  box-shadow: none;
+  justify-self: center;
 }
 
 .pin-note-save:hover,
@@ -1752,8 +1754,8 @@ textarea:focus-visible {
     top: auto !important;
     bottom: calc(var(--safe-bottom) + var(--space-8));
     width: min(48vw, 220px) !important;
-    max-height: min(31vh, 210px);
-    overflow: auto;
+    max-height: none;
+    overflow: visible;
     padding: var(--space-6);
     transform: translateX(-50%);
   }
@@ -1792,6 +1794,8 @@ textarea:focus-visible {
 
   .pin-note-delete {
     grid-column: 1 / -1;
+    justify-self: center;
+    width: auto;
   }
 
   .mobile-fab-stack {

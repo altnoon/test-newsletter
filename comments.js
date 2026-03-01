@@ -895,6 +895,7 @@
   let currentBoardKey = "timeline-board";
   let lightboxNotes = [];
   let pinDragState = null;
+  let lightboxEditorDragState = null;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -1361,6 +1362,25 @@
     event.preventDefault();
     event.stopPropagation();
   });
+  lightboxPinEditor.addEventListener("pointerdown", (event) => {
+    if (!isLightboxPinEditorOpen()) return;
+    if (event.target.closest("input, textarea, button")) return;
+    const rect = lightboxPinEditor.getBoundingClientRect();
+    lightboxPinEditor.style.left = `${rect.left}px`;
+    lightboxPinEditor.style.top = `${rect.top}px`;
+    lightboxPinEditor.style.width = `${rect.width}px`;
+    lightboxPinEditor.style.right = "auto";
+    lightboxPinEditor.style.bottom = "auto";
+    lightboxPinEditor.style.transform = "none";
+    lightboxEditorDragState = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    };
+    lightboxPinEditor.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    event.stopPropagation();
+  });
   lightboxPinAuthor.addEventListener("input", () => {
     if (!isLightboxPinEditorOpen()) return;
     lightboxPinMeta.textContent = "";
@@ -1610,6 +1630,37 @@
   window.addEventListener("pointermove", movePinnedNote);
   window.addEventListener("pointerup", endPinnedMove);
   window.addEventListener("pointercancel", endPinnedMove);
+  const moveLightboxEditor = (event) => {
+    if (!lightboxEditorDragState || lightboxEditorDragState.pointerId !== event.pointerId) return;
+    const width = lightboxPinEditor.offsetWidth || 240;
+    const height = lightboxPinEditor.offsetHeight || 180;
+    const left = clamp(
+      event.clientX - lightboxEditorDragState.offsetX,
+      8,
+      window.innerWidth - width - 8
+    );
+    const top = clamp(
+      event.clientY - lightboxEditorDragState.offsetY,
+      8,
+      window.innerHeight - height - 8
+    );
+    lightboxPinEditor.style.left = `${left}px`;
+    lightboxPinEditor.style.top = `${top}px`;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  const endLightboxEditorMove = (event) => {
+    if (!lightboxEditorDragState || lightboxEditorDragState.pointerId !== event.pointerId) return;
+    if (lightboxPinEditor.hasPointerCapture?.(event.pointerId)) {
+      lightboxPinEditor.releasePointerCapture(event.pointerId);
+    }
+    lightboxEditorDragState = null;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  window.addEventListener("pointermove", moveLightboxEditor);
+  window.addEventListener("pointerup", endLightboxEditorMove);
+  window.addEventListener("pointercancel", endLightboxEditorMove);
   lightboxImage.addEventListener("click", (event) => {
     if (pinDragState) return;
     if (isLightboxPinEditorOpen()) return;
