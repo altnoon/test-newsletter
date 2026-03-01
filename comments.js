@@ -962,6 +962,14 @@
     const markerScale = noteScale;
     overlay.style.setProperty("--lightbox-pin-ui-scale", noteScale.toFixed(4));
     overlay.style.setProperty("--lightbox-pin-marker-scale", markerScale.toFixed(4));
+    const noteOffset = 18 / Math.max(zoomLevel, 1);
+    lightboxPinLayer
+      .querySelectorAll(".image-lightbox-pin-note")
+      .forEach((noteEl) => {
+        const pinY = Number(noteEl.getAttribute("data-pin-y"));
+        if (!Number.isFinite(pinY)) return;
+        noteEl.style.top = `calc(${pinY * 100}% + ${noteOffset}px)`;
+      });
   };
   const getCurrentCardKey = () => {
     const source = currentList[currentIndex];
@@ -1001,8 +1009,9 @@
       lightboxPinLayer.appendChild(marker);
       const note = document.createElement("div");
       note.className = "image-lightbox-pin-note";
+      note.setAttribute("data-pin-y", String(item.pin.y));
       note.style.left = `${item.pin.x * 100}%`;
-      note.style.top = `calc(${item.pin.y * 100}% + 18px)`;
+      note.style.top = `calc(${item.pin.y * 100}% + ${18 / Math.max(zoomLevel, 1)}px)`;
       const heading = document.createElement("strong");
       heading.textContent = item.author || "Anonymous";
       const text = document.createElement("p");
@@ -1617,8 +1626,9 @@
     pinDragState.moved = true;
     pinDragState.marker.style.left = `${x * 100}%`;
     pinDragState.marker.style.top = `${y * 100}%`;
+    pinDragState.noteBox.setAttribute("data-pin-y", String(y));
     pinDragState.noteBox.style.left = `${x * 100}%`;
-    pinDragState.noteBox.style.top = `calc(${y * 100}% + 18px)`;
+    pinDragState.noteBox.style.top = `calc(${y * 100}% + ${18 / Math.max(zoomLevel, 1)}px)`;
     event.preventDefault();
     event.stopPropagation();
   };
