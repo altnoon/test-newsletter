@@ -310,12 +310,16 @@ def display_label(path: Path) -> str:
     Other names are returned as-is (without extension).
     """
     stem = path.stem.strip()
-    pattern = re.compile(r"^\[Fase\s*(\d+)\]\s*(.+)$", re.IGNORECASE)
+    pattern = re.compile(r"^\[(?:Fase\s*|F\s*)(\d+)\]\s*(.+)$", re.IGNORECASE)
     match = pattern.match(stem)
     if match:
         phase = match.group(1)
         rest = match.group(2).strip()
         rest = re.sub(r"^Nuevos destinos\s*-\s*", "", rest, flags=re.IGNORECASE)
+        # Timeline 2 naming cleanup: hide audience segment in UI labels.
+        rest = re.sub(r"^No\s+propietarios\s*-\s*", "", rest, flags=re.IGNORECASE)
+        rest = re.sub(r"\s*-\s*No\s+propietarios\b", "", rest, flags=re.IGNORECASE)
+        rest = re.sub(r"\s{2,}", " ", rest).strip(" -")
         return f"[F{phase}] - {rest}"
     return stem
 
