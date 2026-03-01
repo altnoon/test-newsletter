@@ -526,15 +526,20 @@ body {
 }
 
 .miro-card-head {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.miro-card-head-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-8);
 }
 
 .miro-card-meta {
-  display: grid;
-  gap: var(--space-4);
+  display: inline-flex;
+  align-items: center;
 }
 
 .miro-card-index {

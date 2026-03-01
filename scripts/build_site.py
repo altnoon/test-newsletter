@@ -310,14 +310,16 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
             cards.append(
                 '<article class="miro-card">'
                 '<div class="miro-card-head">'
+                '<div class="miro-card-head-row">'
                 '<div class="miro-card-meta">'
                 f'<span class="miro-card-index">#{i}</span>'
-                f'<p class="miro-card-title">{doc["label"]}</p>'
                 "</div>"
                 '<div class="miro-card-actions">'
                 f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
                 f'<button class="miro-card-action" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
                 "</div>"
+                "</div>"
+                f'<p class="miro-card-title">{doc["label"]}</p>'
                 "</div>"
                 f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
                 f'data-card-label="{group["label"]} • {doc["label"]}">'
@@ -393,14 +395,16 @@ def timeline_content_for_group(group: dict) -> str:
         cards.append(
             '<article class="miro-card">'
             '<div class="miro-card-head">'
+            '<div class="miro-card-head-row">'
             '<div class="miro-card-meta">'
             f'<span class="miro-card-index">#{i}</span>'
-            f'<p class="miro-card-title">{doc["label"]}</p>'
             "</div>"
             '<div class="miro-card-actions">'
             f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
             f'<button class="miro-card-action" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
             "</div>"
+            "</div>"
+            f'<p class="miro-card-title">{doc["label"]}</p>'
             "</div>"
             f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
             f'data-card-label="{group["label"]} • {doc["label"]}">'
