@@ -558,7 +558,14 @@ body {
   line-height: 1.35;
 }
 
-.miro-open-link {
+.miro-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.miro-open-link,
+.miro-card-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -570,9 +577,17 @@ body {
   color: var(--glass-text-primary);
   text-decoration: none;
   background: var(--glass-bg);
+  font-family: var(--font-ui);
+  cursor: pointer;
 }
 
-.miro-open-link:hover {
+.miro-card-action {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.miro-open-link:hover,
+.miro-card-action:hover {
   border-color: var(--accent-orange);
 }
 
