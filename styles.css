@@ -566,7 +566,7 @@ body {
   padding: 0.1rem 0.34rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--glass-border);
-  background: var(--surface-panel);
+  background: transparent;
   color: var(--glass-text-secondary);
   font-size: 0.66rem;
   font-weight: 700;
@@ -575,7 +575,7 @@ body {
 
 .miro-card-comment-count.has-notes {
   border-color: var(--note-chip-border);
-  background: color-mix(in srgb, var(--note-chip-bg) 82%, transparent);
+  background: transparent;
   color: var(--note-chip-text);
 }
 
