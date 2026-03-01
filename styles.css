@@ -660,12 +660,17 @@ body {
   padding: 0;
   list-style: none;
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.36rem;
 }
 
 .miro-card-analytics-metric {
   display: grid;
   gap: 0.22rem;
+  padding: 0.28rem 0.34rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .miro-card-analytics-metric p {
@@ -702,6 +707,12 @@ body {
   font-size: 0.68rem;
   line-height: 1.35;
   color: #f7f4ed;
+}
+
+@media (max-width: 720px) {
+  .miro-card-analytics-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .layout {
