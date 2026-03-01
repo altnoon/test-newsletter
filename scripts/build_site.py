@@ -580,12 +580,14 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
         cards = []
         for i, doc in enumerate(group["docs"], start=1):
             entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
+            card_key = f'{group["key"]}::{doc["slug"]}'
             cards.append(
                 '<article class="miro-card">'
                 '<div class="miro-card-head">'
                 '<div class="miro-card-head-row">'
                 '<div class="miro-card-meta">'
                 f'<span class="miro-card-index">#{i}</span>'
+                f'<span class="miro-card-comment-count" data-card-count-for="{card_key}" aria-label="0 comments">0</span>'
                 "</div>"
                 '<div class="miro-card-actions">'
                 f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
@@ -594,7 +596,7 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
                 "</div>"
                 f'<p class="miro-card-title">{doc["label"]}</p>'
                 "</div>"
-                f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
+                f'<div class="miro-card-stage" data-card-key="{card_key}" '
                 f'data-card-label="{group["label"]} • {doc["label"]}">'
                 f'<img class="miro-card-image" src="Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
                 '<div class="pin-layer"></div>'
@@ -667,12 +669,14 @@ def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, ...],
     cards = []
     for i, doc in enumerate(group["docs"], start=1):
         entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
+        card_key = f'{group["key"]}::{doc["slug"]}'
         cards.append(
             '<article class="miro-card">'
             '<div class="miro-card-head">'
             '<div class="miro-card-head-row">'
             '<div class="miro-card-meta">'
             f'<span class="miro-card-index">#{i}</span>'
+            f'<span class="miro-card-comment-count" data-card-count-for="{card_key}" aria-label="0 comments">0</span>'
             "</div>"
             '<div class="miro-card-actions">'
             f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
@@ -681,7 +685,7 @@ def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, ...],
             "</div>"
             f'<p class="miro-card-title">{doc["label"]}</p>'
             "</div>"
-            f'<div class="miro-card-stage" data-card-key="{group["key"]}::{doc["slug"]}" '
+            f'<div class="miro-card-stage" data-card-key="{card_key}" '
             f'data-card-label="{group["label"]} • {doc["label"]}">'
             f'<img class="miro-card-image" src="../Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
             '<div class="pin-layer"></div>'

@@ -540,6 +540,7 @@ body {
 .miro-card-meta {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-4);
 }
 
 .miro-card-index {
@@ -555,6 +556,27 @@ body {
   color: var(--note-chip-text);
   font-size: 0.72rem;
   font-weight: 700;
+}
+
+.miro-card-comment-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.45rem;
+  padding: 0.1rem 0.34rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  background: var(--surface-panel);
+  color: var(--glass-text-secondary);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.miro-card-comment-count.has-notes {
+  border-color: var(--note-chip-border);
+  background: color-mix(in srgb, var(--note-chip-bg) 82%, transparent);
+  color: var(--note-chip-text);
 }
 
 .miro-card-title {

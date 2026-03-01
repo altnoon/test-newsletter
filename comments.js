@@ -1904,12 +1904,18 @@
 
     const stageMap = new Map();
     const labelMap = new Map();
+    const counterMap = new Map();
     stages.forEach((stage) => {
       const slug = stage.getAttribute("data-card-key");
       const label = stage.getAttribute("data-card-label");
       if (!slug) return;
       stageMap.set(slug, stage);
       if (label) labelMap.set(slug, label);
+    });
+    const counters = layout.querySelectorAll(".miro-card-comment-count[data-card-count-for]");
+    counters.forEach((counter) => {
+      const key = counter.getAttribute("data-card-count-for");
+      if (key) counterMap.set(key, counter);
     });
 
     const commentsTop = section.querySelector(".comments-top");
@@ -2049,6 +2055,17 @@
 
     const renderAll = () => {
       const ordered = sortChronological(comments);
+      const perCardCount = new Map();
+      ordered.forEach((item) => {
+        perCardCount.set(item.cardKey, (perCardCount.get(item.cardKey) || 0) + 1);
+      });
+      counterMap.forEach((counter, key) => {
+        const total = perCardCount.get(key) || 0;
+        counter.textContent = String(total);
+        counter.setAttribute("aria-label", `${total} ${total === 1 ? "comment" : "comments"}`);
+        counter.classList.toggle("has-notes", total > 0);
+      });
+
       stageMap.forEach((stage) => {
         const layer = stage.querySelector(".pin-layer");
         if (layer) layer.innerHTML = "";
