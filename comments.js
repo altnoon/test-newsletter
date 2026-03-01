@@ -1120,6 +1120,7 @@
       lightboxPinEditor.style.removeProperty("width");
       lightboxPinEditor.style.removeProperty("right");
       lightboxPinEditor.style.removeProperty("bottom");
+      lightboxPinEditor.style.removeProperty("transform");
       return;
     }
     const rect = lightboxFrame.getBoundingClientRect();
@@ -1137,6 +1138,7 @@
     lightboxPinEditor.style.width = `${width}px`;
     lightboxPinEditor.style.removeProperty("right");
     lightboxPinEditor.style.removeProperty("bottom");
+    lightboxPinEditor.style.transform = "none";
   };
   const openLightboxPinEditor = (draft, mode = "create", noteItem = null) => {
     lightboxDraft = draft;
@@ -1364,6 +1366,7 @@
   });
   lightboxPinEditor.addEventListener("pointerdown", (event) => {
     if (!isLightboxPinEditorOpen()) return;
+    if (window.matchMedia("(max-width: 700px)").matches) return;
     if (event.target.closest("input, textarea, button")) return;
     const rect = lightboxPinEditor.getBoundingClientRect();
     lightboxPinEditor.style.left = `${rect.left}px`;
@@ -1663,7 +1666,10 @@
   window.addEventListener("pointercancel", endLightboxEditorMove);
   lightboxImage.addEventListener("click", (event) => {
     if (pinDragState) return;
-    if (isLightboxPinEditorOpen()) return;
+    if (isLightboxPinEditorOpen()) {
+      closeLightboxPinEditor();
+      return;
+    }
     if (swipeConsumed) {
       swipeConsumed = false;
       event.preventDefault();
