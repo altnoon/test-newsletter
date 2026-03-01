@@ -1243,8 +1243,12 @@
     })
       .then((response) => {
         if (!response.ok) throw new Error("Notes request failed");
+        window.dispatchEvent(
+          new CustomEvent("timeline-note-added", {
+            detail: { boardKey: lightboxDraft.boardKey, note },
+          })
+        );
         closeLightboxPinEditor();
-        closeLightbox();
       })
       .catch(() => {
         lightboxPinMeta.textContent = "Could not save note. Try again.";
@@ -1796,6 +1800,16 @@
       persistLocal();
       renderAll();
     };
+    const addExternalNote = (item) => {
+      const normalized = normalizeBoardNotes([item]);
+      if (!normalized.length) return;
+      const incoming = normalized[0];
+      if (comments.some((existing) => existing.id === incoming.id)) return;
+      comments.push(incoming);
+      activeCommentId = incoming.id;
+      persistLocal();
+      renderAll();
+    };
 
     const syncFromShared = async (silent) => {
       if (!usingShared || editor.classList.contains("is-open")) return;
@@ -1829,6 +1843,11 @@
         return false;
       }
     };
+    window.addEventListener("timeline-note-added", (event) => {
+      const detail = event?.detail;
+      if (!detail || detail.boardKey !== boardKey) return;
+      addExternalNote(detail.note);
+    });
 
     noteAuthorInput.addEventListener("input", () => {
       if (editor.classList.contains("is-open") && !editor.classList.contains("is-edit")) {
