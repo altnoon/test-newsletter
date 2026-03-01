@@ -1395,6 +1395,8 @@
             detail: { boardKey: lightboxDraft.boardKey, note },
           })
         );
+        setPinMode(true);
+        renderLightboxPins();
         closeLightboxPinEditor();
       })
       .catch(() => {
