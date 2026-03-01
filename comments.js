@@ -824,6 +824,29 @@
   const analyticsPanel = overlay.querySelector(".image-lightbox-analytics-panel");
   const lightboxFrame = overlay.querySelector(".image-lightbox-frame");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
+  const createLightboxPinEditor = () => {
+    const editor = document.createElement("div");
+    editor.className = "pin-note-editor";
+    editor.innerHTML =
+      '<p class="pin-note-meta"></p>' +
+      '<label class="pin-note-author-label" for="pin-note-author-lightbox">Name</label>' +
+      '<input id="pin-note-author-lightbox" class="pin-note-author" type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />' +
+      '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
+      '<div class="pin-note-actions">' +
+      '<button class="pin-note-save" type="button">Save</button>' +
+      '<button class="pin-note-cancel" type="button">Cancel</button>' +
+      '<button class="pin-note-delete" type="button">Delete</button>' +
+      "</div>";
+    return editor;
+  };
+  const lightboxPinEditor = createLightboxPinEditor();
+  overlay.appendChild(lightboxPinEditor);
+  const lightboxPinMeta = lightboxPinEditor.querySelector(".pin-note-meta");
+  const lightboxPinAuthor = lightboxPinEditor.querySelector(".pin-note-author");
+  const lightboxPinInput = lightboxPinEditor.querySelector(".pin-note-input");
+  const lightboxPinSave = lightboxPinEditor.querySelector(".pin-note-save");
+  const lightboxPinCancel = lightboxPinEditor.querySelector(".pin-note-cancel");
+  const lightboxPinDelete = lightboxPinEditor.querySelector(".pin-note-delete");
   if (
     !closeBtn ||
     !prevBtn ||
@@ -835,7 +858,13 @@
     !pinToggleBtn ||
     !analyticsPanel ||
     !lightboxFrame ||
-    !lightboxImage
+    !lightboxImage ||
+    !lightboxPinMeta ||
+    !lightboxPinAuthor ||
+    !lightboxPinInput ||
+    !lightboxPinSave ||
+    !lightboxPinCancel ||
+    !lightboxPinDelete
   ) return;
 
   let lastFocused = null;
@@ -861,6 +890,7 @@
   let pinchStartDistance = 0;
   let pinchStartZoom = 1;
   let pinMode = true;
+  let lightboxDraft = null;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -914,6 +944,57 @@
     pinToggleBtn.setAttribute("aria-pressed", pinMode ? "true" : "false");
     overlay.classList.toggle("is-pin-mode", pinMode);
     updateImageTransform();
+  };
+  const isLightboxPinEditorOpen = () => lightboxPinEditor.classList.contains("is-open");
+  const closeLightboxPinEditor = () => {
+    lightboxPinEditor.classList.remove("is-open", "is-edit");
+    lightboxDraft = null;
+    lightboxPinInput.value = "";
+    lightboxPinAuthor.value = "";
+    lightboxPinMeta.textContent = "";
+    lightboxPinSave.disabled = false;
+    lightboxPinCancel.disabled = false;
+  };
+  const positionLightboxPinEditor = () => {
+    if (!lightboxDraft || !isLightboxPinEditorOpen()) return;
+    if (window.matchMedia("(max-width: 700px)").matches) {
+      lightboxPinEditor.style.removeProperty("left");
+      lightboxPinEditor.style.removeProperty("top");
+      lightboxPinEditor.style.removeProperty("width");
+      lightboxPinEditor.style.removeProperty("right");
+      lightboxPinEditor.style.removeProperty("bottom");
+      return;
+    }
+    const rect = lightboxFrame.getBoundingClientRect();
+    const width = 260;
+    const height = 182;
+    let left = rect.left + lightboxDraft.pin.x * rect.width + 10;
+    let top = rect.top + lightboxDraft.pin.y * rect.height - 18;
+    left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+    top = Math.max(12, Math.min(top, window.innerHeight - height - 12));
+    if (top + height > window.innerHeight - 12) {
+      top = Math.max(12, rect.top + lightboxDraft.pin.y * rect.height - height - 16);
+    }
+    lightboxPinEditor.style.left = `${left}px`;
+    lightboxPinEditor.style.top = `${top}px`;
+    lightboxPinEditor.style.width = `${width}px`;
+    lightboxPinEditor.style.removeProperty("right");
+    lightboxPinEditor.style.removeProperty("bottom");
+  };
+  const openLightboxPinEditor = (draft) => {
+    lightboxDraft = draft;
+    const initialName =
+      (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
+    lightboxPinAuthor.value = initialName;
+    lightboxPinInput.value = "";
+    lightboxPinMeta.textContent = initialName
+      ? `New note by ${initialName}`
+      : "Add your name before saving";
+    lightboxPinEditor.classList.add("is-open");
+    lightboxPinEditor.classList.remove("is-edit");
+    lightboxPinDelete.style.display = "none";
+    positionLightboxPinEditor();
+    setTimeout(() => lightboxPinInput.focus(), 0);
   };
 
   const updateNavState = () => {
@@ -972,6 +1053,7 @@
     renderLightboxAnalytics();
     setLightboxAnalyticsVisible(false);
     setPinMode(true);
+    closeLightboxPinEditor();
     resetZoom();
   };
 
@@ -991,6 +1073,7 @@
     analyticsPanel.innerHTML = "";
     setLightboxAnalyticsVisible(false);
     setPinMode(false);
+    closeLightboxPinEditor();
     resetZoom();
     if (currentItem) {
       currentItem.scrollIntoView({
@@ -1112,7 +1195,70 @@
     event.stopPropagation();
     setPinMode(!pinMode);
   });
+  lightboxPinEditor.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  lightboxPinAuthor.addEventListener("input", () => {
+    if (!isLightboxPinEditorOpen()) return;
+    const name = lightboxPinAuthor.value.trim();
+    lightboxPinMeta.textContent = name ? `New note by ${name}` : "Add your name before saving";
+  });
+  lightboxPinSave.addEventListener("click", () => {
+    if (!lightboxDraft) return;
+    const text = lightboxPinInput.value.trim();
+    if (!text) {
+      lightboxPinMeta.textContent = "Type a note before saving";
+      lightboxPinInput.focus();
+      return;
+    }
+    const author = lightboxPinAuthor.value.trim();
+    if (!author) {
+      lightboxPinMeta.textContent = "Add your name before saving";
+      lightboxPinAuthor.focus();
+      return;
+    }
+    if (typeof localStorage !== "undefined") localStorage.setItem(AUTHOR_STORAGE_KEY, author);
+    lightboxPinSave.disabled = true;
+    lightboxPinCancel.disabled = true;
+    const id =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const note = {
+      id,
+      text,
+      author,
+      createdAt: new Date().toISOString(),
+      cardKey: lightboxDraft.cardKey,
+      pin: lightboxDraft.pin,
+    };
+    fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ page: lightboxDraft.boardKey, action: "add", note }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Notes request failed");
+        closeLightboxPinEditor();
+        closeLightbox();
+      })
+      .catch(() => {
+        lightboxPinMeta.textContent = "Could not save note. Try again.";
+      })
+      .finally(() => {
+        lightboxPinSave.disabled = false;
+        lightboxPinCancel.disabled = false;
+      });
+  });
+  lightboxPinCancel.addEventListener("click", () => {
+    closeLightboxPinEditor();
+  });
   lightboxImage.addEventListener("pointerdown", (event) => {
+    if (isLightboxPinEditorOpen()) return;
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (activePointers.size === 2) {
       const [p1, p2] = [...activePointers.values()];
@@ -1205,6 +1351,7 @@
   lightboxImage.addEventListener("pointercancel", endDrag);
   lightboxImage.addEventListener("pointerleave", endDrag);
   lightboxImage.addEventListener("click", (event) => {
+    if (isLightboxPinEditorOpen()) return;
     if (swipeConsumed) {
       swipeConsumed = false;
       event.preventDefault();
@@ -1233,41 +1380,7 @@
     const rect = lightboxImage.getBoundingClientRect();
     const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
     const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
-
-    const initialName =
-      (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
-    const author = (window.prompt("Your name", initialName) || "").trim();
-    if (!author) return;
-    if (typeof localStorage !== "undefined") localStorage.setItem(AUTHOR_STORAGE_KEY, author);
-    const text = (window.prompt("Write a sticky note...", "") || "").trim();
-    if (!text) return;
-
-    const id =
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const note = {
-      id,
-      text,
-      author,
-      createdAt: new Date().toISOString(),
-      cardKey,
-      pin: { x, y },
-    };
-
-    fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ page: boardKey, action: "add", note }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Notes request failed");
-        closeLightbox();
-      })
-      .catch(() => {});
+    openLightboxPinEditor({ cardKey, boardKey, pin: { x, y } });
   });
   overlay.addEventListener(
     "wheel",
@@ -1292,10 +1405,19 @@
     stepImage(1);
   });
   overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) closeLightbox();
+    if (event.target !== overlay) return;
+    if (isLightboxPinEditorOpen()) {
+      closeLightboxPinEditor();
+      return;
+    }
+    closeLightbox();
   });
   document.addEventListener("keydown", (event) => {
     if (!overlay.classList.contains("is-open")) return;
+    if (event.key === "Escape" && isLightboxPinEditorOpen()) {
+      closeLightboxPinEditor();
+      return;
+    }
     if (event.key.toLowerCase() === "a") {
       const isHidden = analyticsPanel.hasAttribute("hidden");
       setLightboxAnalyticsVisible(isHidden);
@@ -1311,6 +1433,7 @@
   window.addEventListener("resize", () => {
     if (!overlay.classList.contains("is-open")) return;
     updateImageTransform();
+    positionLightboxPinEditor();
   });
 })();
 
