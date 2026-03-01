@@ -310,6 +310,11 @@
     typeof window !== "undefined" && window.matchMedia("(min-width: 701px)").matches;
   const isMobileViewport = () =>
     typeof window !== "undefined" && window.matchMedia("(max-width: 700px)").matches;
+  const isTouchViewport = () =>
+    typeof window !== "undefined" &&
+    (window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(hover: none)").matches ||
+      window.matchMedia("(max-width: 900px)").matches);
   const clampPan = (x, y) => {
     const maxX = Math.max(0, (lightboxImage.clientWidth * (zoomLevel - 1)) / 2);
     const maxY = Math.max(0, (lightboxImage.clientHeight * (zoomLevel - 1)) / 2);
@@ -580,7 +585,7 @@
   const setLightboxAnalyticsVisible = (visible) => {
     const hasContent = analyticsPanel.innerHTML.trim().length > 0;
     if (!hasContent) visible = false;
-    if (isMobileViewport()) {
+    if (isTouchViewport()) {
       analyticsPanel.style.position = "fixed";
       analyticsPanel.style.top = "calc(var(--safe-top) + 264px)";
       analyticsPanel.style.right = "calc(var(--safe-right) + 8px)";
