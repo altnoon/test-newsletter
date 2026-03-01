@@ -1090,7 +1090,10 @@
     pinToggleBtn.setAttribute("aria-pressed", pinMode ? "true" : "false");
     overlay.classList.toggle("is-pin-mode", pinMode);
     lightboxPinLayer.style.display = pinMode ? "block" : "none";
-    if (!pinMode) closeLightboxNotePopover();
+    if (!pinMode) {
+      closeLightboxPinEditor();
+      closeLightboxNotePopover();
+    }
     updateImageTransform();
   };
   const isLightboxPinEditorOpen = () => lightboxPinEditor.classList.contains("is-open");
@@ -1513,6 +1516,7 @@
   lightboxImage.addEventListener("pointerleave", endDrag);
   lightboxImage.addEventListener("click", (event) => {
     if (isLightboxPinEditorOpen()) return;
+    if (!pinMode) return;
     if (activePopoverNoteId) {
       closeLightboxNotePopover();
       renderLightboxPins();
