@@ -1285,7 +1285,7 @@ body {
   border-radius: var(--radius-xs);
   padding: 0.4rem 0.5rem;
   font-family: var(--font-ui);
-  font-size: 17px;
+  font-size: 14px;
   line-height: 1.35;
   color: var(--glass-text-primary);
   background: var(--surface-panel);
@@ -1305,7 +1305,7 @@ body {
 
 .pin-note-author::placeholder,
 .pin-note-input::placeholder {
-  font-size: 17px;
+  font-size: 14px;
 }
 
 .pin-note-author:focus,
@@ -1341,7 +1341,7 @@ body {
 
 .pin-note-save,
 .pin-note-cancel {
-  font-size: 17px;
+  font-size: 14px;
   padding: 0.26rem 0.48rem;
   min-height: 38px;
 }
@@ -1772,7 +1772,7 @@ textarea:focus-visible {
   .pin-note-input::placeholder,
   .pin-note-save,
   .pin-note-cancel {
-    font-size: 17px;
+    font-size: 14px;
   }
 
   .pin-note-actions {
