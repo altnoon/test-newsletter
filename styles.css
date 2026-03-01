@@ -779,7 +779,7 @@ body {
 .image-lightbox-pin-marker {
   pointer-events: auto;
   cursor: grab;
-  transform: translate(-50%, -50%) scale(var(--lightbox-pin-marker-scale));
+  transform: translate(-50%, -50%) scale(min(1, var(--lightbox-pin-marker-scale)));
   transform-origin: center center;
   width: 28px;
   height: 28px;
@@ -1803,7 +1803,7 @@ textarea:focus-visible {
   }
 
   .image-lightbox-pin-marker {
-    transform: translate(-50%, -50%) scale(var(--lightbox-pin-marker-scale));
+    transform: translate(-50%, -50%) scale(min(1, var(--lightbox-pin-marker-scale)));
     width: 28px;
     height: 28px;
     aspect-ratio: 1 / 1;
