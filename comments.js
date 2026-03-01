@@ -802,6 +802,11 @@
     '<rect x="17" y="5" width="3" height="15" rx="1"></rect>' +
     "</svg>" +
     "</button>" +
+    '<button class="image-lightbox-pin-toggle" type="button" aria-label="Add pinned note in fullscreen" aria-pressed="false">' +
+    '<svg class="image-lightbox-pin-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    '<path d="M8 3h8l-1.6 5.2 3.6 3.6H13v8l-2-2-2 2v-8H4.4l3.6-3.6L8 3z"></path>' +
+    "</svg>" +
+    "</button>" +
     '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image"><img class="image-lightbox-close-icon" src="/close.svg" alt="" /></button>' +
     '<section class="image-lightbox-analytics-panel" hidden></section>' +
     '<img class="image-lightbox-image" alt="" />' +
@@ -815,6 +820,7 @@
   const zoomOutBtn = overlay.querySelector(".image-lightbox-zoom-out");
   const zoomReadout = overlay.querySelector(".image-lightbox-zoom-readout");
   const analyticsToggleBtn = overlay.querySelector(".image-lightbox-analytics-toggle");
+  const pinToggleBtn = overlay.querySelector(".image-lightbox-pin-toggle");
   const analyticsPanel = overlay.querySelector(".image-lightbox-analytics-panel");
   const lightboxFrame = overlay.querySelector(".image-lightbox-frame");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
@@ -826,6 +832,7 @@
     !zoomOutBtn ||
     !zoomReadout ||
     !analyticsToggleBtn ||
+    !pinToggleBtn ||
     !analyticsPanel ||
     !lightboxFrame ||
     !lightboxImage
@@ -853,9 +860,12 @@
   let pinchActive = false;
   let pinchStartDistance = 0;
   let pinchStartZoom = 1;
+  let pinMode = false;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
+  const API_ENDPOINT = "/api/notes";
+  const AUTHOR_STORAGE_KEY = "image-timeline-author";
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const isDesktopViewport = () =>
     typeof window !== "undefined" && window.matchMedia("(min-width: 701px)").matches;
@@ -873,7 +883,7 @@
     panY = bounded.y;
     lightboxFrame.style.transform = "";
     lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
-    lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
+    lightboxImage.style.cursor = pinMode ? "crosshair" : zoomLevel > 1 ? "grab" : "zoom-in";
   };
   const resetPan = () => {
     panX = 0;
@@ -899,6 +909,12 @@
   };
 
   const resetZoom = () => applyZoom(1);
+  const setPinMode = (enabled) => {
+    pinMode = Boolean(enabled);
+    pinToggleBtn.setAttribute("aria-pressed", pinMode ? "true" : "false");
+    overlay.classList.toggle("is-pin-mode", pinMode);
+    updateImageTransform();
+  };
 
   const updateNavState = () => {
     const hasMany = currentList.length > 1;
@@ -955,6 +971,7 @@
     updateNavState();
     renderLightboxAnalytics();
     setLightboxAnalyticsVisible(false);
+    setPinMode(false);
     resetZoom();
   };
 
@@ -973,6 +990,7 @@
     lightboxImage.removeAttribute("src");
     analyticsPanel.innerHTML = "";
     setLightboxAnalyticsVisible(false);
+    setPinMode(false);
     resetZoom();
     if (currentItem) {
       currentItem.scrollIntoView({
@@ -1017,8 +1035,8 @@
   };
 
   images.forEach((image) => {
-    image.style.cursor = "crosshair";
-    image.addEventListener("dblclick", (event) => {
+    image.style.cursor = "zoom-in";
+    image.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       openLightbox(image);
@@ -1088,6 +1106,11 @@
     event.stopPropagation();
     const isHidden = analyticsPanel.hasAttribute("hidden");
     setLightboxAnalyticsVisible(isHidden);
+  });
+  pinToggleBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setPinMode(!pinMode);
   });
   lightboxImage.addEventListener("pointerdown", (event) => {
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -1182,6 +1205,64 @@
   lightboxImage.addEventListener("pointercancel", endDrag);
   lightboxImage.addEventListener("pointerleave", endDrag);
   lightboxImage.addEventListener("click", (event) => {
+    if (pinMode) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (zoomLevel > 1.001) {
+        setPinMode(false);
+        return;
+      }
+      const source = currentList[currentIndex];
+      const stage = source?.closest(".miro-card-stage");
+      const cardKey = stage?.getAttribute("data-card-key");
+      const boardKey =
+        document.querySelector(".comments[data-board-key]")?.getAttribute("data-board-key") ||
+        "timeline-board";
+      if (!cardKey) return;
+
+      const rect = lightboxImage.getBoundingClientRect();
+      const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+      const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
+
+      const initialName =
+        (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
+      const author = (window.prompt("Your name", initialName) || "").trim();
+      if (!author) return;
+      if (typeof localStorage !== "undefined") localStorage.setItem(AUTHOR_STORAGE_KEY, author);
+      const text = (window.prompt("Write a sticky note...", "") || "").trim();
+      if (!text) return;
+
+      const id =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const note = {
+        id,
+        text,
+        author,
+        createdAt: new Date().toISOString(),
+        cardKey,
+        pin: { x, y },
+      };
+
+      fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ page: boardKey, action: "add", note }),
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Notes request failed");
+          setPinMode(false);
+          closeLightbox();
+        })
+        .catch(() => {
+          setPinMode(false);
+        });
+      return;
+    }
     if (swipeConsumed) {
       swipeConsumed = false;
       event.preventDefault();
