@@ -237,10 +237,6 @@
     !lightboxPinCancel ||
     !lightboxPinDelete
   ) return;
-  // Keep analytics panel outside the frame to avoid mobile fixed-position quirks.
-  if (analyticsPanel.parentNode === lightboxFrame) {
-    overlay.appendChild(analyticsPanel);
-  }
 
   let lastFocused = null;
   let currentList = [];
