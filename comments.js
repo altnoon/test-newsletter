@@ -896,6 +896,7 @@
   let lightboxDraft = null;
   let currentBoardKey = "timeline-board";
   let lightboxNotes = [];
+  let pinDragState = null;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -967,7 +968,8 @@
     if (!cardKey) return;
     const ordered = sortChronological(lightboxNotes).filter((item) => item.cardKey === cardKey);
     ordered.forEach((item, index) => {
-      const marker = document.createElement("span");
+      const marker = document.createElement("button");
+      marker.type = "button";
       marker.className = "pin-marker image-lightbox-pin-marker";
       marker.style.left = `${item.pin.x * 100}%`;
       marker.style.top = `${item.pin.y * 100}%`;
@@ -985,7 +987,44 @@
       note.appendChild(heading);
       note.appendChild(text);
       lightboxPinLayer.appendChild(note);
+      marker.addEventListener("pointerdown", (event) => {
+        if (!pinMode || !overlay.classList.contains("is-open")) return;
+        pinDragState = {
+          pointerId: event.pointerId,
+          note: item,
+          marker,
+          noteBox: note,
+          moved: false,
+        };
+        marker.setPointerCapture(event.pointerId);
+        event.preventDefault();
+        event.stopPropagation();
+      });
     });
+  };
+  const persistPinPosition = async (note) => {
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          page: currentBoardKey,
+          action: "update",
+          id: note.id,
+          text: note.text,
+          author: note.author,
+          cardKey: note.cardKey,
+          pin: note.pin,
+        }),
+      });
+      if (!response.ok) throw new Error("Notes request failed");
+      const payload = await response.json();
+      lightboxNotes = normalizeNotes(payload.notes || []);
+      renderLightboxPins();
+    } catch (_) {}
   };
   const loadLightboxNotes = async () => {
     try {
@@ -1355,6 +1394,7 @@
     closeLightboxPinEditor();
   });
   lightboxImage.addEventListener("pointerdown", (event) => {
+    if (pinDragState) return;
     if (isLightboxPinEditorOpen()) return;
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (activePointers.size === 2) {
@@ -1390,6 +1430,7 @@
     event.stopPropagation();
   });
   lightboxImage.addEventListener("pointermove", (event) => {
+    if (pinDragState && pinDragState.pointerId === event.pointerId) return;
     if (activePointers.has(event.pointerId)) {
       activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     }
@@ -1421,6 +1462,7 @@
     event.stopPropagation();
   });
   const endDrag = (event) => {
+    if (pinDragState && pinDragState.pointerId === event.pointerId) return;
     activePointers.delete(event.pointerId);
     if (pinchActive && activePointers.size < 2) {
       pinchActive = false;
@@ -1447,7 +1489,43 @@
   lightboxImage.addEventListener("pointerup", endDrag);
   lightboxImage.addEventListener("pointercancel", endDrag);
   lightboxImage.addEventListener("pointerleave", endDrag);
+  const movePinnedNote = (event) => {
+    if (!pinDragState || pinDragState.pointerId !== event.pointerId) return;
+    const rect = lightboxImage.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const x = clamp01((event.clientX - rect.left) / rect.width);
+    const y = clamp01((event.clientY - rect.top) / rect.height);
+    pinDragState.note.pin = { x, y };
+    pinDragState.moved = true;
+    pinDragState.marker.style.left = `${x * 100}%`;
+    pinDragState.marker.style.top = `${y * 100}%`;
+    pinDragState.noteBox.style.left = `${x * 100}%`;
+    pinDragState.noteBox.style.top = `calc(${y * 100}% + 18px)`;
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  const endPinnedMove = (event) => {
+    if (!pinDragState || pinDragState.pointerId !== event.pointerId) return;
+    const drag = pinDragState;
+    pinDragState = null;
+    if (drag.marker.hasPointerCapture?.(event.pointerId)) {
+      drag.marker.releasePointerCapture(event.pointerId);
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (!drag.moved) return;
+    persistPinPosition(drag.note);
+    window.dispatchEvent(
+      new CustomEvent("timeline-note-added", {
+        detail: { boardKey: currentBoardKey, note: drag.note },
+      })
+    );
+  };
+  window.addEventListener("pointermove", movePinnedNote);
+  window.addEventListener("pointerup", endPinnedMove);
+  window.addEventListener("pointercancel", endPinnedMove);
   lightboxImage.addEventListener("click", (event) => {
+    if (pinDragState) return;
     if (isLightboxPinEditorOpen()) return;
     if (swipeConsumed) {
       swipeConsumed = false;

@@ -37,15 +37,18 @@ function normalizeNote(note) {
   const id = String(note.id || "").trim();
   const text = String(note.text || "").trim();
   const author = String(note.author || "Anonymous").trim() || "Anonymous";
+  const cardKey = String(note.cardKey || note.cardSlug || "").trim();
   const pin = normalizePin(note.pin);
   if (!id || !text || !pin) return null;
-  return {
+  const normalized = {
     id,
     text,
     author,
     pin,
     createdAt: String(note.createdAt || new Date().toISOString()),
   };
+  if (cardKey) normalized.cardKey = cardKey;
+  return normalized;
 }
 
 function normalizeNotes(items) {
@@ -116,13 +119,17 @@ module.exports = async function handler(req, res) {
       const id = String(body.id || "").trim();
       const text = String(body.text || "").trim();
       const author = String(body.author || "").trim();
-      if (!id || !text) return badRequest(res, "Invalid update payload");
+      const cardKey = String(body.cardKey || body.cardSlug || "").trim();
+      const pin = body.pin ? normalizePin(body.pin) : null;
+      if (!id) return badRequest(res, "Invalid update payload");
       notes = notes.map((item) =>
         item.id === id
           ? {
               ...item,
-              text,
+              text: text || item.text,
               author: author || item.author || "Anonymous",
+              pin: pin || item.pin,
+              ...(cardKey ? { cardKey } : {}),
             }
           : item
       );

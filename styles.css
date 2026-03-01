@@ -775,7 +775,8 @@ body {
 }
 
 .image-lightbox-pin-marker {
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: grab;
 }
 
 .image-lightbox-pin-note {
