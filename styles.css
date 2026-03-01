@@ -709,12 +709,6 @@ body {
   color: #f7f4ed;
 }
 
-@media (max-width: 720px) {
-  .miro-card-analytics-list {
-    grid-template-columns: 1fr;
-  }
-}
-
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
