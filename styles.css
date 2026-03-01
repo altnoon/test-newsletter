@@ -791,7 +791,8 @@ body {
   background: rgba(16, 16, 16, 0.8);
   color: #f2efe8;
   box-shadow: var(--shadow-glass-sm);
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .image-lightbox-pin-note strong {

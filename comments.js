@@ -891,6 +891,7 @@
   let pinchStartZoom = 1;
   let pinMode = true;
   let lightboxDraft = null;
+  let lightboxEditingNoteId = null;
   let currentBoardKey = "timeline-board";
   let lightboxNotes = [];
   let pinDragState = null;
@@ -1001,6 +1002,15 @@
       note.appendChild(heading);
       note.appendChild(text);
       lightboxPinLayer.appendChild(note);
+      note.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openLightboxPinEditor(
+          { cardKey: item.cardKey, boardKey: currentBoardKey, pin: item.pin },
+          "edit",
+          item
+        );
+      });
       marker.addEventListener("pointerdown", (event) => {
         if (!pinMode || !overlay.classList.contains("is-open")) return;
         pinDragState = {
@@ -1093,11 +1103,13 @@
   const closeLightboxPinEditor = () => {
     lightboxPinEditor.classList.remove("is-open", "is-edit");
     lightboxDraft = null;
+    lightboxEditingNoteId = null;
     lightboxPinInput.value = "";
     lightboxPinAuthor.value = "";
     lightboxPinMeta.textContent = "";
     lightboxPinSave.disabled = false;
     lightboxPinCancel.disabled = false;
+    lightboxPinDelete.disabled = false;
   };
   const positionLightboxPinEditor = () => {
     if (!lightboxDraft || !isLightboxPinEditorOpen()) return;
@@ -1125,16 +1137,18 @@
     lightboxPinEditor.style.removeProperty("right");
     lightboxPinEditor.style.removeProperty("bottom");
   };
-  const openLightboxPinEditor = (draft) => {
+  const openLightboxPinEditor = (draft, mode = "create", noteItem = null) => {
     lightboxDraft = draft;
+    lightboxEditingNoteId = mode === "edit" && noteItem ? noteItem.id : null;
     const initialName =
       (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
-    lightboxPinAuthor.value = initialName;
-    lightboxPinInput.value = "";
+    lightboxPinAuthor.value =
+      mode === "edit" && noteItem ? noteItem.author || initialName : initialName;
+    lightboxPinInput.value = mode === "edit" && noteItem ? noteItem.text || "" : "";
     lightboxPinMeta.textContent = "";
     lightboxPinEditor.classList.add("is-open");
-    lightboxPinEditor.classList.remove("is-edit");
-    lightboxPinDelete.style.display = "none";
+    lightboxPinEditor.classList.toggle("is-edit", mode === "edit");
+    lightboxPinDelete.style.display = mode === "edit" ? "inline-flex" : "none";
     positionLightboxPinEditor();
     setTimeout(() => lightboxPinInput.focus(), 0);
   };
@@ -1352,7 +1366,7 @@
     lightboxPinMeta.textContent = "";
   });
   lightboxPinSave.addEventListener("click", () => {
-    if (!lightboxDraft) return;
+    if (!lightboxDraft && !lightboxEditingNoteId) return;
     const text = lightboxPinInput.value.trim();
     if (!text) {
       lightboxPinMeta.textContent = "Type a note before saving";
@@ -1368,31 +1382,58 @@
     if (typeof localStorage !== "undefined") localStorage.setItem(AUTHOR_STORAGE_KEY, author);
     lightboxPinSave.disabled = true;
     lightboxPinCancel.disabled = true;
+    lightboxPinDelete.disabled = true;
+    const existing =
+      lightboxEditingNoteId && lightboxNotes.find((item) => item.id === lightboxEditingNoteId);
     const id =
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      existing?.id ||
+      (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
-        : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const note = {
-      id,
-      text,
-      author,
-      createdAt: new Date().toISOString(),
-      cardKey: lightboxDraft.cardKey,
-      pin: lightboxDraft.pin,
-    };
+        : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    const note = existing
+      ? {
+          ...existing,
+          text,
+          author,
+          cardKey: existing.cardKey || lightboxDraft?.cardKey || getCurrentCardKey(),
+          pin: existing.pin || lightboxDraft?.pin,
+        }
+      : {
+          id,
+          text,
+          author,
+          createdAt: new Date().toISOString(),
+          cardKey: lightboxDraft.cardKey,
+          pin: lightboxDraft.pin,
+        };
+    const action = existing ? "update" : "add";
+    const body = existing
+      ? {
+          page: currentBoardKey,
+          action,
+          id: note.id,
+          text: note.text,
+          author: note.author,
+          cardKey: note.cardKey,
+          pin: note.pin,
+        }
+      : { page: lightboxDraft.boardKey, action, note };
     fetch(API_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({ page: lightboxDraft.boardKey, action: "add", note }),
+      body: JSON.stringify(body),
     })
       .then((response) => {
         if (!response.ok) throw new Error("Notes request failed");
         window.dispatchEvent(
           new CustomEvent("timeline-note-added", {
-            detail: { boardKey: lightboxDraft.boardKey, note },
+            detail: {
+              boardKey: currentBoardKey,
+              note,
+            },
           })
         );
         setPinMode(true);
@@ -1405,10 +1446,38 @@
       .finally(() => {
         lightboxPinSave.disabled = false;
         lightboxPinCancel.disabled = false;
+        lightboxPinDelete.disabled = false;
       });
   });
   lightboxPinCancel.addEventListener("click", () => {
     closeLightboxPinEditor();
+  });
+  lightboxPinDelete.addEventListener("click", () => {
+    if (!lightboxEditingNoteId) return;
+    lightboxPinSave.disabled = true;
+    lightboxPinCancel.disabled = true;
+    lightboxPinDelete.disabled = true;
+    const deleteId = lightboxEditingNoteId;
+    fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ page: currentBoardKey, action: "delete", id: deleteId }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Notes request failed");
+        lightboxNotes = lightboxNotes.filter((item) => item.id !== deleteId);
+        renderLightboxPins();
+        closeLightboxPinEditor();
+      })
+      .catch(() => {})
+      .finally(() => {
+        lightboxPinSave.disabled = false;
+        lightboxPinCancel.disabled = false;
+        lightboxPinDelete.disabled = false;
+      });
   });
   lightboxImage.addEventListener("pointerdown", (event) => {
     if (pinDragState) return;
