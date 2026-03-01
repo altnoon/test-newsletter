@@ -1747,18 +1747,19 @@ textarea:focus-visible {
 
   .pin-note-editor {
     position: fixed;
-    left: var(--mobile-editor-gutter) !important;
-    right: var(--mobile-editor-gutter);
+    left: 50% !important;
+    right: auto;
     top: auto !important;
     bottom: calc(var(--safe-bottom) + var(--space-8));
-    width: auto !important;
-    max-height: min(62vh, 420px);
+    width: min(48vw, 220px) !important;
+    max-height: min(31vh, 210px);
     overflow: auto;
-    padding: var(--space-8);
+    padding: var(--space-6);
+    transform: translateX(-50%);
   }
 
   .pin-note-input {
-    min-height: 88px;
+    min-height: 56px;
   }
 
   .comment-author,
@@ -1774,6 +1775,15 @@ textarea:focus-visible {
   .pin-note-save,
   .pin-note-cancel {
     font-size: 14px;
+  }
+
+  .pin-note-save,
+  .pin-note-cancel,
+  .pin-note-delete {
+    min-height: 30px;
+    padding: 0.2rem 0.35rem;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
   }
 
   .pin-note-actions {
