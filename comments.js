@@ -248,7 +248,7 @@
     editor.className = "pin-note-editor";
     editor.innerHTML =
       '<p class="pin-note-meta"></p>' +
-      '<label class="pin-note-author-label" for="pin-note-author">Name</label>' +
+      '<label class="pin-note-author-label" for="pin-note-author">New note by:</label>' +
       '<input id="pin-note-author" class="pin-note-author" type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />' +
       '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
       '<div class="pin-note-actions">' +
@@ -398,10 +398,7 @@
         meta.textContent = `${item.author || "Anonymous"}${timestamp ? ` • ${timestamp}` : ""}`;
         return;
       }
-      const author = noteAuthorInput.value.trim() || getAuthorName();
-      meta.textContent = author
-        ? `New note by ${author}`
-        : "Add your name in the note before saving";
+      meta.textContent = "";
     };
 
     const openEditor = (pin, initialText, mode, item) => {
@@ -831,7 +828,7 @@
     editor.className = "pin-note-editor";
     editor.innerHTML =
       '<p class="pin-note-meta"></p>' +
-      '<label class="pin-note-author-label" for="pin-note-author-lightbox">Name</label>' +
+      '<label class="pin-note-author-label" for="pin-note-author-lightbox">New note by:</label>' +
       '<input id="pin-note-author-lightbox" class="pin-note-author" type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />' +
       '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
       '<div class="pin-note-actions">' +
@@ -1134,9 +1131,7 @@
       (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
     lightboxPinAuthor.value = initialName;
     lightboxPinInput.value = "";
-    lightboxPinMeta.textContent = initialName
-      ? `New note by ${initialName}`
-      : "Add your name before saving";
+    lightboxPinMeta.textContent = "";
     lightboxPinEditor.classList.add("is-open");
     lightboxPinEditor.classList.remove("is-edit");
     lightboxPinDelete.style.display = "none";
@@ -1354,8 +1349,7 @@
   });
   lightboxPinAuthor.addEventListener("input", () => {
     if (!isLightboxPinEditorOpen()) return;
-    const name = lightboxPinAuthor.value.trim();
-    lightboxPinMeta.textContent = name ? `New note by ${name}` : "Add your name before saving";
+    lightboxPinMeta.textContent = "";
   });
   lightboxPinSave.addEventListener("click", () => {
     if (!lightboxDraft) return;
@@ -1724,7 +1718,7 @@
     editor.className = "pin-note-editor";
     editor.innerHTML =
       '<p class="pin-note-meta"></p>' +
-      '<label class="pin-note-author-label" for="pin-note-author-board">Name</label>' +
+      '<label class="pin-note-author-label" for="pin-note-author-board">New note by:</label>' +
       '<input id="pin-note-author-board" class="pin-note-author" type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />' +
       '<textarea class="pin-note-input" rows="4" placeholder="Write a sticky note..."></textarea>' +
       '<div class="pin-note-actions">' +
@@ -1889,8 +1883,7 @@
         meta.textContent = `${item.author || "Anonymous"}${stamp ? ` • ${stamp}` : ""} • ${card}`;
         return;
       }
-      const name = noteAuthorInput.value.trim() || getAuthorName();
-      meta.textContent = name ? `New note by ${name}` : "Add your name before saving";
+      meta.textContent = "";
     };
 
     const openEditor = (stage, pin, text, mode, item) => {
