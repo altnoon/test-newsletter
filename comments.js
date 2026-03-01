@@ -1039,6 +1039,10 @@
       lightboxNotes = [];
     }
     renderLightboxPins();
+    const currentCardKey = getCurrentCardKey();
+    if (currentCardKey && lightboxNotes.some((item) => item.cardKey === currentCardKey)) {
+      setPinMode(true);
+    }
   };
   const resetPan = () => {
     panX = 0;
