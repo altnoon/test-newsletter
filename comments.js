@@ -411,7 +411,9 @@
       deleteBtn.style.display = mode === "edit" ? "inline-flex" : "none";
       setEditorMeta(mode, item);
       positionEditor();
-      setTimeout(() => input.focus(), 0);
+      if (!isMobileViewport()) {
+        setTimeout(() => input.focus(), 0);
+      }
     };
 
     const closeEditor = () => {
@@ -1154,7 +1156,9 @@
     lightboxPinEditor.classList.toggle("is-edit", mode === "edit");
     lightboxPinDelete.style.display = mode === "edit" ? "inline-flex" : "none";
     positionLightboxPinEditor();
-    setTimeout(() => lightboxPinInput.focus(), 0);
+    if (!isMobileViewport()) {
+      setTimeout(() => lightboxPinInput.focus(), 0);
+    }
   };
 
   const updateNavState = () => {
@@ -2027,7 +2031,9 @@
       deleteBtn.style.display = mode === "edit" ? "inline-flex" : "none";
       setEditorMeta(mode, item);
       positionEditor();
-      setTimeout(() => input.focus(), 0);
+      if (!isMobileViewport()) {
+        setTimeout(() => input.focus(), 0);
+      }
     };
 
     const renderAll = () => {
