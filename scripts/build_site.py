@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import html
 import re
+import unicodedata
+import zipfile
 from pathlib import Path
+from xml.etree import ElementTree as ET
 from urllib.parse import quote
 
 
@@ -13,6 +16,146 @@ PAGES_DIR = ROOT / "pages"
 STYLE_FILE = ROOT / "styles.css"
 INDEX_FILE = ROOT / "index.html"
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+ANALYTICS_XLSX_CANDIDATES = [
+    ROOT / "vivla-mail-analytics-ind.xlsx",
+    ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
+    Path("/Users/delchev/Downloads/vivla-mail-analytics-ind.xlsx"),
+]
+
+
+def normalize_text(value: str) -> str:
+    folded = unicodedata.normalize("NFKD", value or "").encode("ascii", "ignore").decode("ascii")
+    lowered = folded.lower()
+    lowered = re.sub(r"[^a-z0-9]+", " ", lowered)
+    return re.sub(r"\s+", " ", lowered).strip()
+
+
+def analytics_key(value: str) -> tuple[str, str]:
+    normalized = normalize_text(value)
+    flow_match = re.search(r"\bw(\d+)\s*e(\d+)\b", normalized)
+    flow = f"w{flow_match.group(1)}-e{flow_match.group(2)}" if flow_match else ""
+    variant_match = re.search(r"\b([ab])\b", normalized)
+    variant = variant_match.group(1).lower() if variant_match else ""
+    return (flow, variant)
+
+
+def find_analytics_xlsx() -> Path | None:
+    for path in ANALYTICS_XLSX_CANDIDATES:
+        if path.exists():
+            return path
+    return None
+
+
+def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
+    ns = {"x": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    with zipfile.ZipFile(xlsx_path) as archive:
+        strings = []
+        if "xl/sharedStrings.xml" in archive.namelist():
+            root = ET.fromstring(archive.read("xl/sharedStrings.xml"))
+            for item in root.findall("x:si", ns):
+                text = "".join(node.text or "" for node in item.findall(".//x:t", ns))
+                strings.append(text)
+
+        sheet = ET.fromstring(archive.read("xl/worksheets/sheet1.xml"))
+        parsed_rows = []
+        for row in sheet.findall("x:sheetData/x:row", ns):
+            values: dict[str, str] = {}
+            for cell in row.findall("x:c", ns):
+                ref = cell.attrib.get("r", "")
+                col = re.sub(r"\d", "", ref)
+                cell_type = cell.attrib.get("t")
+                value_node = cell.find("x:v", ns)
+                if value_node is None or value_node.text is None:
+                    values[col] = ""
+                    continue
+                if cell_type == "s":
+                    values[col] = strings[int(value_node.text)]
+                else:
+                    values[col] = value_node.text
+            parsed_rows.append(values)
+
+    if not parsed_rows:
+        return []
+
+    header = parsed_rows[0]
+    date_columns = [("C", header.get("C", "")), ("D", header.get("D", "")), ("E", header.get("E", "")), ("F", header.get("F", "")), ("G", header.get("G", ""))]
+    title = (header.get("A") or "").strip()
+    metrics = []
+    for row in parsed_rows[1:]:
+        metric_name = (row.get("A") or "").strip()
+        if not metric_name:
+            continue
+        points = []
+        for key, label in date_columns:
+            points.append({"label": label, "value": row.get(key, "")})
+        metrics.append({"name": metric_name, "points": points})
+
+    return [{"title": title, "metrics": metrics}] if title and metrics else []
+
+
+def load_analytics_map() -> dict[tuple[str, str], dict]:
+    xlsx_path = find_analytics_xlsx()
+    if xlsx_path is None:
+        return {}
+    try:
+        entries = parse_analytics_rows(xlsx_path)
+    except (OSError, ValueError, KeyError, ET.ParseError, zipfile.BadZipFile):
+        return {}
+    result: dict[tuple[str, str], dict] = {}
+    for entry in entries:
+        key = analytics_key(entry["title"])
+        if key != ("", ""):
+            result[key] = entry
+    return result
+
+
+def format_analytics_value(metric_name: str, raw_value: str) -> str:
+    value = (raw_value or "").strip()
+    if value == "":
+        return "—"
+    metric_lower = metric_name.lower()
+    try:
+        number = float(value)
+    except ValueError:
+        return value
+    if "rate" in metric_lower or metric_lower == "ctr":
+        return f"{number * 100:.1f}%"
+    if number.is_integer():
+        return f"{int(number)}"
+    return f"{number:.3f}".rstrip("0").rstrip(".")
+
+
+def analytics_overlay_markup(entry: dict | None) -> str:
+    if not entry:
+        return (
+            '<div class="miro-card-analytics" hidden>'
+            '<button class="miro-card-analytics-close" type="button" aria-label="Close analytics">×</button>'
+            '<h4>Analytics</h4>'
+            '<p class="miro-card-analytics-empty">No analytics data yet.</p>'
+            "</div>"
+        )
+
+    metric_rows = []
+    for metric in entry["metrics"]:
+        values = "".join(
+            f'<li><span class="miro-card-analytics-point-label">{html.escape(point["label"])}</span>'
+            f'<strong>{html.escape(format_analytics_value(metric["name"], point["value"]))}</strong></li>'
+            for point in metric["points"]
+        )
+        metric_rows.append(
+            '<li class="miro-card-analytics-metric">'
+            f'<p>{html.escape(metric["name"])}</p>'
+            f'<ul>{values}</ul>'
+            "</li>"
+        )
+
+    return (
+        '<div class="miro-card-analytics" hidden>'
+        '<button class="miro-card-analytics-close" type="button" aria-label="Close analytics">×</button>'
+        f'<h4>{html.escape(entry["title"])}</h4>'
+        f'<ul class="miro-card-analytics-list">{"".join(metric_rows)}</ul>'
+        "</div>"
+    )
 
 
 def created_at(path: Path) -> float:
@@ -293,7 +436,7 @@ def render_page(
     return html_page.replace("  </body>", f"{script_tag}\n  </body>")
 
 
-def timeline_content_for_root(timelines: list[dict]) -> str:
+def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[str, str], dict]) -> str:
     if not timelines:
         return (
             '<div class="empty-state">'
@@ -307,6 +450,7 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
     for group in timelines:
         cards = []
         for i, doc in enumerate(group["docs"], start=1):
+            entry = analytics_map.get(analytics_key(doc.get("raw_label", doc["label"])))
             cards.append(
                 '<article class="miro-card">'
                 '<div class="miro-card-head">'
@@ -316,7 +460,7 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
                 "</div>"
                 '<div class="miro-card-actions">'
                 f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
-                f'<button class="miro-card-action" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
+                f'<button class="miro-card-action miro-card-action-analytics" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
                 "</div>"
                 "</div>"
                 f'<p class="miro-card-title">{doc["label"]}</p>'
@@ -325,6 +469,7 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
                 f'data-card-label="{group["label"]} • {doc["label"]}">'
                 f'<img class="miro-card-image" src="Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
                 '<div class="pin-layer"></div>'
+                f"{analytics_overlay_markup(entry)}"
                 "</div>"
                 "</article>"
             )
@@ -389,9 +534,10 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
     )
 
 
-def timeline_content_for_group(group: dict) -> str:
+def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, str], dict]) -> str:
     cards = []
     for i, doc in enumerate(group["docs"], start=1):
+        entry = analytics_map.get(analytics_key(doc.get("raw_label", doc["label"])))
         cards.append(
             '<article class="miro-card">'
             '<div class="miro-card-head">'
@@ -401,7 +547,7 @@ def timeline_content_for_group(group: dict) -> str:
             "</div>"
             '<div class="miro-card-actions">'
             f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
-            f'<button class="miro-card-action" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
+            f'<button class="miro-card-action miro-card-action-analytics" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
             "</div>"
             "</div>"
             f'<p class="miro-card-title">{doc["label"]}</p>'
@@ -410,6 +556,7 @@ def timeline_content_for_group(group: dict) -> str:
             f'data-card-label="{group["label"]} • {doc["label"]}">'
             f'<img class="miro-card-image" src="../Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
             '<div class="pin-layer"></div>'
+            f"{analytics_overlay_markup(entry)}"
             "</div>"
             "</article>"
         )
@@ -476,6 +623,7 @@ def main() -> None:
         page.unlink()
 
     timeline_groups = collect_timeline_groups()
+    analytics_map = load_analytics_map()
     docs: list[dict] = []
     seen: set[str] = set()
     for group in timeline_groups:
@@ -483,11 +631,13 @@ def main() -> None:
         for path in group["files"]:
             rel_path = path.relative_to(IMAGE_DIR).as_posix()
             label = html.escape(display_label(path))
+            raw_label = display_label(path)
             slug = unique_slug(seen, slugify(rel_path))
             doc = {
                 "path": path,
                 "rel_path": rel_path,
                 "label": label,
+                "raw_label": raw_label,
                 "slug": slug,
                 "alt": html.escape(display_label(path)),
             }
@@ -526,7 +676,7 @@ def main() -> None:
                 page_key=None,
                 mobile_nav=mobile_controls(root_menu_links),
                 mobile_brand="Timeline",
-                custom_content=timeline_content_for_root(timeline_groups),
+                custom_content=timeline_content_for_root(timeline_groups, analytics_map),
             ),
             encoding="utf-8",
         )
@@ -543,7 +693,7 @@ def main() -> None:
                 page_key=None,
                 mobile_nav=mobile_controls(group_menu_links),
                 mobile_brand=group["label"],
-                custom_content=timeline_content_for_group(group),
+                custom_content=timeline_content_for_group(group, analytics_map),
             )
             (PAGES_DIR / f"timeline-{group['key']}.html").write_text(group_html, encoding="utf-8")
 

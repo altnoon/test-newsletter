@@ -983,6 +983,44 @@
     });
   });
 
+  const closeAllAnalyticsPanels = (exceptPanel = null) => {
+    const panels = Array.from(document.querySelectorAll(".miro-card-analytics"));
+    panels.forEach((panel) => {
+      if (exceptPanel && panel === exceptPanel) return;
+      panel.setAttribute("hidden", "");
+    });
+  };
+
+  const analyticsButtons = Array.from(document.querySelectorAll(".miro-card-action-analytics"));
+  analyticsButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const card = button.closest(".miro-card");
+      const panel = card?.querySelector(".miro-card-analytics");
+      if (!panel) return;
+      const isHidden = panel.hasAttribute("hidden");
+      closeAllAnalyticsPanels(panel);
+      if (isHidden) {
+        panel.removeAttribute("hidden");
+      } else {
+        panel.setAttribute("hidden", "");
+      }
+    });
+  });
+
+  const analyticsCloseButtons = Array.from(
+    document.querySelectorAll(".miro-card-analytics-close")
+  );
+  analyticsCloseButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const panel = button.closest(".miro-card-analytics");
+      if (panel) panel.setAttribute("hidden", "");
+    });
+  });
+
   closeBtn.addEventListener("click", closeLightbox);
   zoomInBtn.addEventListener("click", (event) => {
     event.stopPropagation();
