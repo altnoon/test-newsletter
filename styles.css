@@ -730,6 +730,7 @@ body {
 
 .image-lightbox {
   --lightbox-pin-ui-scale: 1;
+  --lightbox-pin-marker-scale: 1;
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
@@ -780,9 +781,9 @@ body {
   cursor: grab;
   transform: translate(-50%, -50%);
   transform-origin: center center;
-  width: calc(28px * var(--lightbox-pin-ui-scale));
-  height: calc(28px * var(--lightbox-pin-ui-scale));
-  font-size: calc(0.75rem * var(--lightbox-pin-ui-scale));
+  width: calc(28px * var(--lightbox-pin-marker-scale));
+  height: calc(28px * var(--lightbox-pin-marker-scale));
+  font-size: calc(0.75rem * var(--lightbox-pin-marker-scale));
 }
 
 .image-lightbox-pin-note {
