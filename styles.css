@@ -775,7 +775,48 @@ body {
 }
 
 .image-lightbox-pin-marker {
-  pointer-events: none;
+  pointer-events: auto;
+}
+
+.image-lightbox-note-popover {
+  position: fixed;
+  z-index: 6;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  box-shadow: var(--shadow-glass-float);
+  padding: 0.55rem 0.62rem;
+  color: var(--glass-text-primary);
+  max-height: min(50vh, 280px);
+  overflow: auto;
+}
+
+.image-lightbox-note-popover[hidden] {
+  display: none;
+}
+
+.image-lightbox-note-popover-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  margin-bottom: 0.35rem;
+}
+
+.image-lightbox-note-popover-head strong {
+  color: var(--glass-text-primary);
+}
+
+.image-lightbox-note-popover-head span {
+  color: var(--glass-text-secondary);
+  white-space: nowrap;
+}
+
+.image-lightbox-note-popover p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
 }
 
 .image-lightbox-close {
