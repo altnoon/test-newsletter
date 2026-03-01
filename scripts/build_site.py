@@ -285,20 +285,18 @@ def display_label(path: Path) -> str:
     """
     Format UI labels from source file names:
     - [Fase 1] Nuevos destinos - Propietarios - ES -> [F1] - Propietarios - ES
-    - [Fase 2] Nuevos destinos - No propietarios - EN -> [F2] - No propietarios - EN
+    - [Fase 2] Nuevos destinos Mallorca - No propietarios - EN -> [F2] - Nuevos destinos Mallorca - No propietarios - EN
     Other names are returned as-is (without extension).
     """
     stem = path.stem.strip()
-    pattern = re.compile(
-        r"^\[Fase\s*(\d+)\]\s*Nuevos destinos\s*-\s*(.+)$",
-        re.IGNORECASE,
-    )
+    pattern = re.compile(r"^\[Fase\s*(\d+)\]\s*(.+)$", re.IGNORECASE)
     match = pattern.match(stem)
-    if not match:
-        return stem
-    phase = match.group(1)
-    rest = match.group(2).strip()
-    return f"[F{phase}] - {rest}"
+    if match:
+        phase = match.group(1)
+        rest = match.group(2).strip()
+        rest = re.sub(r"^Nuevos destinos\s*-\s*", "", rest, flags=re.IGNORECASE)
+        return f"[F{phase}] - {rest}"
+    return stem
 
 
 def timeline_label_from_name(name: str) -> str:
