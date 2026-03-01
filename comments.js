@@ -976,10 +976,10 @@
       lightboxPinLayer.appendChild(marker);
       const note = document.createElement("div");
       note.className = "image-lightbox-pin-note";
-      note.style.left = `calc(${item.pin.x * 100}% + 18px)`;
-      note.style.top = `${item.pin.y * 100}%`;
+      note.style.left = `${item.pin.x * 100}%`;
+      note.style.top = `calc(${item.pin.y * 100}% + 18px)`;
       const heading = document.createElement("strong");
-      heading.textContent = `#${index + 1} ${item.author || "Anonymous"}`;
+      heading.textContent = item.author || "Anonymous";
       const text = document.createElement("p");
       text.textContent = String(item.text || "");
       note.appendChild(heading);

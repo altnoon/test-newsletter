@@ -780,9 +780,10 @@ body {
 
 .image-lightbox-pin-note {
   position: absolute;
-  transform: translateY(-50%);
+  transform: translateX(-50%);
   z-index: 2;
-  width: clamp(180px, 24vw, 300px);
+  width: min(175px, calc(100vw - 24px));
+  max-width: 175px;
   padding: 0.4rem 0.5rem;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
@@ -808,7 +809,7 @@ body {
 
 @media (max-width: 700px) {
   .image-lightbox-pin-note {
-    width: min(68vw, 230px);
+    width: min(175px, calc(100vw - 24px));
   }
 }
 
