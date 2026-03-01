@@ -965,9 +965,8 @@
     lightboxPinLayer.innerHTML = "";
     const cardKey = getCurrentCardKey();
     if (!cardKey) return;
-    const ordered = sortChronological(lightboxNotes);
+    const ordered = sortChronological(lightboxNotes).filter((item) => item.cardKey === cardKey);
     ordered.forEach((item, index) => {
-      if (item.cardKey !== cardKey) return;
       const marker = document.createElement("span");
       marker.className = "pin-marker image-lightbox-pin-marker";
       marker.style.left = `${item.pin.x * 100}%`;
@@ -1019,6 +1018,7 @@
     pinMode = Boolean(enabled);
     pinToggleBtn.setAttribute("aria-pressed", pinMode ? "true" : "false");
     overlay.classList.toggle("is-pin-mode", pinMode);
+    lightboxPinLayer.style.display = pinMode ? "block" : "none";
     updateImageTransform();
   };
   const isLightboxPinEditorOpen = () => lightboxPinEditor.classList.contains("is-open");
@@ -1330,8 +1330,6 @@
             detail: { boardKey: lightboxDraft.boardKey, note },
           })
         );
-        lightboxNotes.push(note);
-        renderLightboxPins();
         closeLightboxPinEditor();
       })
       .catch(() => {
