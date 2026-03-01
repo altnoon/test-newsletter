@@ -839,6 +839,7 @@
     return editor;
   };
   const lightboxPinEditor = createLightboxPinEditor();
+  lightboxPinEditor.classList.add("is-lightbox-editor");
   overlay.appendChild(lightboxPinEditor);
   const lightboxPinMeta = lightboxPinEditor.querySelector(".pin-note-meta");
   const lightboxPinAuthor = lightboxPinEditor.querySelector(".pin-note-author");
@@ -1124,8 +1125,8 @@
       return;
     }
     const rect = lightboxFrame.getBoundingClientRect();
-    const width = 260;
-    const height = 182;
+    const width = 174;
+    const height = 122;
     let left = rect.left + lightboxDraft.pin.x * rect.width + 10;
     let top = rect.top + lightboxDraft.pin.y * rect.height - 18;
     left = Math.max(12, Math.min(left, window.innerWidth - width - 12));

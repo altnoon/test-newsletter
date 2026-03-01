@@ -1256,6 +1256,50 @@ body {
   overflow: visible;
 }
 
+.pin-note-editor.is-lightbox-editor {
+  padding: 8px;
+  min-width: 174px;
+}
+
+.pin-note-editor.is-lightbox-editor .pin-note-meta {
+  font-size: 0.48rem;
+  margin-bottom: 4px;
+}
+
+.pin-note-editor.is-lightbox-editor .pin-note-author-label {
+  font-size: 0.54rem;
+  margin-bottom: 3px;
+}
+
+.pin-note-editor.is-lightbox-editor .pin-note-author,
+.pin-note-editor.is-lightbox-editor .pin-note-input {
+  font-size: 9px;
+  line-height: 1.2;
+  padding: 0.22rem 0.3rem;
+}
+
+.pin-note-editor.is-lightbox-editor .pin-note-author::placeholder,
+.pin-note-editor.is-lightbox-editor .pin-note-input::placeholder {
+  font-size: 9px;
+}
+
+.pin-note-editor.is-lightbox-editor .pin-note-input {
+  min-height: 56px;
+}
+
+.pin-note-editor.is-lightbox-editor .pin-note-actions {
+  margin-top: 5px;
+  gap: 4px;
+}
+
+.pin-note-editor.is-lightbox-editor .pin-note-save,
+.pin-note-editor.is-lightbox-editor .pin-note-cancel,
+.pin-note-editor.is-lightbox-editor .pin-note-delete {
+  min-height: 24px;
+  padding: 0.12rem 0.25rem;
+  font-size: 9px;
+}
+
 .pin-note-editor.is-open {
   display: block;
 }
@@ -1758,6 +1802,12 @@ textarea:focus-visible {
     overflow: visible;
     padding: var(--space-6);
     transform: translateX(-50%);
+  }
+
+  .pin-note-editor.is-lightbox-editor {
+    width: min(32vw, 150px) !important;
+    max-height: none;
+    padding: 6px;
   }
 
   .pin-note-input {
