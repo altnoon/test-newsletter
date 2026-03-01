@@ -1833,6 +1833,13 @@ textarea:focus-visible {
     font-size: 16px;
   }
 
+  .pin-note-editor.is-lightbox-editor .pin-note-author,
+  .pin-note-editor.is-lightbox-editor .pin-note-input,
+  .pin-note-editor.is-lightbox-editor .pin-note-author::placeholder,
+  .pin-note-editor.is-lightbox-editor .pin-note-input::placeholder {
+    font-size: 16px;
+  }
+
   .pin-note-save,
   .pin-note-cancel,
   .pin-note-delete {
