@@ -765,6 +765,19 @@ body {
   touch-action: none;
 }
 
+.image-lightbox-pin-layer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  pointer-events: none;
+  transform-origin: center center;
+}
+
+.image-lightbox-pin-marker {
+  pointer-events: none;
+}
+
 .image-lightbox-close {
   position: absolute;
   z-index: 3;

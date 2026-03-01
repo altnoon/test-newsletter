@@ -809,6 +809,7 @@
     "</button>" +
     '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image"><img class="image-lightbox-close-icon" src="/close.svg" alt="" /></button>' +
     '<section class="image-lightbox-analytics-panel" hidden></section>' +
+    '<div class="image-lightbox-pin-layer" aria-hidden="true"></div>' +
     '<img class="image-lightbox-image" alt="" />' +
     "</div>";
   document.body.appendChild(overlay);
@@ -822,6 +823,7 @@
   const analyticsToggleBtn = overlay.querySelector(".image-lightbox-analytics-toggle");
   const pinToggleBtn = overlay.querySelector(".image-lightbox-pin-toggle");
   const analyticsPanel = overlay.querySelector(".image-lightbox-analytics-panel");
+  const lightboxPinLayer = overlay.querySelector(".image-lightbox-pin-layer");
   const lightboxFrame = overlay.querySelector(".image-lightbox-frame");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
   const createLightboxPinEditor = () => {
@@ -857,6 +859,7 @@
     !analyticsToggleBtn ||
     !pinToggleBtn ||
     !analyticsPanel ||
+    !lightboxPinLayer ||
     !lightboxFrame ||
     !lightboxImage ||
     !lightboxPinMeta ||
@@ -891,12 +894,47 @@
   let pinchStartZoom = 1;
   let pinMode = true;
   let lightboxDraft = null;
+  let currentBoardKey = "timeline-board";
+  let lightboxNotes = [];
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
   const API_ENDPOINT = "/api/notes";
   const AUTHOR_STORAGE_KEY = "image-timeline-author";
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const clamp01 = (value) => Math.min(1, Math.max(0, value));
+  const toTimestamp = (value) => {
+    const ts = Date.parse(String(value || ""));
+    return Number.isNaN(ts) ? 0 : ts;
+  };
+  const sortChronological = (items) =>
+    [...items].sort((a, b) => {
+      const t = toTimestamp(a.createdAt) - toTimestamp(b.createdAt);
+      if (t !== 0) return t;
+      return String(a.id || "").localeCompare(String(b.id || ""));
+    });
+  const normalizeNotes = (items) =>
+    items
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const text = String(item.text ?? "").trim();
+        const legacySlug = String(item.cardSlug ?? "").trim();
+        const cardKey = String(item.cardKey ?? legacySlug).trim();
+        if (!text || !cardKey) return null;
+        const sourcePin = item.pin && typeof item.pin === "object" ? item.pin : item;
+        const pinX = Number(sourcePin.x);
+        const pinY = Number(sourcePin.y);
+        if (!Number.isFinite(pinX) || !Number.isFinite(pinY)) return null;
+        return {
+          id: String(item.id || `note-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+          text,
+          author: String(item.author || "Anonymous").trim() || "Anonymous",
+          createdAt: String(item.createdAt || new Date().toISOString()),
+          cardKey,
+          pin: { x: clamp01(pinX), y: clamp01(pinY) },
+        };
+      })
+      .filter(Boolean);
   const isDesktopViewport = () =>
     typeof window !== "undefined" && window.matchMedia("(min-width: 701px)").matches;
   const clampPan = (x, y) => {
@@ -914,6 +952,44 @@
     lightboxFrame.style.transform = "";
     lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
     lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "crosshair";
+    lightboxPinLayer.style.width = `${lightboxImage.clientWidth}px`;
+    lightboxPinLayer.style.height = `${lightboxImage.clientHeight}px`;
+    lightboxPinLayer.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+  };
+  const getCurrentCardKey = () => {
+    const source = currentList[currentIndex];
+    const stage = source?.closest(".miro-card-stage");
+    return stage?.getAttribute("data-card-key") || "";
+  };
+  const renderLightboxPins = () => {
+    lightboxPinLayer.innerHTML = "";
+    const cardKey = getCurrentCardKey();
+    if (!cardKey) return;
+    const ordered = sortChronological(lightboxNotes);
+    ordered.forEach((item, index) => {
+      if (item.cardKey !== cardKey) return;
+      const marker = document.createElement("span");
+      marker.className = "pin-marker image-lightbox-pin-marker";
+      marker.style.left = `${item.pin.x * 100}%`;
+      marker.style.top = `${item.pin.y * 100}%`;
+      marker.textContent = String(index + 1);
+      marker.title = `${item.author}: ${item.text}`;
+      lightboxPinLayer.appendChild(marker);
+    });
+  };
+  const loadLightboxNotes = async () => {
+    try {
+      const response = await fetch(
+        `${API_ENDPOINT}?page=${encodeURIComponent(currentBoardKey)}`,
+        { method: "GET", headers: { Accept: "application/json" } }
+      );
+      if (!response.ok) throw new Error("Notes request failed");
+      const payload = await response.json();
+      lightboxNotes = normalizeNotes(payload.notes || []);
+    } catch (_) {
+      lightboxNotes = [];
+    }
+    renderLightboxPins();
   };
   const resetPan = () => {
     panX = 0;
@@ -1055,6 +1131,7 @@
     setPinMode(true);
     closeLightboxPinEditor();
     resetZoom();
+    renderLightboxPins();
   };
 
   const stepImage = (delta) => {
@@ -1071,6 +1148,7 @@
     overlay.setAttribute("aria-hidden", "true");
     lightboxImage.removeAttribute("src");
     analyticsPanel.innerHTML = "";
+    lightboxPinLayer.innerHTML = "";
     setLightboxAnalyticsVisible(false);
     setPinMode(false);
     closeLightboxPinEditor();
@@ -1111,7 +1189,11 @@
     lastFocused = document.activeElement;
     currentList = list;
     currentIndex = index;
+    currentBoardKey =
+      document.querySelector(".comments[data-board-key]")?.getAttribute("data-board-key") ||
+      "timeline-board";
     showCurrentImage();
+    loadLightboxNotes();
     overlay.classList.add("is-open");
     overlay.setAttribute("aria-hidden", "false");
     closeBtn.focus();
@@ -1248,6 +1330,8 @@
             detail: { boardKey: lightboxDraft.boardKey, note },
           })
         );
+        lightboxNotes.push(note);
+        renderLightboxPins();
         closeLightboxPinEditor();
       })
       .catch(() => {
@@ -1437,7 +1521,22 @@
   window.addEventListener("resize", () => {
     if (!overlay.classList.contains("is-open")) return;
     updateImageTransform();
+    renderLightboxPins();
     positionLightboxPinEditor();
+  });
+  lightboxImage.addEventListener("load", () => {
+    if (!overlay.classList.contains("is-open")) return;
+    updateImageTransform();
+    renderLightboxPins();
+    positionLightboxPinEditor();
+  });
+  window.addEventListener("timeline-note-added", (event) => {
+    const detail = event?.detail;
+    if (!detail || detail.boardKey !== currentBoardKey) return;
+    const incoming = normalizeNotes([detail.note])[0];
+    if (!incoming) return;
+    if (!lightboxNotes.some((item) => item.id === incoming.id)) lightboxNotes.push(incoming);
+    renderLightboxPins();
   });
 })();
 
