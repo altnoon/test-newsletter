@@ -1210,6 +1210,11 @@ body {
   z-index: var(--z-dropdown);
 }
 
+/* Keep pin markers visible only in fullscreen for now. */
+.timeline-summary .pin-layer {
+  display: none;
+}
+
 .pin-marker {
   position: absolute;
   transform: translate(-50%, -50%);
