@@ -795,7 +795,15 @@
     '<span class="image-lightbox-zoom-readout" aria-live="polite">100%</span>' +
     '<button class="image-lightbox-zoom-btn image-lightbox-zoom-in" type="button" aria-label="Zoom in">+</button>' +
     "</div>" +
+    '<button class="image-lightbox-analytics-toggle" type="button" aria-label="Show analytics in fullscreen" aria-pressed="false">' +
+    '<svg class="image-lightbox-analytics-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    '<rect x="4" y="12" width="3" height="8" rx="1"></rect>' +
+    '<rect x="10.5" y="8" width="3" height="12" rx="1"></rect>' +
+    '<rect x="17" y="5" width="3" height="15" rx="1"></rect>' +
+    "</svg>" +
+    "</button>" +
     '<button class="image-lightbox-close" type="button" aria-label="Close fullscreen image"><img class="image-lightbox-close-icon" src="/close.svg" alt="" /></button>' +
+    '<section class="image-lightbox-analytics-panel" hidden></section>' +
     '<img class="image-lightbox-image" alt="" />' +
     "</div>";
   document.body.appendChild(overlay);
@@ -806,6 +814,8 @@
   const zoomInBtn = overlay.querySelector(".image-lightbox-zoom-in");
   const zoomOutBtn = overlay.querySelector(".image-lightbox-zoom-out");
   const zoomReadout = overlay.querySelector(".image-lightbox-zoom-readout");
+  const analyticsToggleBtn = overlay.querySelector(".image-lightbox-analytics-toggle");
+  const analyticsPanel = overlay.querySelector(".image-lightbox-analytics-panel");
   const lightboxFrame = overlay.querySelector(".image-lightbox-frame");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
   if (
@@ -815,6 +825,8 @@
     !zoomInBtn ||
     !zoomOutBtn ||
     !zoomReadout ||
+    !analyticsToggleBtn ||
+    !analyticsPanel ||
     !lightboxFrame ||
     !lightboxImage
   ) return;
@@ -896,6 +908,43 @@
     nextBtn.disabled = !hasMany || currentIndex >= currentList.length - 1;
   };
 
+  const renderLightboxAnalytics = () => {
+    const item = currentList[currentIndex];
+    if (!item) {
+      analyticsPanel.innerHTML = "";
+      analyticsToggleBtn.disabled = true;
+      return;
+    }
+    const stage = item.closest(".miro-card-stage");
+    const sourcePanel = stage?.querySelector(".miro-card-analytics");
+    if (!sourcePanel) {
+      analyticsPanel.innerHTML = "";
+      analyticsToggleBtn.disabled = true;
+      return;
+    }
+    const title = sourcePanel.querySelector("h4")?.textContent || "Analytics";
+    const list = sourcePanel.querySelector(".miro-card-analytics-list");
+    const empty = sourcePanel.querySelector(".miro-card-analytics-empty");
+    analyticsPanel.innerHTML =
+      `<h4>${title}</h4>` +
+      (list
+        ? list.outerHTML
+        : `<p class="miro-card-analytics-empty">${empty?.textContent || "No analytics data yet."}</p>`);
+    analyticsToggleBtn.disabled = false;
+  };
+
+  const setLightboxAnalyticsVisible = (visible) => {
+    const hasContent = analyticsPanel.innerHTML.trim().length > 0;
+    if (!hasContent) visible = false;
+    if (visible) {
+      analyticsPanel.removeAttribute("hidden");
+      analyticsToggleBtn.setAttribute("aria-pressed", "true");
+      return;
+    }
+    analyticsPanel.setAttribute("hidden", "");
+    analyticsToggleBtn.setAttribute("aria-pressed", "false");
+  };
+
   const showCurrentImage = () => {
     const item = currentList[currentIndex];
     if (!item) return;
@@ -904,6 +953,8 @@
     lightboxImage.setAttribute("src", src);
     lightboxImage.setAttribute("alt", item.getAttribute("alt") || "");
     updateNavState();
+    renderLightboxAnalytics();
+    setLightboxAnalyticsVisible(false);
     resetZoom();
   };
 
@@ -920,6 +971,8 @@
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
     lightboxImage.removeAttribute("src");
+    analyticsPanel.innerHTML = "";
+    setLightboxAnalyticsVisible(false);
     resetZoom();
     if (currentItem) {
       currentItem.scrollIntoView({
@@ -1029,6 +1082,12 @@
   zoomOutBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     applyZoom(zoomLevel - ZOOM_STEP);
+  });
+  analyticsToggleBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const isHidden = analyticsPanel.hasAttribute("hidden");
+    setLightboxAnalyticsVisible(isHidden);
   });
   lightboxImage.addEventListener("pointerdown", (event) => {
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -1173,6 +1232,11 @@
   });
   document.addEventListener("keydown", (event) => {
     if (!overlay.classList.contains("is-open")) return;
+    if (event.key.toLowerCase() === "a") {
+      const isHidden = analyticsPanel.hasAttribute("hidden");
+      setLightboxAnalyticsVisible(isHidden);
+      return;
+    }
     if (event.key === "Escape") closeLightbox();
     if (event.key === "ArrowLeft") stepImage(-1);
     if (event.key === "ArrowRight") stepImage(1);
