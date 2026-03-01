@@ -972,6 +972,17 @@
     });
   });
 
+  const openButtons = Array.from(document.querySelectorAll(".miro-card-action-open"));
+  openButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const card = button.closest(".miro-card");
+      const image = card?.querySelector(".miro-card-image");
+      if (image) openLightbox(image);
+    });
+  });
+
   closeBtn.addEventListener("click", closeLightbox);
   zoomInBtn.addEventListener("click", (event) => {
     event.stopPropagation();

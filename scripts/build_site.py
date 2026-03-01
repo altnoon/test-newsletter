@@ -315,7 +315,7 @@ def timeline_content_for_root(timelines: list[dict]) -> str:
                 f'<p class="miro-card-title">{doc["label"]}</p>'
                 "</div>"
                 '<div class="miro-card-actions">'
-                f'<a class="miro-card-action" href="pages/{doc["slug"]}.html">Open</a>'
+                f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
                 f'<button class="miro-card-action" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
                 "</div>"
                 "</div>"
@@ -398,7 +398,7 @@ def timeline_content_for_group(group: dict) -> str:
             f'<p class="miro-card-title">{doc["label"]}</p>'
             "</div>"
             '<div class="miro-card-actions">'
-            f'<a class="miro-card-action" href="{doc["slug"]}.html">Open</a>'
+            f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
             f'<button class="miro-card-action" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
             "</div>"
             "</div>"
