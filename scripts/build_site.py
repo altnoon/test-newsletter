@@ -274,9 +274,9 @@ def media_sort_key(path: Path):
         elif re.search(r"\bno\s+propietarios\b", rest, re.IGNORECASE):
             audience_rank = 1
         language_rank = 2
-        if re.search(r"\bES\b", rest, re.IGNORECASE):
+        if re.search(r"\bEN\b", rest, re.IGNORECASE):
             language_rank = 0
-        elif re.search(r"\bEN\b", rest, re.IGNORECASE):
+        elif re.search(r"\bES\b", rest, re.IGNORECASE):
             language_rank = 1
         return (0, phase, audience_rank, language_rank, rest.lower())
 
@@ -291,7 +291,7 @@ def media_sort_key(path: Path):
         audience = match.group(2).strip().lower()
         language = match.group(3).strip().upper()
         audience_rank = 0 if audience == "propietarios" else 1
-        language_rank = 0 if language == "ES" else 1
+        language_rank = 0 if language == "EN" else 1
         return (0, phase, audience_rank, language_rank, path.name.lower())
     numeric_prefix = re.match(r"^(\d+)\s*([a-z])?\b", path.stem.strip(), re.IGNORECASE)
     if numeric_prefix:
