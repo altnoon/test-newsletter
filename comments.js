@@ -860,7 +860,7 @@
   let pinchActive = false;
   let pinchStartDistance = 0;
   let pinchStartZoom = 1;
-  let pinMode = false;
+  let pinMode = true;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -883,7 +883,7 @@
     panY = bounded.y;
     lightboxFrame.style.transform = "";
     lightboxImage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
-    lightboxImage.style.cursor = pinMode ? "crosshair" : zoomLevel > 1 ? "grab" : "zoom-in";
+    lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "crosshair";
   };
   const resetPan = () => {
     panX = 0;
@@ -971,7 +971,7 @@
     updateNavState();
     renderLightboxAnalytics();
     setLightboxAnalyticsVisible(false);
-    setPinMode(false);
+    setPinMode(true);
     resetZoom();
   };
 
@@ -1114,7 +1114,7 @@
   });
   lightboxImage.addEventListener("pointerdown", (event) => {
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    if (!isDesktopViewport() && activePointers.size === 2) {
+    if (activePointers.size === 2) {
       const [p1, p2] = [...activePointers.values()];
       pinchActive = true;
       pinchStartDistance = pointerDistance(p1, p2) || 1;
@@ -1150,7 +1150,7 @@
     if (activePointers.has(event.pointerId)) {
       activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     }
-    if (!isDesktopViewport() && pinchActive && activePointers.size >= 2) {
+    if (pinchActive && activePointers.size >= 2) {
       const [p1, p2] = [...activePointers.values()];
       const distance = pointerDistance(p1, p2) || pinchStartDistance;
       const nextZoom = pinchStartZoom * (distance / pinchStartDistance);
@@ -1197,7 +1197,7 @@
     if (draggingPointerId !== event.pointerId) return;
     draggingPointerId = null;
     overlay.classList.remove("is-panning");
-    lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "zoom-in";
+    lightboxImage.style.cursor = zoomLevel > 1 ? "grab" : "crosshair";
     event.preventDefault();
     event.stopPropagation();
   };
@@ -1205,64 +1205,6 @@
   lightboxImage.addEventListener("pointercancel", endDrag);
   lightboxImage.addEventListener("pointerleave", endDrag);
   lightboxImage.addEventListener("click", (event) => {
-    if (pinMode) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (zoomLevel > 1.001) {
-        setPinMode(false);
-        return;
-      }
-      const source = currentList[currentIndex];
-      const stage = source?.closest(".miro-card-stage");
-      const cardKey = stage?.getAttribute("data-card-key");
-      const boardKey =
-        document.querySelector(".comments[data-board-key]")?.getAttribute("data-board-key") ||
-        "timeline-board";
-      if (!cardKey) return;
-
-      const rect = lightboxImage.getBoundingClientRect();
-      const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-      const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
-
-      const initialName =
-        (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
-      const author = (window.prompt("Your name", initialName) || "").trim();
-      if (!author) return;
-      if (typeof localStorage !== "undefined") localStorage.setItem(AUTHOR_STORAGE_KEY, author);
-      const text = (window.prompt("Write a sticky note...", "") || "").trim();
-      if (!text) return;
-
-      const id =
-        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      const note = {
-        id,
-        text,
-        author,
-        createdAt: new Date().toISOString(),
-        cardKey,
-        pin: { x, y },
-      };
-
-      fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ page: boardKey, action: "add", note }),
-      })
-        .then((response) => {
-          if (!response.ok) throw new Error("Notes request failed");
-          setPinMode(false);
-          closeLightbox();
-        })
-        .catch(() => {
-          setPinMode(false);
-        });
-      return;
-    }
     if (swipeConsumed) {
       swipeConsumed = false;
       event.preventDefault();
@@ -1275,23 +1217,64 @@
       event.stopPropagation();
       return;
     }
-    if (isDesktopViewport()) {
-      const step = event.shiftKey ? -ZOOM_STEP : ZOOM_STEP;
-      applyZoom(zoomLevel + step);
-      event.preventDefault();
-      event.stopPropagation();
+    if (zoomLevel > 1.001) {
       return;
     }
-    if (zoomLevel > 1) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
+    event.preventDefault();
+    event.stopPropagation();
+    const source = currentList[currentIndex];
+    const stage = source?.closest(".miro-card-stage");
+    const cardKey = stage?.getAttribute("data-card-key");
+    const boardKey =
+      document.querySelector(".comments[data-board-key]")?.getAttribute("data-board-key") ||
+      "timeline-board";
+    if (!cardKey) return;
+
+    const rect = lightboxImage.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
+
+    const initialName =
+      (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
+    const author = (window.prompt("Your name", initialName) || "").trim();
+    if (!author) return;
+    if (typeof localStorage !== "undefined") localStorage.setItem(AUTHOR_STORAGE_KEY, author);
+    const text = (window.prompt("Write a sticky note...", "") || "").trim();
+    if (!text) return;
+
+    const id =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const note = {
+      id,
+      text,
+      author,
+      createdAt: new Date().toISOString(),
+      cardKey,
+      pin: { x, y },
+    };
+
+    fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ page: boardKey, action: "add", note }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Notes request failed");
+        closeLightbox();
+      })
+      .catch(() => {});
   });
   overlay.addEventListener(
     "wheel",
     (event) => {
       if (!overlay.classList.contains("is-open")) return;
       if (!isDesktopViewport()) return;
+      if (!event.ctrlKey) return;
       const delta = event.deltaY;
       if (!delta) return;
       const direction = delta < 0 ? 1 : -1;
