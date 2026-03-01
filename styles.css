@@ -1355,7 +1355,7 @@ body {
 
 .pin-note-delete {
   background: transparent;
-  border-color: var(--glass-border);
+  border: none;
   color: var(--glass-text-secondary);
   box-shadow: none;
   justify-self: center;
@@ -1776,7 +1776,7 @@ textarea:focus-visible {
   .pin-note-input::placeholder,
   .pin-note-save,
   .pin-note-cancel {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .pin-note-save,
@@ -1810,5 +1810,17 @@ textarea:focus-visible {
   .mobile-menu-panel {
     left: auto;
     right: 0;
+  }
+}
+
+@media (min-width: 701px) {
+  .pin-note-actions {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .pin-note-delete {
+    grid-column: auto;
+    justify-self: stretch;
+    width: auto;
   }
 }
