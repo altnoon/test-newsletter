@@ -843,10 +843,6 @@
   };
   const lightboxPinEditor = createLightboxPinEditor();
   overlay.appendChild(lightboxPinEditor);
-  const lightboxNotePopover = document.createElement("div");
-  lightboxNotePopover.className = "image-lightbox-note-popover";
-  lightboxNotePopover.setAttribute("hidden", "");
-  overlay.appendChild(lightboxNotePopover);
   const lightboxPinMeta = lightboxPinEditor.querySelector(".pin-note-meta");
   const lightboxPinAuthor = lightboxPinEditor.querySelector(".pin-note-author");
   const lightboxPinInput = lightboxPinEditor.querySelector(".pin-note-input");
@@ -871,8 +867,7 @@
     !lightboxPinInput ||
     !lightboxPinSave ||
     !lightboxPinCancel ||
-    !lightboxPinDelete ||
-    !lightboxNotePopover
+    !lightboxPinDelete
   ) return;
 
   let lastFocused = null;
@@ -901,7 +896,6 @@
   let lightboxDraft = null;
   let currentBoardKey = "timeline-board";
   let lightboxNotes = [];
-  let activePopoverNoteId = null;
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
   const ZOOM_STEP = 0.2;
@@ -961,60 +955,7 @@
     lightboxPinLayer.style.width = `${lightboxImage.clientWidth}px`;
     lightboxPinLayer.style.height = `${lightboxImage.clientHeight}px`;
     lightboxPinLayer.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
-    if (activePopoverNoteId) {
-      const active = lightboxNotes.find((item) => item.id === activePopoverNoteId);
-      const currentCardKey = getCurrentCardKey();
-      if (active && active.cardKey === currentCardKey) {
-        positionLightboxNotePopover(active.pin);
-      } else {
-        closeLightboxNotePopover();
-      }
-    }
   };
-  const formatNoteDate = (value) => {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
-  };
-  function closeLightboxNotePopover() {
-    activePopoverNoteId = null;
-    lightboxNotePopover.setAttribute("hidden", "");
-    lightboxNotePopover.innerHTML = "";
-  }
-  function positionLightboxNotePopover(pin) {
-    const rect = lightboxImage.getBoundingClientRect();
-    const width = Math.min(300, Math.max(220, window.innerWidth * 0.24));
-    const height = lightboxNotePopover.offsetHeight || 140;
-    let left = rect.left + pin.x * rect.width + 12;
-    let top = rect.top + pin.y * rect.height - 16;
-    left = Math.min(left, window.innerWidth - width - 12);
-    left = Math.max(12, left);
-    top = Math.max(12, top);
-    if (top + height > window.innerHeight - 12) {
-      top = Math.max(12, rect.top + pin.y * rect.height - height - 18);
-    }
-    lightboxNotePopover.style.left = `${left}px`;
-    lightboxNotePopover.style.top = `${top}px`;
-    lightboxNotePopover.style.width = `${width}px`;
-  }
-  function openLightboxNotePopover(item) {
-    activePopoverNoteId = item.id;
-    lightboxNotePopover.innerHTML = "";
-    const header = document.createElement("div");
-    header.className = "image-lightbox-note-popover-head";
-    const author = document.createElement("strong");
-    author.textContent = item.author || "Anonymous";
-    const when = document.createElement("span");
-    when.textContent = formatNoteDate(item.createdAt);
-    header.appendChild(author);
-    header.appendChild(when);
-    const body = document.createElement("p");
-    body.textContent = item.text;
-    lightboxNotePopover.appendChild(header);
-    lightboxNotePopover.appendChild(body);
-    lightboxNotePopover.removeAttribute("hidden");
-    positionLightboxNotePopover(item.pin);
-    renderLightboxPins();
-  }
   const getCurrentCardKey = () => {
     const source = currentList[currentIndex];
     const stage = source?.closest(".miro-card-stage");
@@ -1026,25 +967,24 @@
     if (!cardKey) return;
     const ordered = sortChronological(lightboxNotes).filter((item) => item.cardKey === cardKey);
     ordered.forEach((item, index) => {
-      const marker = document.createElement("button");
-      marker.type = "button";
+      const marker = document.createElement("span");
       marker.className = "pin-marker image-lightbox-pin-marker";
-      if (item.id === activePopoverNoteId) marker.classList.add("is-active");
       marker.style.left = `${item.pin.x * 100}%`;
       marker.style.top = `${item.pin.y * 100}%`;
       marker.textContent = String(index + 1);
       marker.title = `${item.author}: ${item.text}`;
-      marker.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (activePopoverNoteId === item.id) {
-          closeLightboxNotePopover();
-          renderLightboxPins();
-          return;
-        }
-        openLightboxNotePopover(item);
-      });
       lightboxPinLayer.appendChild(marker);
+      const note = document.createElement("div");
+      note.className = "image-lightbox-pin-note";
+      note.style.left = `calc(${item.pin.x * 100}% + 18px)`;
+      note.style.top = `${item.pin.y * 100}%`;
+      const heading = document.createElement("strong");
+      heading.textContent = `#${index + 1} ${item.author || "Anonymous"}`;
+      const text = document.createElement("p");
+      text.textContent = String(item.text || "");
+      note.appendChild(heading);
+      note.appendChild(text);
+      lightboxPinLayer.appendChild(note);
     });
   };
   const loadLightboxNotes = async () => {
@@ -1129,7 +1069,6 @@
     lightboxPinEditor.style.removeProperty("bottom");
   };
   const openLightboxPinEditor = (draft) => {
-    closeLightboxNotePopover();
     lightboxDraft = draft;
     const initialName =
       (typeof localStorage !== "undefined" && localStorage.getItem(AUTHOR_STORAGE_KEY)) || "";
@@ -1202,7 +1141,6 @@
     setLightboxAnalyticsVisible(false);
     setPinMode(true);
     closeLightboxPinEditor();
-    closeLightboxNotePopover();
     resetZoom();
     renderLightboxPins();
   };
@@ -1225,7 +1163,6 @@
     setLightboxAnalyticsVisible(false);
     setPinMode(false);
     closeLightboxPinEditor();
-    closeLightboxNotePopover();
     resetZoom();
     if (currentItem) {
       currentItem.scrollIntoView({
@@ -1512,11 +1449,6 @@
   lightboxImage.addEventListener("pointerleave", endDrag);
   lightboxImage.addEventListener("click", (event) => {
     if (isLightboxPinEditorOpen()) return;
-    if (activePopoverNoteId) {
-      closeLightboxNotePopover();
-      renderLightboxPins();
-      return;
-    }
     if (swipeConsumed) {
       swipeConsumed = false;
       event.preventDefault();
@@ -1571,11 +1503,6 @@
   });
   overlay.addEventListener("click", (event) => {
     if (event.target !== overlay) return;
-    if (activePopoverNoteId) {
-      closeLightboxNotePopover();
-      renderLightboxPins();
-      return;
-    }
     if (isLightboxPinEditorOpen()) {
       closeLightboxPinEditor();
       return;
@@ -1586,11 +1513,6 @@
     if (!overlay.classList.contains("is-open")) return;
     if (event.key === "Escape" && isLightboxPinEditorOpen()) {
       closeLightboxPinEditor();
-      return;
-    }
-    if (event.key === "Escape" && activePopoverNoteId) {
-      closeLightboxNotePopover();
-      renderLightboxPins();
       return;
     }
     if (event.key.toLowerCase() === "a") {
