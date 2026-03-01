@@ -17,6 +17,7 @@ STYLE_FILE = ROOT / "styles.css"
 INDEX_FILE = ROOT / "index.html"
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 ANALYTICS_XLSX_CANDIDATES = [
+    Path("/Users/delchev/Downloads/vivla-mail-analytics-ind (1).xlsx"),
     ROOT / "vivla-mail-analytics-ind.xlsx",
     ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind.xlsx"),
@@ -31,11 +32,22 @@ def normalize_text(value: str) -> str:
 
 
 def analytics_key(value: str) -> tuple[str, str]:
-    normalized = normalize_text(value)
-    flow_match = re.search(r"\bw(\d+)\s*e(\d+)\b", normalized)
-    flow = f"w{flow_match.group(1)}-e{flow_match.group(2)}" if flow_match else ""
-    variant_match = re.search(r"\b([ab])\b", normalized)
-    variant = variant_match.group(1).lower() if variant_match else ""
+    text = value or ""
+    normalized = normalize_text(text)
+    flow_match = re.search(r"\bw(\d+)\s*[- ]?\s*([edp])\s*(\d+)\b", normalized)
+    flow = f"w{flow_match.group(1)}-{flow_match.group(2)}{flow_match.group(3)}" if flow_match else ""
+    variant = ""
+    paren_variant = re.search(r"\(([ab])\)", text, re.IGNORECASE)
+    if paren_variant:
+        variant = paren_variant.group(1).lower()
+    else:
+        prefixed_variant = re.match(r"^\s*\d+\s*([ab])\b", text, re.IGNORECASE)
+        if prefixed_variant:
+            variant = prefixed_variant.group(1).lower()
+        else:
+            compact_prefixed_variant = re.match(r"^\s*\d+([ab])\b", text, re.IGNORECASE)
+            if compact_prefixed_variant:
+                variant = compact_prefixed_variant.group(1).lower()
     return (flow, variant)
 
 
@@ -76,21 +88,67 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
 
     if not parsed_rows:
         return []
+    default_labels = {
+        "C": "Baseline 2025",
+        "D": "Real Q1",
+        "E": "01 Ene-12 Feb",
+        "F": "13-19 Feb",
+        "G": "20-26 Feb",
+    }
 
-    header = parsed_rows[0]
-    date_columns = [("C", header.get("C", "")), ("D", header.get("D", "")), ("E", header.get("E", "")), ("F", header.get("F", "")), ("G", header.get("G", ""))]
-    title = (header.get("A") or "").strip()
-    metrics = []
-    for row in parsed_rows[1:]:
-        metric_name = (row.get("A") or "").strip()
-        if not metric_name:
+    def normalized_col_label(raw: str, col: str) -> str:
+        text = (raw or "").strip()
+        if not text:
+            return default_labels.get(col, col)
+        if normalize_text(text) in {"valor referencia", "valor de referencia"}:
+            return "Baseline 2025"
+        return text
+
+    metric_names = {"emails delivered", "open emails", "open rate", "clicks", "ctr"}
+    entries: list[dict] = []
+    i = 0
+    while i < len(parsed_rows):
+        row = parsed_rows[i]
+        title = (row.get("A") or "").strip()
+        normalized_title = normalize_text(title)
+        if not title or normalized_title in {"name of image"}:
+            i += 1
             continue
-        points = []
-        for key, label in date_columns:
-            points.append({"label": label, "value": row.get(key, "")})
-        metrics.append({"name": metric_name, "points": points})
+        if normalized_title in metric_names:
+            i += 1
+            continue
 
-    return [{"title": title, "metrics": metrics}] if title and metrics else []
+        date_columns = [
+            ("C", normalized_col_label(row.get("C", ""), "C")),
+            ("D", normalized_col_label(row.get("D", ""), "D")),
+            ("E", normalized_col_label(row.get("E", ""), "E")),
+            ("F", normalized_col_label(row.get("F", ""), "F")),
+            ("G", normalized_col_label(row.get("G", ""), "G")),
+        ]
+
+        metrics = []
+        j = i + 1
+        while j < len(parsed_rows):
+            metric_row = parsed_rows[j]
+            metric_name = (metric_row.get("A") or "").strip()
+            normalized_metric = normalize_text(metric_name)
+            if not metric_name:
+                break
+            if normalized_metric not in metric_names:
+                break
+            points = []
+            for col, label in date_columns:
+                points.append({"label": label, "value": metric_row.get(col, "")})
+            metrics.append({"name": metric_name, "points": points})
+            j += 1
+
+        if metrics:
+            entries.append({"title": title, "metrics": metrics})
+            i = j
+        else:
+            i += 1
+
+    return entries
 
 
 def load_analytics_map() -> dict[tuple[str, str], dict]:
@@ -107,6 +165,15 @@ def load_analytics_map() -> dict[tuple[str, str], dict]:
         if key != ("", ""):
             result[key] = entry
     return result
+
+
+def entry_for_doc(analytics_map: dict[tuple[str, str], dict], label: str) -> dict | None:
+    flow, variant = analytics_key(label)
+    if not flow:
+        return None
+    if variant and (flow, variant) in analytics_map:
+        return analytics_map[(flow, variant)]
+    return analytics_map.get((flow, ""))
 
 
 def format_analytics_value(metric_name: str, raw_value: str) -> str:
@@ -450,7 +517,7 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
     for group in timelines:
         cards = []
         for i, doc in enumerate(group["docs"], start=1):
-            entry = analytics_map.get(analytics_key(doc.get("raw_label", doc["label"])))
+            entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
             cards.append(
                 '<article class="miro-card">'
                 '<div class="miro-card-head">'
@@ -537,7 +604,7 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
 def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, str], dict]) -> str:
     cards = []
     for i, doc in enumerate(group["docs"], start=1):
-        entry = analytics_map.get(analytics_key(doc.get("raw_label", doc["label"])))
+        entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
         cards.append(
             '<article class="miro-card">'
             '<div class="miro-card-head">'
