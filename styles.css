@@ -779,11 +779,14 @@ body {
 .image-lightbox-pin-marker {
   pointer-events: auto;
   cursor: grab;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(var(--lightbox-pin-marker-scale));
   transform-origin: center center;
-  width: calc(28px * var(--lightbox-pin-marker-scale));
-  height: calc(28px * var(--lightbox-pin-marker-scale));
-  font-size: calc(0.75rem * var(--lightbox-pin-marker-scale));
+  width: 28px;
+  height: 28px;
+  aspect-ratio: 1 / 1;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 0;
 }
 
 .image-lightbox-pin-note {
@@ -1800,9 +1803,13 @@ textarea:focus-visible {
   }
 
   .image-lightbox-pin-marker {
-    width: calc(28px * var(--lightbox-pin-marker-scale));
-    height: calc(28px * var(--lightbox-pin-marker-scale));
-    font-size: calc(0.75rem * var(--lightbox-pin-marker-scale));
+    transform: translate(-50%, -50%) scale(var(--lightbox-pin-marker-scale));
+    width: 28px;
+    height: 28px;
+    aspect-ratio: 1 / 1;
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0;
   }
 
   .pin-note-editor {
