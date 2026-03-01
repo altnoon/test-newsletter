@@ -580,6 +580,23 @@
   const setLightboxAnalyticsVisible = (visible) => {
     const hasContent = analyticsPanel.innerHTML.trim().length > 0;
     if (!hasContent) visible = false;
+    if (isMobileViewport()) {
+      analyticsPanel.style.position = "fixed";
+      analyticsPanel.style.top = "calc(var(--safe-top) + 264px)";
+      analyticsPanel.style.right = "calc(var(--safe-right) + 8px)";
+      analyticsPanel.style.left = "auto";
+      analyticsPanel.style.bottom = "auto";
+      analyticsPanel.style.transform = "none";
+      analyticsPanel.style.margin = "0";
+    } else {
+      analyticsPanel.style.removeProperty("position");
+      analyticsPanel.style.removeProperty("top");
+      analyticsPanel.style.removeProperty("right");
+      analyticsPanel.style.removeProperty("left");
+      analyticsPanel.style.removeProperty("bottom");
+      analyticsPanel.style.removeProperty("transform");
+      analyticsPanel.style.removeProperty("margin");
+    }
     if (visible) {
       analyticsPanel.removeAttribute("hidden");
       analyticsToggleBtn.setAttribute("aria-pressed", "true");
