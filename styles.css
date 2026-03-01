@@ -1199,11 +1199,11 @@ body {
   .image-lightbox-analytics-panel {
     position: fixed !important;
     z-index: 320 !important;
-    top: calc(var(--safe-top) + 264px) !important;
-    right: calc(var(--safe-right) + 8px) !important;
-    left: auto !important;
+    top: 50% !important;
+    right: auto !important;
+    left: 50% !important;
     bottom: auto !important;
-    transform: none !important;
+    transform: translate(-50%, -50%) !important;
     margin: 0 !important;
     width: min(300px, 72vw);
     max-height: min(52vh, 420px);

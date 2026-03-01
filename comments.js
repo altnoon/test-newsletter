@@ -587,11 +587,11 @@
     if (!hasContent) visible = false;
     if (isTouchViewport()) {
       analyticsPanel.style.position = "fixed";
-      analyticsPanel.style.top = "calc(var(--safe-top) + 264px)";
-      analyticsPanel.style.right = "calc(var(--safe-right) + 8px)";
-      analyticsPanel.style.left = "auto";
+      analyticsPanel.style.top = "50%";
+      analyticsPanel.style.right = "auto";
+      analyticsPanel.style.left = "50%";
       analyticsPanel.style.bottom = "auto";
-      analyticsPanel.style.transform = "none";
+      analyticsPanel.style.transform = "translate(-50%, -50%)";
       analyticsPanel.style.margin = "0";
     } else {
       analyticsPanel.style.removeProperty("position");
