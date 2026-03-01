@@ -723,18 +723,6 @@ body {
   position: relative;
 }
 
-/* Temporarily hide feedback/comment UI while preserving page content layout. */
-.layout > .comments {
-  display: none;
-}
-
-.comments,
-.pin-note-editor,
-.pin-layer,
-.pin-marker {
-  display: none !important;
-}
-
 .image-lightbox {
   position: fixed;
   inset: 0;
@@ -1087,11 +1075,6 @@ body {
   .image-lightbox-zoom-readout {
     font-size: 0.66rem;
   }
-}
-
-.layout {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
 }
 
 .main-pane {

@@ -1017,8 +1017,8 @@
   };
 
   images.forEach((image) => {
-    image.style.cursor = "zoom-in";
-    image.addEventListener("click", (event) => {
+    image.style.cursor = "crosshair";
+    image.addEventListener("dblclick", (event) => {
       event.preventDefault();
       event.stopPropagation();
       openLightbox(image);
