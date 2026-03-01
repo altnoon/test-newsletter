@@ -1805,9 +1805,13 @@ textarea:focus-visible {
   }
 
   .pin-note-editor.is-lightbox-editor {
-    width: min(38vw, 180px) !important;
+    width: min(42vw, 198px) !important;
     max-height: none;
-    padding: 7px;
+    padding: 8px;
+    left: 50% !important;
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%);
   }
 
   .pin-note-input {
