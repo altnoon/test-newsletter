@@ -621,6 +621,9 @@ body {
   padding: 0.55rem 0.6rem;
   display: grid;
   grid-template-rows: auto auto auto;
+  align-content: start;
+  align-items: start;
+  justify-items: stretch;
   gap: 0.45rem;
   overflow: auto;
   z-index: 5;
