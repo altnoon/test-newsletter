@@ -1125,8 +1125,8 @@
       return;
     }
     const rect = lightboxFrame.getBoundingClientRect();
-    const width = 174;
-    const height = 122;
+    const width = 209;
+    const height = 146;
     let left = rect.left + lightboxDraft.pin.x * rect.width + 10;
     let top = rect.top + lightboxDraft.pin.y * rect.height - 18;
     left = Math.max(12, Math.min(left, window.innerWidth - width - 12));

@@ -1257,47 +1257,47 @@ body {
 }
 
 .pin-note-editor.is-lightbox-editor {
-  padding: 8px;
-  min-width: 174px;
+  padding: 10px;
+  min-width: 209px;
 }
 
 .pin-note-editor.is-lightbox-editor .pin-note-meta {
-  font-size: 0.48rem;
-  margin-bottom: 4px;
+  font-size: 0.58rem;
+  margin-bottom: 5px;
 }
 
 .pin-note-editor.is-lightbox-editor .pin-note-author-label {
-  font-size: 0.54rem;
-  margin-bottom: 3px;
+  font-size: 0.65rem;
+  margin-bottom: 4px;
 }
 
 .pin-note-editor.is-lightbox-editor .pin-note-author,
 .pin-note-editor.is-lightbox-editor .pin-note-input {
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.2;
-  padding: 0.22rem 0.3rem;
+  padding: 0.26rem 0.36rem;
 }
 
 .pin-note-editor.is-lightbox-editor .pin-note-author::placeholder,
 .pin-note-editor.is-lightbox-editor .pin-note-input::placeholder {
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .pin-note-editor.is-lightbox-editor .pin-note-input {
-  min-height: 56px;
+  min-height: 67px;
 }
 
 .pin-note-editor.is-lightbox-editor .pin-note-actions {
-  margin-top: 5px;
-  gap: 4px;
+  margin-top: 6px;
+  gap: 5px;
 }
 
 .pin-note-editor.is-lightbox-editor .pin-note-save,
 .pin-note-editor.is-lightbox-editor .pin-note-cancel,
 .pin-note-editor.is-lightbox-editor .pin-note-delete {
-  min-height: 24px;
-  padding: 0.12rem 0.25rem;
-  font-size: 9px;
+  min-height: 29px;
+  padding: 0.14rem 0.3rem;
+  font-size: 11px;
 }
 
 .pin-note-editor.is-open {
@@ -1805,9 +1805,9 @@ textarea:focus-visible {
   }
 
   .pin-note-editor.is-lightbox-editor {
-    width: min(32vw, 150px) !important;
+    width: min(38vw, 180px) !important;
     max-height: none;
-    padding: 6px;
+    padding: 7px;
   }
 
   .pin-note-input {
