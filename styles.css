@@ -1815,12 +1815,19 @@ textarea:focus-visible {
 
 @media (min-width: 701px) {
   .pin-note-actions {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pin-note-save,
+  .pin-note-cancel {
+    width: 100%;
+    justify-content: center;
   }
 
   .pin-note-delete {
-    grid-column: auto;
+    grid-column: 1 / -1;
     justify-self: stretch;
-    width: auto;
+    width: 100%;
+    text-align: center;
   }
 }
