@@ -78,6 +78,17 @@ def phase_lang_place_key(value: str) -> tuple[str, str, str] | None:
 
 
 def find_analytics_xlsx() -> Path | None:
+    dynamic_candidates = sorted(
+        [
+            *ROOT.glob("vivla-mail-analytics-ind*.xlsx"),
+            *ROOT.parent.glob("vivla-mail-analytics-ind*.xlsx"),
+        ],
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for path in dynamic_candidates:
+        if path.exists():
+            return path
     for path in ANALYTICS_XLSX_CANDIDATES:
         if path.exists():
             return path
