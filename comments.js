@@ -712,14 +712,6 @@
     });
   });
 
-  const closeAllAnalyticsPanels = (exceptPanel = null) => {
-    const panels = Array.from(document.querySelectorAll(".miro-card-analytics"));
-    panels.forEach((panel) => {
-      if (exceptPanel && panel === exceptPanel) return;
-      panel.setAttribute("hidden", "");
-    });
-  };
-
   const analyticsButtons = Array.from(document.querySelectorAll(".miro-card-action-analytics"));
   analyticsButtons.forEach((button) => {
     button.addEventListener("click", (event) => {
@@ -729,7 +721,6 @@
       const panel = card?.querySelector(".miro-card-analytics");
       if (!panel) return;
       const isHidden = panel.hasAttribute("hidden");
-      closeAllAnalyticsPanels(panel);
       if (isHidden) {
         panel.removeAttribute("hidden");
       } else {
