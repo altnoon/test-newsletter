@@ -805,7 +805,7 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
         "<h1 class=\"timeline-root-title\">VIVLA HS FLOWS</h1>"
-        "<p>Left-to-right sequence.<span class=\"timeline-helper-break\">Click on any image to view it full screen.</span></p>"
+        "<p>Left-to-right sequence. <span class=\"timeline-helper-break\">Click on any email to view it full screen.</span></p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
@@ -886,7 +886,7 @@ def timeline_content_for_group(
         '<section class="main-pane timeline-summary">'
         '<div class="miro-board-head">'
         f"<h1>{group['label']}</h1>"
-        "<p>Left-to-right sequence.<span class=\"timeline-helper-break\">Click on any image to view it full screen.</span></p>"
+        "<p>Left-to-right sequence. <span class=\"timeline-helper-break\">Click on any email to view it full screen.</span></p>"
         f"{summary_markup}"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
