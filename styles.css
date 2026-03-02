@@ -1834,10 +1834,16 @@ textarea:focus-visible {
 
   .timeline-inline-analytics {
     gap: var(--space-6);
+    width: 100%;
   }
 
   .timeline-inline-analytics-section {
     padding: var(--space-6);
+    width: 100%;
+  }
+
+  .timeline-inline-analytics-table-wrap {
+    width: 100%;
   }
 
   .timeline-inline-analytics-section h3 {
