@@ -488,7 +488,9 @@ body {
 .timeline-inline-analytics {
   display: grid;
   gap: var(--space-8);
-  width: 100%;
+  width: max-content;
+  max-width: 100%;
+  justify-items: start;
 }
 
 .timeline-inline-analytics-section {
@@ -498,6 +500,8 @@ body {
   padding: var(--space-8);
   display: grid;
   gap: var(--space-6);
+  width: max-content;
+  max-width: 100%;
 }
 
 .timeline-inline-analytics-section h3 {
@@ -508,7 +512,8 @@ body {
 }
 
 .timeline-inline-analytics-table-wrap {
-  width: 100%;
+  width: max-content;
+  max-width: 100%;
   overflow-x: auto;
 }
 
