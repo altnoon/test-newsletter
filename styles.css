@@ -527,8 +527,8 @@ body {
 }
 
 .timeline-inline-analytics-table thead th {
-  background: #f7bf4f;
-  color: #1a1918;
+  background: color-mix(in srgb, var(--accent-orange) 22%, transparent);
+  color: #f7bf4f;
   text-align: right;
   font-weight: 700;
 }
@@ -549,17 +549,6 @@ body {
   color: var(--glass-text-primary);
 }
 
-.timeline-inline-analytics-table thead th:not(:first-child),
-.timeline-inline-analytics-table tbody td {
-  width: 123px;
-  max-width: 123px;
-}
-
-.timeline-inline-analytics-table thead th:first-child,
-.timeline-inline-analytics-table tbody th {
-  width: 222px;
-  max-width: 222px;
-}
 
 .miro-board-scroller {
   border: 1px solid var(--line-subtle);
