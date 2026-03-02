@@ -17,6 +17,8 @@ STYLE_FILE = ROOT / "styles.css"
 INDEX_FILE = ROOT / "index.html"
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 ANALYTICS_XLSX_CANDIDATES = [
+    ROOT.parent / "Analytics.xlsx",
+    ROOT / "Analytics.xlsx",
     Path("/Users/delchev/Downloads/Untitled spreadsheet.xlsx"),
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind (1).xlsx"),
     ROOT / "vivla-mail-analytics-ind.xlsx",
@@ -92,6 +94,8 @@ def phase_lang_place_key(value: str) -> tuple[str, str, str] | None:
 def find_analytics_xlsx() -> Path | None:
     dynamic_candidates = sorted(
         [
+            *ROOT.glob("Analytics*.xlsx"),
+            *ROOT.parent.glob("Analytics*.xlsx"),
             *ROOT.glob("vivla-mail-analytics-ind*.xlsx"),
             *ROOT.parent.glob("vivla-mail-analytics-ind*.xlsx"),
         ],
