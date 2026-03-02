@@ -23,11 +23,18 @@ ANALYTICS_XLSX_CANDIDATES = [
     ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind.xlsx"),
 ]
-TIMELINE_ONE_SUMMARY_XLSX_CANDIDATES = [
-    ROOT.parent / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
-    ROOT / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
-    Path("/Users/delchev/Downloads/Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx"),
-]
+TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP = {
+    "timeline-1-onboarding-flujo-1-y-2-en-only": [
+        ROOT.parent / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
+        ROOT / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
+        Path("/Users/delchev/Downloads/Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx"),
+    ],
+    "timeline-2-nuevos-destinos-en-es": [
+        ROOT.parent / "Timeline 2 - Nuevos Destinos (EN + ES).xlsx",
+        ROOT / "Timeline 2 - Nuevos Destinos (EN + ES).xlsx",
+        Path("/Users/delchev/Downloads/Timeline 2 - Nuevos Destinos (EN + ES).xlsx"),
+    ],
+}
 
 
 def normalize_text(value: str) -> str:
@@ -215,19 +222,23 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
     return entries
 
 
-def find_timeline_one_summary_xlsx() -> Path | None:
-    dynamic_candidates = sorted(
-        [
-            *ROOT.glob("Timeline 1 - Onboarding*.xlsx"),
-            *ROOT.parent.glob("Timeline 1 - Onboarding*.xlsx"),
-        ],
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
+def find_timeline_summary_xlsx(group_key: str) -> Path | None:
+    dynamic_patterns = {
+        "timeline-1-onboarding-flujo-1-y-2-en-only": "Timeline 1 - Onboarding*.xlsx",
+        "timeline-2-nuevos-destinos-en-es": "Timeline 2 - Nuevos Destinos*.xlsx",
+    }
+    pattern = dynamic_patterns.get(group_key)
+    dynamic_candidates = []
+    if pattern:
+        dynamic_candidates = sorted(
+            [*ROOT.glob(pattern), *ROOT.parent.glob(pattern)],
+            key=lambda path: path.stat().st_mtime,
+            reverse=True,
+        )
     for path in dynamic_candidates:
         if path.exists():
             return path
-    for path in TIMELINE_ONE_SUMMARY_XLSX_CANDIDATES:
+    for path in TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP.get(group_key, []):
         if path.exists():
             return path
     return None
@@ -265,6 +276,7 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
             "valor referencia",
             "valor de referencia",
             "baseline 2025",
+            "target",
         } or normalize_text(row.get("C", "")) == "target"
         if not title or not header_hint:
             i += 1
@@ -307,8 +319,8 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
     return sections
 
 
-def load_timeline_one_summary_sections() -> list[dict]:
-    xlsx_path = find_timeline_one_summary_xlsx()
+def load_timeline_summary_sections(group_key: str) -> list[dict]:
+    xlsx_path = find_timeline_summary_xlsx(group_key)
     if xlsx_path is None:
         return []
     try:
@@ -832,7 +844,7 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
 
 
 def timeline_content_for_group(
-    group: dict, analytics_map: dict[tuple[str, ...], dict], timeline_one_summary_sections: list[dict]
+    group: dict, analytics_map: dict[tuple[str, ...], dict], summary_sections_by_group: dict[str, list[dict]]
 ) -> str:
     cards = []
     for i, doc in enumerate(group["docs"], start=1):
@@ -867,11 +879,7 @@ def timeline_content_for_group(
         if cards
         else '<p class="timeline-empty-group">No images in this folder yet.</p>'
     )
-    summary_markup = (
-        timeline_one_summary_markup(timeline_one_summary_sections)
-        if group["key"] == "timeline-1-onboarding-flujo-1-y-2-en-only"
-        else ""
-    )
+    summary_markup = timeline_one_summary_markup(summary_sections_by_group.get(group["key"], []))
 
     return (
         '<div class="layout">'
@@ -931,7 +939,10 @@ def main() -> None:
 
     timeline_groups = collect_timeline_groups()
     analytics_map = load_analytics_map()
-    timeline_one_summary_sections = load_timeline_one_summary_sections()
+    summary_sections_by_group = {
+        group_key: load_timeline_summary_sections(group_key)
+        for group_key in TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP
+    }
     docs: list[dict] = []
     seen: set[str] = set()
     for group in timeline_groups:
@@ -1001,7 +1012,7 @@ def main() -> None:
                 page_key=None,
                 mobile_nav=mobile_controls(group_menu_links),
                 mobile_brand=group["label"],
-                custom_content=timeline_content_for_group(group, analytics_map, timeline_one_summary_sections),
+                custom_content=timeline_content_for_group(group, analytics_map, summary_sections_by_group),
             )
             (PAGES_DIR / f"timeline-{group['key']}.html").write_text(group_html, encoding="utf-8")
 
