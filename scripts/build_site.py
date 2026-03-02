@@ -23,6 +23,11 @@ ANALYTICS_XLSX_CANDIDATES = [
     ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind.xlsx"),
 ]
+TIMELINE_ONE_SUMMARY_XLSX_CANDIDATES = [
+    ROOT.parent / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
+    ROOT / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
+    Path("/Users/delchev/Downloads/Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx"),
+]
 
 
 def normalize_text(value: str) -> str:
@@ -95,8 +100,9 @@ def find_analytics_xlsx() -> Path | None:
     return None
 
 
-def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
+def parse_xlsx_rows(xlsx_path: Path) -> list[dict[str, str]]:
     ns = {"x": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    rel_ns = {"p": "http://schemas.openxmlformats.org/package/2006/relationships"}
     with zipfile.ZipFile(xlsx_path) as archive:
         strings = []
         if "xl/sharedStrings.xml" in archive.namelist():
@@ -105,7 +111,22 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
                 text = "".join(node.text or "" for node in item.findall(".//x:t", ns))
                 strings.append(text)
 
-        sheet = ET.fromstring(archive.read("xl/worksheets/sheet1.xml"))
+        workbook = ET.fromstring(archive.read("xl/workbook.xml"))
+        workbook_rels = ET.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
+        rel_map = {
+            rel.attrib["Id"]: rel.attrib["Target"]
+            for rel in workbook_rels.findall("p:Relationship", rel_ns)
+        }
+        first_sheet = workbook.find("x:sheets/x:sheet", ns)
+        if first_sheet is None:
+            return []
+        sheet_rel_id = first_sheet.attrib.get(
+            "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id", ""
+        )
+        sheet_target = rel_map.get(sheet_rel_id, "worksheets/sheet1.xml")
+        if not sheet_target.startswith("xl/"):
+            sheet_target = f"xl/{sheet_target}"
+        sheet = ET.fromstring(archive.read(sheet_target))
         parsed_rows = []
         for row in sheet.findall("x:sheetData/x:row", ns):
             values: dict[str, str] = {}
@@ -114,15 +135,21 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
                 col = re.sub(r"\d", "", ref)
                 cell_type = cell.attrib.get("t")
                 value_node = cell.find("x:v", ns)
-                if value_node is None or value_node.text is None:
+                if cell_type == "inlineStr":
+                    text_node = cell.find("x:is/x:t", ns)
+                    values[col] = text_node.text if text_node is not None and text_node.text else ""
+                elif value_node is None or value_node.text is None:
                     values[col] = ""
-                    continue
-                if cell_type == "s":
+                elif cell_type == "s":
                     values[col] = strings[int(value_node.text)]
                 else:
                     values[col] = value_node.text
             parsed_rows.append(values)
+    return parsed_rows
 
+
+def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
+    parsed_rows = parse_xlsx_rows(xlsx_path)
     if not parsed_rows:
         return []
     default_labels = {
@@ -186,6 +213,131 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
             i += 1
 
     return entries
+
+
+def find_timeline_one_summary_xlsx() -> Path | None:
+    dynamic_candidates = sorted(
+        [
+            *ROOT.glob("Timeline 1 - Onboarding*.xlsx"),
+            *ROOT.parent.glob("Timeline 1 - Onboarding*.xlsx"),
+        ],
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for path in dynamic_candidates:
+        if path.exists():
+            return path
+    for path in TIMELINE_ONE_SUMMARY_XLSX_CANDIDATES:
+        if path.exists():
+            return path
+    return None
+
+
+def format_table_cell_value(raw_value: str) -> str:
+    value = (raw_value or "").strip()
+    if not value:
+        return "—"
+    if re.fullmatch(r"-?\d+\.0+", value):
+        return value.split(".", 1)[0]
+    return value
+
+
+def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
+    rows = parse_xlsx_rows(xlsx_path)
+    if not rows:
+        return []
+    metric_names = {"emails delivered", "open emails", "open rate", "clicks", "ctr"}
+    default_labels = {
+        "B": "Baseline 2025",
+        "C": "Target",
+        "D": "Real Q1",
+        "E": "01 Ene-12 Feb",
+        "F": "13-19 Feb",
+        "G": "20-26 Feb",
+    }
+    sections: list[dict] = []
+    i = 0
+    while i < len(rows):
+        row = rows[i]
+        title = (row.get("A") or "").strip()
+        normalized_title = normalize_text(title)
+        header_hint = normalize_text(row.get("B", "")) in {
+            "valor referencia",
+            "valor de referencia",
+            "baseline 2025",
+        } or normalize_text(row.get("C", "")) == "target"
+        if not title or not header_hint:
+            i += 1
+            continue
+        if normalized_title in metric_names:
+            i += 1
+            continue
+
+        metrics = []
+        j = i + 1
+        while j < len(rows):
+            metric_row = rows[j]
+            metric_name = (metric_row.get("A") or "").strip()
+            normalized_metric = normalize_text(metric_name)
+            if not metric_name or normalized_metric not in metric_names:
+                break
+            metrics.append(
+                {
+                    "name": metric_name,
+                    "values": {col: format_table_cell_value(metric_row.get(col, "")) for col in "BCDEFG"},
+                }
+            )
+            j += 1
+        if metrics:
+            active_cols = []
+            for col in "BCDEFG":
+                has_values = any(metric["values"].get(col, "—") != "—" for metric in metrics)
+                if has_values or (row.get(col) or "").strip():
+                    raw_label = (row.get(col) or "").strip()
+                    if normalize_text(raw_label) in {"valor referencia", "valor de referencia"}:
+                        raw_label = "Baseline 2025"
+                    active_cols.append({"key": col, "label": raw_label or default_labels.get(col, col)})
+            sections.append({"title": title, "columns": active_cols, "metrics": metrics})
+            i = j
+            continue
+        i += 1
+    return sections
+
+
+def load_timeline_one_summary_sections() -> list[dict]:
+    xlsx_path = find_timeline_one_summary_xlsx()
+    if xlsx_path is None:
+        return []
+    try:
+        return parse_timeline_one_summary_sections(xlsx_path)
+    except (OSError, ValueError, KeyError, ET.ParseError, zipfile.BadZipFile):
+        return []
+
+
+def timeline_one_summary_markup(summary_sections: list[dict]) -> str:
+    if not summary_sections:
+        return ""
+    section_markup = []
+    for section in summary_sections:
+        header_cells = "".join(f"<th>{html.escape(col['label'])}</th>" for col in section["columns"])
+        rows = []
+        for metric in section["metrics"]:
+            value_cells = "".join(
+                f"<td>{html.escape(metric['values'].get(col['key'], '—'))}</td>" for col in section["columns"]
+            )
+            rows.append(f"<tr><th>{html.escape(metric['name'])}</th>{value_cells}</tr>")
+        section_markup.append(
+            '<section class="timeline-inline-analytics-section">'
+            f"<h3>{html.escape(section['title'])}</h3>"
+            '<div class="timeline-inline-analytics-table-wrap">'
+            '<table class="timeline-inline-analytics-table">'
+            f"<thead><tr><th>Metric</th>{header_cells}</tr></thead>"
+            f"<tbody>{''.join(rows)}</tbody>"
+            "</table>"
+            "</div>"
+            "</section>"
+        )
+    return f'<div class="timeline-inline-analytics">{"".join(section_markup)}</div>'
 
 
 def load_analytics_map() -> dict[tuple[str, ...], dict]:
@@ -676,7 +828,9 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
     )
 
 
-def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, ...], dict]) -> str:
+def timeline_content_for_group(
+    group: dict, analytics_map: dict[tuple[str, ...], dict], timeline_one_summary_sections: list[dict]
+) -> str:
     cards = []
     for i, doc in enumerate(group["docs"], start=1):
         entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
@@ -710,6 +864,11 @@ def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, ...],
         if cards
         else '<p class="timeline-empty-group">No images in this folder yet.</p>'
     )
+    summary_markup = (
+        timeline_one_summary_markup(timeline_one_summary_sections)
+        if group["key"] == "timeline-1-onboarding-flujo-1-y-2-en-only"
+        else ""
+    )
 
     return (
         '<div class="layout">'
@@ -717,6 +876,7 @@ def timeline_content_for_group(group: dict, analytics_map: dict[tuple[str, ...],
         '<div class="miro-board-head">'
         f"<h1>{group['label']}</h1>"
         "<p>Left-to-right sequence.<span class=\"timeline-helper-break\">Click on any image to view it full screen.</span></p>"
+        f"{summary_markup}"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
@@ -768,6 +928,7 @@ def main() -> None:
 
     timeline_groups = collect_timeline_groups()
     analytics_map = load_analytics_map()
+    timeline_one_summary_sections = load_timeline_one_summary_sections()
     docs: list[dict] = []
     seen: set[str] = set()
     for group in timeline_groups:
@@ -837,7 +998,7 @@ def main() -> None:
                 page_key=None,
                 mobile_nav=mobile_controls(group_menu_links),
                 mobile_brand=group["label"],
-                custom_content=timeline_content_for_group(group, analytics_map),
+                custom_content=timeline_content_for_group(group, analytics_map, timeline_one_summary_sections),
             )
             (PAGES_DIR / f"timeline-{group['key']}.html").write_text(group_html, encoding="utf-8")
 
