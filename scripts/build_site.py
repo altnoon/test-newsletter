@@ -289,6 +289,9 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
             )
             j += 1
         if metrics:
+            display_title = title
+            if normalize_text(title) == normalize_text("Timeline 1 - Onboarding Flujo 1 y 2 (EN Only)"):
+                display_title = "Total Onboarding EN"
             active_cols = []
             for col in "BCDEFG":
                 has_values = any(metric["values"].get(col, "—") != "—" for metric in metrics)
@@ -297,7 +300,7 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
                     if normalize_text(raw_label) in {"valor referencia", "valor de referencia"}:
                         raw_label = "Baseline 2025"
                     active_cols.append({"key": col, "label": raw_label or default_labels.get(col, col)})
-            sections.append({"title": title, "columns": active_cols, "metrics": metrics})
+            sections.append({"title": display_title, "columns": active_cols, "metrics": metrics})
             i = j
             continue
         i += 1

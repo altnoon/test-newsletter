@@ -549,6 +549,12 @@ body {
   color: var(--glass-text-primary);
 }
 
+.timeline-inline-analytics-table thead th:not(:first-child),
+.timeline-inline-analytics-table tbody td {
+  width: 123px;
+  max-width: 123px;
+}
+
 .miro-board-scroller {
   border: 1px solid var(--line-subtle);
   border-radius: var(--radius-md);
