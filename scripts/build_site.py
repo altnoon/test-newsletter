@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import html
+import csv
 import re
 import unicodedata
 import zipfile
@@ -24,6 +25,12 @@ ANALYTICS_XLSX_CANDIDATES = [
     ROOT / "vivla-mail-analytics-ind.xlsx",
     ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind.xlsx"),
+]
+EMAIL_LINKS_CSV_CANDIDATES = [
+    ROOT.parent / "email_links.csv",
+    ROOT / "email_links.csv",
+    ROOT.parent / "email_links_template.csv",
+    ROOT / "email_links_template.csv",
 ]
 TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP = {
     "timeline-1-onboarding-flujo-1-y-2-en-only": [
@@ -109,6 +116,28 @@ def find_analytics_xlsx() -> Path | None:
         if path.exists():
             return path
     return None
+
+
+def find_email_links_csv() -> Path | None:
+    for path in EMAIL_LINKS_CSV_CANDIDATES:
+        if path.exists():
+            return path
+    return None
+
+
+def load_email_links() -> dict[str, str]:
+    csv_path = find_email_links_csv()
+    if csv_path is None:
+        return {}
+    links: dict[str, str] = {}
+    with csv_path.open(newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            card_key = (row.get("card_key") or "").strip()
+            web_url = (row.get("web_url") or "").strip()
+            if card_key and web_url:
+                links[card_key] = web_url
+    return links
 
 
 def parse_xlsx_rows(xlsx_path: Path) -> list[dict[str, str]]:
@@ -747,7 +776,9 @@ def render_page(
     return html_page.replace("  </body>", f"{script_tag}\n  </body>")
 
 
-def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[str, ...], dict]) -> str:
+def timeline_content_for_root(
+    timelines: list[dict], analytics_map: dict[tuple[str, ...], dict], email_links: dict[str, str]
+) -> str:
     if not timelines:
         return (
             '<div class="empty-state">'
@@ -763,6 +794,13 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
         for i, doc in enumerate(group["docs"], start=1):
             entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
             card_key = f'{group["key"]}::{doc["slug"]}'
+            email_url = email_links.get(card_key)
+            email_button = (
+                f'<a class="miro-open-link miro-card-action miro-card-action-email" href="{html.escape(email_url, quote=True)}" '
+                f'target="_blank" rel="noopener noreferrer" aria-label="Open {doc["label"]} in HubSpot web version">Email</a>'
+                if email_url
+                else ""
+            )
             cards.append(
                 '<article class="miro-card">'
                 '<div class="miro-card-head">'
@@ -773,6 +811,7 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
                 "</div>"
                 '<div class="miro-card-actions">'
                 f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
+                f"{email_button}"
                 f'<button class="miro-card-action miro-card-action-analytics" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
                 "</div>"
                 "</div>"
@@ -848,12 +887,22 @@ def timeline_content_for_root(timelines: list[dict], analytics_map: dict[tuple[s
 
 
 def timeline_content_for_group(
-    group: dict, analytics_map: dict[tuple[str, ...], dict], summary_sections_by_group: dict[str, list[dict]]
+    group: dict,
+    analytics_map: dict[tuple[str, ...], dict],
+    summary_sections_by_group: dict[str, list[dict]],
+    email_links: dict[str, str],
 ) -> str:
     cards = []
     for i, doc in enumerate(group["docs"], start=1):
         entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
         card_key = f'{group["key"]}::{doc["slug"]}'
+        email_url = email_links.get(card_key)
+        email_button = (
+            f'<a class="miro-open-link miro-card-action miro-card-action-email" href="{html.escape(email_url, quote=True)}" '
+            f'target="_blank" rel="noopener noreferrer" aria-label="Open {doc["label"]} in HubSpot web version">Email</a>'
+            if email_url
+            else ""
+        )
         cards.append(
             '<article class="miro-card">'
             '<div class="miro-card-head">'
@@ -864,6 +913,7 @@ def timeline_content_for_group(
             "</div>"
             '<div class="miro-card-actions">'
             f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
+            f"{email_button}"
             f'<button class="miro-card-action miro-card-action-analytics" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
             "</div>"
             "</div>"
@@ -943,6 +993,7 @@ def main() -> None:
 
     timeline_groups = collect_timeline_groups()
     analytics_map = load_analytics_map()
+    email_links = load_email_links()
     summary_sections_by_group = {
         group_key: load_timeline_summary_sections(group_key)
         for group_key in TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP
@@ -999,7 +1050,7 @@ def main() -> None:
                 page_key=None,
                 mobile_nav=mobile_controls(root_menu_links),
                 mobile_brand="Timeline",
-                custom_content=timeline_content_for_root(timeline_groups, analytics_map),
+                custom_content=timeline_content_for_root(timeline_groups, analytics_map, email_links),
             ),
             encoding="utf-8",
         )
@@ -1016,7 +1067,9 @@ def main() -> None:
                 page_key=None,
                 mobile_nav=mobile_controls(group_menu_links),
                 mobile_brand=group["label"],
-                custom_content=timeline_content_for_group(group, analytics_map, summary_sections_by_group),
+                custom_content=timeline_content_for_group(
+                    group, analytics_map, summary_sections_by_group, email_links
+                ),
             )
             (PAGES_DIR / f"timeline-{group['key']}.html").write_text(group_html, encoding="utf-8")
 
