@@ -191,6 +191,10 @@ def parse_xlsx_rows(xlsx_path: Path) -> list[dict[str, str]]:
 
 def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
     parsed_rows = parse_xlsx_rows(xlsx_path)
+    return parse_analytics_rows_from_parsed_rows(parsed_rows)
+
+
+def parse_analytics_rows_from_parsed_rows(parsed_rows: list[dict[str, str]]) -> list[dict]:
     if not parsed_rows:
         return []
     default_labels = {
@@ -254,6 +258,72 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
             i += 1
 
     return entries
+
+
+def rows_in_ranges(parsed_rows: list[dict[str, str]], ranges: list[tuple[int, int]]) -> list[dict[str, str]]:
+    selected: list[dict[str, str]] = []
+    for idx, row in enumerate(parsed_rows, start=1):
+        if any(start <= idx <= end for start, end in ranges):
+            selected.append(row)
+    return selected
+
+
+def is_row_range_analytics_source(path: Path | None) -> bool:
+    if path is None:
+        return False
+    normalized = normalize_text(path.stem)
+    return normalized.startswith("111 os nurturing content leadership")
+
+
+def parse_summary_sections_from_parsed_rows(parsed_rows: list[dict[str, str]]) -> list[dict]:
+    if not parsed_rows:
+        return []
+    metric_names = {"emails delivered", "open emails", "open rate", "clicks", "ctr"}
+    default_labels = {
+        "C": "Baseline 2025",
+        "D": "Target",
+        "E": "Real Q1",
+        "F": "01 Ene-12 Feb",
+        "G": "13-19 Feb",
+        "H": "20-26 Feb",
+    }
+    sections: list[dict] = []
+    i = 0
+    while i < len(parsed_rows):
+        row = parsed_rows[i]
+        title = (row.get("A") or "").strip()
+        normalized_title = normalize_text(title)
+        if not title or normalized_title in metric_names:
+            i += 1
+            continue
+
+        metrics = []
+        j = i + 1
+        while j < len(parsed_rows):
+            metric_row = parsed_rows[j]
+            metric_name = (metric_row.get("A") or "").strip()
+            normalized_metric = normalize_text(metric_name)
+            if not metric_name or normalized_metric not in metric_names:
+                break
+            values = {}
+            for col in "CDEFGH":
+                values[col] = format_analytics_value(metric_name, metric_row.get(col, ""))
+            metrics.append({"name": metric_name, "values": values})
+            j += 1
+        if metrics:
+            active_cols = []
+            for col in "CDEFGH":
+                has_values = any(metric["values"].get(col, "—") != "—" for metric in metrics)
+                raw_label = (row.get(col) or "").strip()
+                if normalize_text(raw_label) in {"valor referencia", "valor de referencia"}:
+                    raw_label = "Baseline 2025"
+                if has_values or raw_label:
+                    active_cols.append({"key": col, "label": raw_label or default_labels.get(col, col)})
+            sections.append({"title": title, "columns": active_cols, "metrics": metrics})
+            i = j
+            continue
+        i += 1
+    return sections
 
 
 def find_timeline_summary_xlsx(group_key: str) -> Path | None:
@@ -394,7 +464,13 @@ def load_analytics_map() -> dict[tuple[str, ...], dict]:
     if xlsx_path is None:
         return {}
     try:
-        entries = parse_analytics_rows(xlsx_path)
+        if is_row_range_analytics_source(xlsx_path):
+            parsed_rows = parse_xlsx_rows(xlsx_path)
+            entries = parse_analytics_rows_from_parsed_rows(
+                rows_in_ranges(parsed_rows, [(23, 134), (143, 211)])
+            )
+        else:
+            entries = parse_analytics_rows(xlsx_path)
     except (OSError, ValueError, KeyError, ET.ParseError, zipfile.BadZipFile):
         return {}
     result: dict[tuple[str, ...], dict] = {}
@@ -999,6 +1075,18 @@ def main() -> None:
         group_key: load_timeline_summary_sections(group_key)
         for group_key in TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP
     }
+    analytics_source = find_analytics_xlsx()
+    if is_row_range_analytics_source(analytics_source):
+        try:
+            parsed_rows = parse_xlsx_rows(analytics_source)
+            summary_sections_by_group["timeline-1-onboarding-flujo-1-y-2-en-only"] = (
+                parse_summary_sections_from_parsed_rows(rows_in_ranges(parsed_rows, [(2, 21)]))
+            )
+            summary_sections_by_group["timeline-2-nuevos-destinos-en-es"] = (
+                parse_summary_sections_from_parsed_rows(rows_in_ranges(parsed_rows, [(135, 140)]))
+            )
+        except (OSError, ValueError, KeyError, ET.ParseError, zipfile.BadZipFile):
+            pass
     docs: list[dict] = []
     seen: set[str] = set()
     for group in timeline_groups:
