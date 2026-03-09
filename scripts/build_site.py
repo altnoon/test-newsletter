@@ -164,6 +164,7 @@ def parse_xlsx_rows(xlsx_path: Path) -> list[dict[str, str]]:
             "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id", ""
         )
         sheet_target = rel_map.get(sheet_rel_id, "worksheets/sheet1.xml")
+        sheet_target = sheet_target.lstrip("/")
         if not sheet_target.startswith("xl/"):
             sheet_target = f"xl/{sheet_target}"
         sheet = ET.fromstring(archive.read(sheet_target))
