@@ -145,6 +145,20 @@ def find_analytics_html() -> Path | None:
     return None
 
 
+def preferred_analytics_source() -> tuple[str, Path] | None:
+    xlsx_path = find_analytics_xlsx()
+    html_path = find_analytics_html()
+    if xlsx_path is None and html_path is None:
+        return None
+    if xlsx_path is None:
+        return ("html", html_path)
+    if html_path is None:
+        return ("xlsx", xlsx_path)
+    if xlsx_path.stat().st_mtime >= html_path.stat().st_mtime:
+        return ("xlsx", xlsx_path)
+    return ("html", html_path)
+
+
 def find_email_links_csv() -> Path | None:
     for path in EMAIL_LINKS_CSV_CANDIDATES:
         if path.exists():
@@ -661,20 +675,20 @@ def timeline_one_summary_markup(summary_sections: list[dict]) -> str:
 
 
 def load_analytics_map() -> dict[tuple[str, ...], dict]:
-    html_path = find_analytics_html()
-    xlsx_path = find_analytics_xlsx()
-    if html_path is None and xlsx_path is None:
+    analytics_source = preferred_analytics_source()
+    if analytics_source is None:
         return {}
+    source_kind, source_path = analytics_source
     try:
-        if html_path is not None:
-            entries = parse_analytics_rows_from_dashboard_html(parse_html_rows(html_path))
-        elif is_row_range_analytics_source(xlsx_path):
-            parsed_rows = parse_xlsx_rows(xlsx_path)
+        if source_kind == "html":
+            entries = parse_analytics_rows_from_dashboard_html(parse_html_rows(source_path))
+        elif is_row_range_analytics_source(source_path):
+            parsed_rows = parse_xlsx_rows(source_path)
             entries = parse_analytics_rows_from_parsed_rows(
                 rows_in_ranges(parsed_rows, [(23, 134), (143, 211)])
             )
         else:
-            entries = parse_analytics_rows(xlsx_path)
+            entries = parse_analytics_rows(source_path)
     except (OSError, ValueError, KeyError, ET.ParseError, zipfile.BadZipFile):
         return {}
     result: dict[tuple[str, ...], dict] = {}
@@ -1292,11 +1306,10 @@ def main() -> None:
         group_key: load_timeline_summary_sections(group_key)
         for group_key in TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP
     }
-    analytics_html_source = find_analytics_html()
-    analytics_source = find_analytics_xlsx()
-    if analytics_html_source is not None:
+    analytics_source = preferred_analytics_source()
+    if analytics_source is not None and analytics_source[0] == "html":
         try:
-            html_rows = parse_html_rows(analytics_html_source)
+            html_rows = parse_html_rows(analytics_source[1])
             summary_sections_by_group["timeline-1-onboarding-flujo-1-y-2-en-only"] = (
                 parse_summary_section_from_dashboard_html(
                     html_rows, "Total Onboarding EN", "Total Onboarding EN"
@@ -1309,9 +1322,9 @@ def main() -> None:
             )
         except OSError:
             pass
-    elif is_row_range_analytics_source(analytics_source):
+    elif analytics_source is not None and analytics_source[0] == "xlsx" and is_row_range_analytics_source(analytics_source[1]):
         try:
-            parsed_rows = parse_xlsx_rows(analytics_source)
+            parsed_rows = parse_xlsx_rows(analytics_source[1])
             summary_sections_by_group["timeline-1-onboarding-flujo-1-y-2-en-only"] = (
                 parse_summary_sections_from_parsed_rows(rows_in_ranges(parsed_rows, [(2, 21)]))
             )
