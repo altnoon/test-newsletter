@@ -280,6 +280,42 @@ def parse_html_rows(html_path: Path) -> list[dict[str, str]]:
     return parsed_rows
 
 
+HTML_ANALYTICS_COLUMN_LABELS = {
+    "C": "Baseline 2025",
+    "D": "Target",
+    "E": "Real Q1",
+    "F": "% of target",
+    "G": "01 Ene-12 Feb",
+    "H": "13-19 Feb",
+    "I": "20-26 Feb",
+    "J": "27 Feb-05 Mar",
+    "K": "06-12 Mar",
+    "L": "13-19 Mar",
+    "M": "20-26 Mar",
+    "N": "27 Mar-02 Abr",
+    "O": "03-09 Abr",
+}
+
+
+def html_analytics_columns(include_target: bool = False) -> list[tuple[str, str]]:
+    columns = [
+        ("C", HTML_ANALYTICS_COLUMN_LABELS["C"]),
+        ("E", HTML_ANALYTICS_COLUMN_LABELS["E"]),
+        ("G", HTML_ANALYTICS_COLUMN_LABELS["G"]),
+        ("H", HTML_ANALYTICS_COLUMN_LABELS["H"]),
+        ("I", HTML_ANALYTICS_COLUMN_LABELS["I"]),
+        ("J", HTML_ANALYTICS_COLUMN_LABELS["J"]),
+        ("K", HTML_ANALYTICS_COLUMN_LABELS["K"]),
+        ("L", HTML_ANALYTICS_COLUMN_LABELS["L"]),
+        ("M", HTML_ANALYTICS_COLUMN_LABELS["M"]),
+        ("N", HTML_ANALYTICS_COLUMN_LABELS["N"]),
+        ("O", HTML_ANALYTICS_COLUMN_LABELS["O"]),
+    ]
+    if include_target:
+        columns.insert(1, ("D", HTML_ANALYTICS_COLUMN_LABELS["D"]))
+    return columns
+
+
 def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
     parsed_rows = parse_xlsx_rows(xlsx_path)
     return parse_analytics_rows_from_parsed_rows(parsed_rows)
@@ -355,6 +391,7 @@ def parse_analytics_rows_from_dashboard_html(parsed_rows: list[dict[str, str]]) 
     if not parsed_rows:
         return []
     metric_names = {"emails delivered", "open emails", "open rate", "clicks", "ctr"}
+    point_columns = html_analytics_columns()
     entries: list[dict] = []
     i = 0
     while i < len(parsed_rows):
@@ -372,13 +409,7 @@ def parse_analytics_rows_from_dashboard_html(parsed_rows: list[dict[str, str]]) 
             normalized_metric = normalize_text(metric_name)
             if not metric_name or normalized_metric not in metric_names:
                 break
-            points = [
-                {"label": "Baseline 2025", "value": metric_row.get("C", "")},
-                {"label": "Real Q1", "value": metric_row.get("E", "")},
-                {"label": "01 Ene-12 Feb", "value": metric_row.get("G", "")},
-                {"label": "13-19 Feb", "value": metric_row.get("H", "")},
-                {"label": "20-26 Feb", "value": metric_row.get("I", "")},
-            ]
+            points = [{"label": label, "value": metric_row.get(col, "")} for col, label in point_columns]
             metrics.append({"name": metric_name, "points": points})
             j += 1
         if metrics:
@@ -457,6 +488,7 @@ def parse_summary_sections_from_parsed_rows(parsed_rows: list[dict[str, str]]) -
 
 def parse_summary_section_from_dashboard_html(parsed_rows: list[dict[str, str]], title_match: str, display_title: str) -> list[dict]:
     metric_names = {"emails delivered", "open emails", "open rate", "clicks", "ctr"}
+    summary_columns = html_analytics_columns(include_target=True)
     for i, row in enumerate(parsed_rows):
         title = (row.get("A") or "").strip()
         if normalize_text(title) != normalize_text(title_match):
@@ -473,28 +505,22 @@ def parse_summary_section_from_dashboard_html(parsed_rows: list[dict[str, str]],
                 {
                     "name": metric_name,
                     "values": {
-                        "C": format_analytics_value(metric_name, metric_row.get("C", "")),
-                        "D": format_analytics_value(metric_name, metric_row.get("D", "")),
-                        "E": format_analytics_value(metric_name, metric_row.get("E", "")),
-                        "G": format_analytics_value(metric_name, metric_row.get("G", "")),
-                        "H": format_analytics_value(metric_name, metric_row.get("H", "")),
-                        "I": format_analytics_value(metric_name, metric_row.get("I", "")),
+                        col: format_analytics_value(metric_name, metric_row.get(col, ""))
+                        for col, _label in summary_columns
                     },
                 }
             )
             j += 1
         if metrics:
+            active_columns = [
+                {"key": col, "label": label}
+                for col, label in summary_columns
+                if any(metric["values"].get(col, "—") != "—" for metric in metrics)
+            ]
             return [
                 {
                     "title": display_title,
-                    "columns": [
-                        {"key": "C", "label": "Baseline 2025"},
-                        {"key": "D", "label": "Target"},
-                        {"key": "E", "label": "Real Q1"},
-                        {"key": "G", "label": "01 Ene-12 Feb"},
-                        {"key": "H", "label": "13-19 Feb"},
-                        {"key": "I", "label": "20-26 Feb"},
-                    ],
+                    "columns": active_columns,
                     "metrics": metrics,
                 }
             ]
