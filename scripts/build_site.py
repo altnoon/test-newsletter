@@ -6,6 +6,7 @@ import csv
 import re
 import unicodedata
 import zipfile
+from html.parser import HTMLParser
 from pathlib import Path
 from xml.etree import ElementTree as ET
 from urllib.parse import quote
@@ -25,6 +26,10 @@ ANALYTICS_XLSX_CANDIDATES = [
     ROOT / "vivla-mail-analytics-ind.xlsx",
     ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind.xlsx"),
+]
+ANALYTICS_HTML_CANDIDATES = [
+    ROOT.parent / "[Vivla] OS Nurturing & Content Leadership" / "Dashboard nurturing.html",
+    Path("/Users/delchev/Downloads/[Vivla] OS Nurturing & Content Leadership/Dashboard nurturing.html"),
 ]
 EMAIL_LINKS_CSV_CANDIDATES = [
     ROOT.parent / "email_links.csv",
@@ -51,6 +56,21 @@ def normalize_text(value: str) -> str:
     lowered = folded.lower()
     lowered = re.sub(r"[^a-z0-9]+", " ", lowered)
     return re.sub(r"\s+", " ", lowered).strip()
+
+
+def flow_place_key(value: str) -> tuple[str, str, str] | None:
+    flow, variant = analytics_key(value)
+    if not flow:
+        return None
+    normalized = normalize_text(value)
+    normalized = re.sub(r"\bw\d+\s*[- ]?\s*[edp]\s*\d+\b", " ", normalized)
+    normalized = re.sub(r"\b202[0-9]\b", " ", normalized)
+    normalized = re.sub(r"\b(?:en|es|intl|workflow|total|onboarding|nurturing|behavioral|destinos|casas|general)\b", " ", normalized)
+    normalized = re.sub(r"\b(?:a|b)\b", " ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    if not normalized:
+        return None
+    return (flow, variant, normalized)
 
 
 def analytics_key(value: str) -> tuple[str, str]:
@@ -113,6 +133,13 @@ def find_analytics_xlsx() -> Path | None:
         if path.exists():
             return path
     for path in ANALYTICS_XLSX_CANDIDATES:
+        if path.exists():
+            return path
+    return None
+
+
+def find_analytics_html() -> Path | None:
+    for path in ANALYTICS_HTML_CANDIDATES:
         if path.exists():
             return path
     return None
@@ -189,6 +216,70 @@ def parse_xlsx_rows(xlsx_path: Path) -> list[dict[str, str]]:
     return parsed_rows
 
 
+class GoogleSheetHtmlTableParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rows: list[list[str]] = []
+        self._in_tr = False
+        self._in_cell = False
+        self._capture = False
+        self._row: list[str] = []
+        self._cell: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_map = dict(attrs)
+        if tag == "tr":
+            self._in_tr = True
+            self._row = []
+        elif self._in_tr and tag in {"td", "th"}:
+            cell_class = attr_map.get("class", "") or ""
+            self._in_cell = True
+            self._capture = "freezebar-cell" not in cell_class
+            self._cell = []
+        elif self._capture and tag == "br":
+            self._cell.append("\n")
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"td", "th"} and self._in_cell:
+            if self._capture:
+                self._row.append(html.unescape("".join(self._cell)).strip())
+            self._in_cell = False
+            self._capture = False
+        elif tag == "tr" and self._in_tr:
+            if self._row:
+                self.rows.append(self._row)
+            self._in_tr = False
+
+    def handle_data(self, data: str) -> None:
+        if self._capture:
+            self._cell.append(data)
+
+
+def parse_html_rows(html_path: Path) -> list[dict[str, str]]:
+    parser = GoogleSheetHtmlTableParser()
+    parser.feed(html_path.read_text(encoding="utf-8", errors="ignore"))
+    if len(parser.rows) < 2:
+        return []
+    header_row = parser.rows[0]
+    columns = header_row[1:]
+    parsed_rows: list[dict[str, str]] = []
+    for row in parser.rows[1:]:
+        if len(row) < 2:
+            continue
+        row_number = row[0]
+        if not row_number.isdigit():
+            continue
+        values: dict[str, str] = {"ROW": row_number}
+        for index, value in enumerate(row[1:]):
+            if index >= len(columns):
+                continue
+            col = columns[index]
+            if col:
+                values[col] = value
+        parsed_rows.append(values)
+    return parsed_rows
+
+
 def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
     parsed_rows = parse_xlsx_rows(xlsx_path)
     return parse_analytics_rows_from_parsed_rows(parsed_rows)
@@ -260,6 +351,44 @@ def parse_analytics_rows_from_parsed_rows(parsed_rows: list[dict[str, str]]) -> 
     return entries
 
 
+def parse_analytics_rows_from_dashboard_html(parsed_rows: list[dict[str, str]]) -> list[dict]:
+    if not parsed_rows:
+        return []
+    metric_names = {"emails delivered", "open emails", "open rate", "clicks", "ctr"}
+    entries: list[dict] = []
+    i = 0
+    while i < len(parsed_rows):
+        row = parsed_rows[i]
+        title = (row.get("A") or "").strip()
+        normalized_title = normalize_text(title)
+        if not title or normalized_title in metric_names:
+            i += 1
+            continue
+        metrics = []
+        j = i + 1
+        while j < len(parsed_rows):
+            metric_row = parsed_rows[j]
+            metric_name = (metric_row.get("A") or "").strip()
+            normalized_metric = normalize_text(metric_name)
+            if not metric_name or normalized_metric not in metric_names:
+                break
+            points = [
+                {"label": "Baseline 2025", "value": metric_row.get("C", "")},
+                {"label": "Real Q1", "value": metric_row.get("E", "")},
+                {"label": "01 Ene-12 Feb", "value": metric_row.get("G", "")},
+                {"label": "13-19 Feb", "value": metric_row.get("H", "")},
+                {"label": "20-26 Feb", "value": metric_row.get("I", "")},
+            ]
+            metrics.append({"name": metric_name, "points": points})
+            j += 1
+        if metrics:
+            entries.append({"title": title, "metrics": metrics})
+            i = j
+        else:
+            i += 1
+    return entries
+
+
 def rows_in_ranges(parsed_rows: list[dict[str, str]], ranges: list[tuple[int, int]]) -> list[dict[str, str]]:
     selected: list[dict[str, str]] = []
     for idx, row in enumerate(parsed_rows, start=1):
@@ -324,6 +453,52 @@ def parse_summary_sections_from_parsed_rows(parsed_rows: list[dict[str, str]]) -
             continue
         i += 1
     return sections
+
+
+def parse_summary_section_from_dashboard_html(parsed_rows: list[dict[str, str]], title_match: str, display_title: str) -> list[dict]:
+    metric_names = {"emails delivered", "open emails", "open rate", "clicks", "ctr"}
+    for i, row in enumerate(parsed_rows):
+        title = (row.get("A") or "").strip()
+        if normalize_text(title) != normalize_text(title_match):
+            continue
+        metrics = []
+        j = i + 1
+        while j < len(parsed_rows):
+            metric_row = parsed_rows[j]
+            metric_name = (metric_row.get("A") or "").strip()
+            normalized_metric = normalize_text(metric_name)
+            if not metric_name or normalized_metric not in metric_names:
+                break
+            metrics.append(
+                {
+                    "name": metric_name,
+                    "values": {
+                        "C": format_analytics_value(metric_name, metric_row.get("C", "")),
+                        "D": format_analytics_value(metric_name, metric_row.get("D", "")),
+                        "E": format_analytics_value(metric_name, metric_row.get("E", "")),
+                        "G": format_analytics_value(metric_name, metric_row.get("G", "")),
+                        "H": format_analytics_value(metric_name, metric_row.get("H", "")),
+                        "I": format_analytics_value(metric_name, metric_row.get("I", "")),
+                    },
+                }
+            )
+            j += 1
+        if metrics:
+            return [
+                {
+                    "title": display_title,
+                    "columns": [
+                        {"key": "C", "label": "Baseline 2025"},
+                        {"key": "D", "label": "Target"},
+                        {"key": "E", "label": "Real Q1"},
+                        {"key": "G", "label": "01 Ene-12 Feb"},
+                        {"key": "H", "label": "13-19 Feb"},
+                        {"key": "I", "label": "20-26 Feb"},
+                    ],
+                    "metrics": metrics,
+                }
+            ]
+    return []
 
 
 def find_timeline_summary_xlsx(group_key: str) -> Path | None:
@@ -460,11 +635,14 @@ def timeline_one_summary_markup(summary_sections: list[dict]) -> str:
 
 
 def load_analytics_map() -> dict[tuple[str, ...], dict]:
+    html_path = find_analytics_html()
     xlsx_path = find_analytics_xlsx()
-    if xlsx_path is None:
+    if html_path is None and xlsx_path is None:
         return {}
     try:
-        if is_row_range_analytics_source(xlsx_path):
+        if html_path is not None:
+            entries = parse_analytics_rows_from_dashboard_html(parse_html_rows(html_path))
+        elif is_row_range_analytics_source(xlsx_path):
             parsed_rows = parse_xlsx_rows(xlsx_path)
             entries = parse_analytics_rows_from_parsed_rows(
                 rows_in_ranges(parsed_rows, [(23, 134), (143, 211)])
@@ -476,6 +654,9 @@ def load_analytics_map() -> dict[tuple[str, ...], dict]:
     result: dict[tuple[str, ...], dict] = {}
     for entry in entries:
         flow_key = analytics_key(entry["title"])
+        place_key = flow_place_key(entry["title"])
+        if place_key is not None:
+            result[("flow_place", place_key[0], place_key[1], place_key[2])] = entry
         if flow_key != ("", ""):
             result[("flow", flow_key[0], flow_key[1])] = entry
         phase_key = phase_lang_place_key(entry["title"])
@@ -498,6 +679,11 @@ def entry_for_doc(analytics_map: dict[tuple[str, ...], dict], label: str) -> dic
             if fallback:
                 return fallback
         return None
+    place_key = flow_place_key(label)
+    if place_key is not None:
+        exact_place = analytics_map.get(("flow_place", place_key[0], place_key[1], place_key[2]))
+        if exact_place:
+            return exact_place
     if variant and ("flow", flow, variant) in analytics_map:
         return analytics_map[("flow", flow, variant)]
     return analytics_map.get(("flow", flow, ""))
@@ -1075,8 +1261,24 @@ def main() -> None:
         group_key: load_timeline_summary_sections(group_key)
         for group_key in TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP
     }
+    analytics_html_source = find_analytics_html()
     analytics_source = find_analytics_xlsx()
-    if is_row_range_analytics_source(analytics_source):
+    if analytics_html_source is not None:
+        try:
+            html_rows = parse_html_rows(analytics_html_source)
+            summary_sections_by_group["timeline-1-onboarding-flujo-1-y-2-en-only"] = (
+                parse_summary_section_from_dashboard_html(
+                    html_rows, "Total Onboarding EN", "Total Onboarding EN"
+                )
+            )
+            summary_sections_by_group["timeline-2-nuevos-destinos-en-es"] = (
+                parse_summary_section_from_dashboard_html(
+                    html_rows, "Total Marketplace campaign", "Total Nuevos Destinos (EN + ES)"
+                )
+            )
+        except OSError:
+            pass
+    elif is_row_range_analytics_source(analytics_source):
         try:
             parsed_rows = parse_xlsx_rows(analytics_source)
             summary_sections_by_group["timeline-1-onboarding-flujo-1-y-2-en-only"] = (
