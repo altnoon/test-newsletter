@@ -710,6 +710,11 @@ def entry_for_doc(analytics_map: dict[tuple[str, ...], dict], label: str) -> dic
         exact_place = analytics_map.get(("flow_place", place_key[0], place_key[1], place_key[2]))
         if exact_place:
             return exact_place
+        has_place_specific_family = any(
+            key[:3] == ("flow_place", place_key[0], place_key[1]) for key in analytics_map
+        )
+        if has_place_specific_family:
+            return None
     if variant and ("flow", flow, variant) in analytics_map:
         return analytics_map[("flow", flow, variant)]
     return analytics_map.get(("flow", flow, ""))
