@@ -6,10 +6,12 @@ import csv
 import re
 import unicodedata
 import zipfile
+import tempfile
 from html.parser import HTMLParser
 from pathlib import Path
 from xml.etree import ElementTree as ET
 from urllib.parse import quote
+from urllib.request import urlopen, Request
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -27,6 +29,10 @@ ANALYTICS_XLSX_CANDIDATES = [
     ROOT / "data" / "vivla-mail-analytics-ind.xlsx",
     Path("/Users/delchev/Downloads/vivla-mail-analytics-ind.xlsx"),
 ]
+GOOGLE_ANALYTICS_EXPORT_URL = (
+    "https://docs.google.com/spreadsheets/d/1pZaBRTIOuiICPK3sm9eonwpNFYH9XSMShyee-QeCshQ/"
+    "export?format=xlsx&gid=1290008872"
+)
 ANALYTICS_HTML_CANDIDATES = [
     ROOT.parent / "[Vivla] OS Nurturing & Content Leadership" / "Dashboard nurturing.html",
     Path("/Users/delchev/Downloads/[Vivla] OS Nurturing & Content Leadership/Dashboard nurturing.html"),
@@ -145,9 +151,35 @@ def find_analytics_html() -> Path | None:
     return None
 
 
+def fetch_google_analytics_xlsx() -> Path | None:
+    request = Request(
+        GOOGLE_ANALYTICS_EXPORT_URL,
+        headers={
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+    )
+    try:
+        with urlopen(request, timeout=12) as response:
+            payload = response.read()
+    except Exception:
+        return None
+    if not payload:
+        return None
+    temp_path = Path(tempfile.gettempdir()) / "vivla-analytics-google.xlsx"
+    try:
+        temp_path.write_bytes(payload)
+    except OSError:
+        return None
+    return temp_path
+
+
 def preferred_analytics_source() -> tuple[str, Path] | None:
+    google_xlsx_path = fetch_google_analytics_xlsx()
     xlsx_path = find_analytics_xlsx()
     html_path = find_analytics_html()
+    if google_xlsx_path is not None:
+        return ("xlsx", google_xlsx_path)
     if xlsx_path is None and html_path is None:
         return None
     if xlsx_path is None:
