@@ -511,31 +511,32 @@ body {
 }
 
 .timeline-theme-toggle-icon {
-  position: relative;
-  z-index: 1;
   position: absolute;
   top: 5px;
+  z-index: 1;
   width: 24px;
   height: 24px;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: opacity 180ms ease, filter 180ms ease;
 }
 
 .timeline-theme-toggle-icon-sun {
-  left: 8px;
+  left: 5px;
 }
 
 .timeline-theme-toggle-icon-moon {
-  right: 8px;
+  right: 5px;
 }
 
 .timeline-theme-toggle-icon::before {
   content: "";
-  position: absolute;
-  inset: 0;
+  width: 18px;
+  height: 18px;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 24px 24px;
+  background-size: 18px 18px;
 }
 
 .timeline-theme-toggle[data-theme-state="light"] .timeline-theme-toggle-icon-sun {
