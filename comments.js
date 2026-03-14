@@ -49,6 +49,8 @@
     });
   };
 
+  window.updateTimelineThemeButtons = updateThemeButtons;
+
   applyTheme(getStoredTheme());
   updateThemeButtons();
 
@@ -1889,7 +1891,9 @@
       try {
         window.localStorage.setItem(storageKey, next);
       } catch (_) {}
-      updateThemeButtons();
+      if (typeof window.updateTimelineThemeButtons === "function") {
+        window.updateTimelineThemeButtons();
+      }
     });
   }
 
