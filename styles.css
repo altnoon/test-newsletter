@@ -1327,6 +1327,10 @@ body {
   right: auto;
 }
 
+.image-lightbox[data-lightbox-theme="light"] .image-lightbox-theme-toggle .timeline-theme-toggle-icon-sun::before {
+  filter: brightness(0) invert(1);
+}
+
 @media (min-width: 701px) {
   .image-lightbox-zoom {
     flex-direction: column;
