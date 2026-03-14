@@ -1159,9 +1159,9 @@ def timeline_content_for_root(
         "<p>Left-to-right sequence. <span class=\"timeline-helper-break\">Click on any email to view it full screen.</span></p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
+        '<button class="timeline-control-btn timeline-theme-toggle" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="timeline-theme-toggle-art" aria-hidden="true"><img class="timeline-theme-toggle-image timeline-theme-toggle-image-light" src="light.svg" alt="" /><img class="timeline-theme-toggle-image timeline-theme-toggle-image-dark" src="dark.svg" alt="" /></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
-        '<button class="timeline-control-btn timeline-theme-toggle" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="timeline-theme-toggle-art" aria-hidden="true"><img class="timeline-theme-toggle-image timeline-theme-toggle-image-light" src="light.svg" alt="" /><img class="timeline-theme-toggle-image timeline-theme-toggle-image-dark" src="dark.svg" alt="" /></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
         "</div>"
         "</div>"
@@ -1253,9 +1253,9 @@ def timeline_content_for_group(
         f"{summary_markup}"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
+        '<button class="timeline-control-btn timeline-theme-toggle" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="timeline-theme-toggle-art" aria-hidden="true"><img class="timeline-theme-toggle-image timeline-theme-toggle-image-light" src="../light.svg" alt="" /><img class="timeline-theme-toggle-image timeline-theme-toggle-image-dark" src="../dark.svg" alt="" /></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
-        '<button class="timeline-control-btn timeline-theme-toggle" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="timeline-theme-toggle-art" aria-hidden="true"><img class="timeline-theme-toggle-image timeline-theme-toggle-image-light" src="../light.svg" alt="" /><img class="timeline-theme-toggle-image timeline-theme-toggle-image-dark" src="../dark.svg" alt="" /></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
         "</div>"
         "</div>"
