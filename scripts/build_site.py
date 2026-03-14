@@ -335,6 +335,12 @@ def parse_analytics_rows(xlsx_path: Path) -> list[dict]:
     return parse_analytics_rows_from_parsed_rows(parsed_rows)
 
 
+def ordered_sheet_columns(row: dict[str, str], start_col: str, end_col: str = "O") -> list[str]:
+    start_ord = ord(start_col)
+    end_ord = ord(end_col)
+    return [chr(code) for code in range(start_ord, end_ord + 1) if chr(code) in row]
+
+
 def parse_analytics_rows_from_parsed_rows(parsed_rows: list[dict[str, str]]) -> list[dict]:
     if not parsed_rows:
         return []
@@ -344,6 +350,14 @@ def parse_analytics_rows_from_parsed_rows(parsed_rows: list[dict[str, str]]) -> 
         "E": "01 Ene-12 Feb",
         "F": "13-19 Feb",
         "G": "20-26 Feb",
+        "H": "27 Feb-05 Mar",
+        "I": "06-12 Mar",
+        "J": "13-19 Mar",
+        "K": "20-26 Mar",
+        "L": "27 Mar-02 Abr",
+        "M": "03-09 Abr",
+        "N": "10-16 Abr",
+        "O": "17-23 Abr",
     }
 
     def normalized_col_label(raw: str, col: str) -> str:
@@ -368,12 +382,10 @@ def parse_analytics_rows_from_parsed_rows(parsed_rows: list[dict[str, str]]) -> 
             i += 1
             continue
 
+        data_columns = ordered_sheet_columns(row, "C")
         date_columns = [
-            ("C", normalized_col_label(row.get("C", ""), "C")),
-            ("D", normalized_col_label(row.get("D", ""), "D")),
-            ("E", normalized_col_label(row.get("E", ""), "E")),
-            ("F", normalized_col_label(row.get("F", ""), "F")),
-            ("G", normalized_col_label(row.get("G", ""), "G")),
+            (col, normalized_col_label(row.get(col, ""), col))
+            for col in data_columns
         ]
 
         metrics = []
@@ -460,6 +472,13 @@ def parse_summary_sections_from_parsed_rows(parsed_rows: list[dict[str, str]]) -
         "F": "01 Ene-12 Feb",
         "G": "13-19 Feb",
         "H": "20-26 Feb",
+        "I": "27 Feb-05 Mar",
+        "J": "06-12 Mar",
+        "K": "13-19 Mar",
+        "L": "20-26 Mar",
+        "M": "27 Mar-02 Abr",
+        "N": "03-09 Abr",
+        "O": "10-16 Abr",
     }
     sections: list[dict] = []
     i = 0
@@ -471,6 +490,7 @@ def parse_summary_sections_from_parsed_rows(parsed_rows: list[dict[str, str]]) -
             i += 1
             continue
 
+        data_columns = ordered_sheet_columns(row, "C")
         metrics = []
         j = i + 1
         while j < len(parsed_rows):
@@ -480,13 +500,13 @@ def parse_summary_sections_from_parsed_rows(parsed_rows: list[dict[str, str]]) -
             if not metric_name or normalized_metric not in metric_names:
                 break
             values = {}
-            for col in "CDEFGH":
+            for col in data_columns:
                 values[col] = format_analytics_value(metric_name, metric_row.get(col, ""))
             metrics.append({"name": metric_name, "values": values})
             j += 1
         if metrics:
             active_cols = []
-            for col in "CDEFGH":
+            for col in data_columns:
                 has_values = any(metric["values"].get(col, "—") != "—" for metric in metrics)
                 raw_label = (row.get(col) or "").strip()
                 if normalize_text(raw_label) in {"valor referencia", "valor de referencia"}:
@@ -584,6 +604,14 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
         "E": "01 Ene-12 Feb",
         "F": "13-19 Feb",
         "G": "20-26 Feb",
+        "H": "27 Feb-05 Mar",
+        "I": "06-12 Mar",
+        "J": "13-19 Mar",
+        "K": "20-26 Mar",
+        "L": "27 Mar-02 Abr",
+        "M": "03-09 Abr",
+        "N": "10-16 Abr",
+        "O": "17-23 Abr",
     }
     sections: list[dict] = []
     i = 0
@@ -604,6 +632,7 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
             i += 1
             continue
 
+        data_columns = ordered_sheet_columns(row, "B")
         metrics = []
         j = i + 1
         while j < len(rows):
@@ -615,7 +644,7 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
             metrics.append(
                 {
                     "name": metric_name,
-                    "values": {col: format_table_cell_value(metric_row.get(col, "")) for col in "BCDEFG"},
+                    "values": {col: format_table_cell_value(metric_row.get(col, "")) for col in data_columns},
                 }
             )
             j += 1
@@ -624,7 +653,7 @@ def parse_timeline_one_summary_sections(xlsx_path: Path) -> list[dict]:
             if normalize_text(title) == normalize_text("Timeline 1 - Onboarding Flujo 1 y 2 (EN Only)"):
                 display_title = "Total Onboarding EN"
             active_cols = []
-            for col in "BCDEFG":
+            for col in data_columns:
                 has_values = any(metric["values"].get(col, "—") != "—" for metric in metrics)
                 if has_values or (row.get(col) or "").strip():
                     raw_label = (row.get(col) or "").strip()
