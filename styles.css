@@ -467,8 +467,8 @@ body {
 
 .timeline-theme-toggle {
   padding: 0;
-  min-width: 92px;
-  width: 92px;
+  min-width: 78px;
+  width: 78px;
   height: var(--control-min-height);
   display: inline-flex;
   align-items: center;
@@ -485,6 +485,8 @@ body {
   border-radius: var(--radius-full);
   background: linear-gradient(180deg, #fbfbfb, #ecebe9);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 2px 6px rgba(20, 20, 19, 0.2);
+  transform: scale(0.85);
+  transform-origin: center center;
 }
 
 .timeline-theme-toggle[data-theme-state="dark"] .timeline-theme-toggle-track {
