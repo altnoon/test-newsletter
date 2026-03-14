@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Palette Preview</title>
+    <style>
+      :root {
+        --glass-bg: #faf9f5;
+        --glass-bg-elevated: #ffffff;
+        --glass-border: #e8e6dc;
+        --glass-border-subtle: #ece9e1;
+        --glass-text-primary: #141413;
+        --glass-text-secondary: #5c5b57;
+        --surface-bg: #f3f1ea;
+        --surface-panel: #faf9f5;
+        --line-subtle: #e8e6dc;
+        --accent-blue: #6a9bcc;
+        --accent-orange: #ed9d24;
+        --accent-red: #d98712;
+        --brand-dark-green: #faf9f5;
+        --brand-medium-green: #ffffff;
+        --brand-light-green: #d0cec4;
+        --note-chip-bg: #fbe3bd;
+        --note-chip-border: #efbc67;
+        --note-chip-text: #8a5200;
+
+        --dark-glass-bg: #242320;
+        --dark-glass-bg-elevated: #2e2d29;
+        --dark-glass-text-primary: #ece9e1;
+        --dark-glass-text-secondary: #b0aea5;
+        --dark-surface-bg: #1a1918;
+        --dark-surface-panel: #242320;
+        --dark-accent-orange: #ed9d24;
+        --dark-accent-red: #cf8121;
+        --dark-note-chip-text: #ffc974;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px;
+        font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #f8f6f0 0%, #efece3 100%);
+        color: #141413;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        gap: 28px;
+      }
+
+      .section {
+        display: grid;
+        gap: 14px;
+      }
+
+      .section p {
+        color: #5c5b57;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 14px;
+      }
+
+      .swatch {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(20, 20, 19, 0.08);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(20, 20, 19, 0.08);
+      }
+
+      .chip {
+        height: 96px;
+        border-bottom: 1px solid rgba(20, 20, 19, 0.08);
+      }
+
+      .meta {
+        padding: 14px;
+        display: grid;
+        gap: 4px;
+      }
+
+      .name {
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .value {
+        font-size: 14px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .dark {
+        padding: 24px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, #242320 0%, #1a1918 100%);
+      }
+
+      .dark h2,
+      .dark p {
+        color: #ece9e1;
+      }
+
+      .dark .swatch {
+        background: rgba(36, 35, 32, 0.92);
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+      }
+
+      .dark .meta {
+        color: #ece9e1;
+      }
+
+      .dark .name {
+        color: #ece9e1;
+      }
+
+      .dark .value {
+        color: #b0aea5;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="section">
+        <h1>Current Palette</h1>
+        <p>Visual reference for the colors currently defined in <code>styles.css</code>.</p>
+      </section>
+
+      <section class="section">
+        <h2>Light</h2>
+        <div class="grid">
+          <article class="swatch"><div class="chip" style="background: var(--glass-bg)"></div><div class="meta"><div class="name">glass-bg</div><div class="value">#faf9f5</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--glass-bg-elevated)"></div><div class="meta"><div class="name">glass-bg-elevated</div><div class="value">#ffffff</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--glass-border)"></div><div class="meta"><div class="name">glass-border</div><div class="value">#e8e6dc</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--glass-border-subtle)"></div><div class="meta"><div class="name">glass-border-subtle</div><div class="value">#ece9e1</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--glass-text-primary)"></div><div class="meta"><div class="name">glass-text-primary</div><div class="value">#141413</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--glass-text-secondary)"></div><div class="meta"><div class="name">glass-text-secondary</div><div class="value">#5c5b57</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--surface-bg)"></div><div class="meta"><div class="name">surface-bg</div><div class="value">#f3f1ea</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--surface-panel)"></div><div class="meta"><div class="name">surface-panel</div><div class="value">#faf9f5</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--line-subtle)"></div><div class="meta"><div class="name">line-subtle</div><div class="value">#e8e6dc</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--accent-blue)"></div><div class="meta"><div class="name">accent-blue</div><div class="value">#6a9bcc</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--accent-orange)"></div><div class="meta"><div class="name">accent-orange</div><div class="value">#ed9d24</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--accent-red)"></div><div class="meta"><div class="name">accent-red</div><div class="value">#d98712</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--brand-dark-green)"></div><div class="meta"><div class="name">brand-dark-green</div><div class="value">#faf9f5</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--brand-medium-green)"></div><div class="meta"><div class="name">brand-medium-green</div><div class="value">#ffffff</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--brand-light-green)"></div><div class="meta"><div class="name">brand-light-green</div><div class="value">#d0cec4</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--note-chip-bg)"></div><div class="meta"><div class="name">note-chip-bg</div><div class="value">#fbe3bd</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--note-chip-border)"></div><div class="meta"><div class="name">note-chip-border</div><div class="value">#efbc67</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--note-chip-text)"></div><div class="meta"><div class="name">note-chip-text</div><div class="value">#8a5200</div></div></article>
+        </div>
+      </section>
+
+      <section class="section dark">
+        <h2>Dark</h2>
+        <p>Dark-mode overrides from the same token set.</p>
+        <div class="grid">
+          <article class="swatch"><div class="chip" style="background: var(--dark-glass-bg)"></div><div class="meta"><div class="name">glass-bg</div><div class="value">#242320</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-glass-bg-elevated)"></div><div class="meta"><div class="name">glass-bg-elevated</div><div class="value">#2e2d29</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-glass-text-primary)"></div><div class="meta"><div class="name">glass-text-primary</div><div class="value">#ece9e1</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-glass-text-secondary)"></div><div class="meta"><div class="name">glass-text-secondary</div><div class="value">#b0aea5</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-surface-bg)"></div><div class="meta"><div class="name">surface-bg</div><div class="value">#1a1918</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-surface-panel)"></div><div class="meta"><div class="name">surface-panel</div><div class="value">#242320</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-accent-orange)"></div><div class="meta"><div class="name">accent-orange</div><div class="value">#ed9d24</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-accent-red)"></div><div class="meta"><div class="name">accent-red</div><div class="value">#cf8121</div></div></article>
+          <article class="swatch"><div class="chip" style="background: var(--dark-note-chip-text)"></div><div class="meta"><div class="name">note-chip-text</div><div class="value">#ffc974</div></div></article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
