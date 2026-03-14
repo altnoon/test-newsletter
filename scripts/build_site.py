@@ -96,6 +96,14 @@ def analytics_key(value: str) -> tuple[str, str]:
             compact_prefixed_variant = re.match(r"^\s*\d+([ab])\b", text, re.IGNORECASE)
             if compact_prefixed_variant:
                 variant = compact_prefixed_variant.group(1).lower()
+            else:
+                post_flow_variant = re.search(
+                    r"\bw\d+\s*[- ]?\s*[edp]\s*\d+\s*([ab])\b",
+                    normalized,
+                    re.IGNORECASE,
+                )
+                if post_flow_variant:
+                    variant = post_flow_variant.group(1).lower()
     return (flow, variant)
 
 
