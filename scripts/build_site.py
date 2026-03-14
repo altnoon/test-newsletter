@@ -64,6 +64,10 @@ def normalize_text(value: str) -> str:
     return re.sub(r"\s+", " ", lowered).strip()
 
 
+def asset_href(rel_path: str, prefix: str = "") -> str:
+    return f"{prefix}{quote(unicodedata.normalize('NFC', rel_path))}"
+
+
 def flow_place_key(value: str) -> tuple[str, str, str] | None:
     flow, variant = analytics_key(value)
     if not flow:
@@ -1211,7 +1215,7 @@ def timeline_content_for_root(
                 "</div>"
                 f'<div class="miro-card-stage" data-card-key="{card_key}" '
                 f'data-card-label="{group["label"]} • {doc["label"]}">'
-                f'<img class="miro-card-image" src="Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
+                f'<img class="miro-card-image" src="{asset_href(doc["rel_path"], "Images/")}" alt="{doc["alt"]}" loading="lazy" />'
                 '<div class="pin-layer"></div>'
                 f"{analytics_overlay_markup(entry, doc['label'])}"
                 "</div>"
@@ -1314,7 +1318,7 @@ def timeline_content_for_group(
             "</div>"
             f'<div class="miro-card-stage" data-card-key="{card_key}" '
             f'data-card-label="{group["label"]} • {doc["label"]}">'
-            f'<img class="miro-card-image" src="../Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
+            f'<img class="miro-card-image" src="{asset_href(doc["rel_path"], "../Images/")}" alt="{doc["alt"]}" loading="lazy" />'
             '<div class="pin-layer"></div>'
             f"{analytics_overlay_markup(entry, doc['label'])}"
             "</div>"
@@ -1424,7 +1428,7 @@ def main() -> None:
     for group in timeline_groups:
         group_docs: list[dict] = []
         for path in group["files"]:
-            rel_path = path.relative_to(IMAGE_DIR).as_posix()
+            rel_path = unicodedata.normalize("NFC", path.relative_to(IMAGE_DIR).as_posix())
             label = html.escape(display_label(path))
             raw_label = display_label(path)
             slug = unique_slug(seen, slugify(rel_path))
@@ -1506,7 +1510,7 @@ def main() -> None:
             page_html = render_page(
                 title=f"{doc['label']} | Image Timeline",
                 nav=nav_for_page_tabs(tabs, active_tab_key),
-                media_path=f"../Images/{quote(doc['rel_path'])}",
+                media_path=asset_href(doc["rel_path"], "../Images/"),
                 media_alt=doc["alt"],
                 css_href="../styles.css",
                 script_href="../comments.js",
