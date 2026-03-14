@@ -523,11 +523,11 @@ body {
 }
 
 .timeline-theme-toggle-icon-sun {
-  left: 9px;
+  left: 5px;
 }
 
 .timeline-theme-toggle-icon-moon {
-  right: 9px;
+  right: 5px;
 }
 
 .timeline-theme-toggle-icon::before {
