@@ -839,11 +839,36 @@ body {
   touch-action: manipulation;
 }
 
+.miro-card-stage-email {
+  --email-preview-scale: 0.38;
+  aspect-ratio: 0.72 / 1;
+  overflow: hidden;
+  background: #ffffff;
+}
+
 .miro-card-image {
   display: block;
   width: 100%;
   height: auto;
   border-radius: var(--radius-sm);
+}
+
+.miro-card-email-frame {
+  display: block;
+  width: calc(100% / var(--email-preview-scale));
+  height: calc(100% / var(--email-preview-scale));
+  min-height: 980px;
+  border: 0;
+  background: #ffffff;
+  transform: scale(var(--email-preview-scale));
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.miro-card-email-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
 
 .miro-card-analytics {
@@ -1544,6 +1569,12 @@ body {
   box-shadow: var(--shadow-glass-sm);
 }
 
+.viewer-wrap-email {
+  padding: 0;
+  overflow: hidden;
+  background: var(--glass-bg-elevated);
+}
+
 .media-stage {
   position: relative;
   width: 100%;
@@ -1558,6 +1589,18 @@ body {
   width: 100%;
   height: auto;
   border-radius: var(--radius-sm);
+}
+
+.email-layout {
+  display: block;
+}
+
+.media-viewer-email {
+  min-height: calc(100vh - var(--sticky-offset) - 2.5rem);
+  height: calc(100vh - var(--sticky-offset) - 2.5rem);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: #ffffff;
 }
 
 .pin-layer {
@@ -2158,6 +2201,15 @@ textarea:focus-visible {
   .viewer-wrap {
     padding: var(--space-8);
     border-radius: var(--radius-sm);
+  }
+
+  .viewer-wrap-email {
+    padding: 0;
+  }
+
+  .media-viewer-email {
+    min-height: calc(100vh - var(--sticky-offset) - var(--space-16) - var(--safe-bottom));
+    height: calc(100vh - var(--sticky-offset) - var(--space-16) - var(--safe-bottom));
   }
 
   .comments {

@@ -1,0 +1,919 @@
+Delivered-To: des@alternoon.com
+Received: by 2002:a05:6358:978b:b0:285:81f:d2a2 with SMTP id f11csp1056999rwb;
+        Fri, 13 Mar 2026 23:32:19 -0700 (PDT)
+X-Received: by 2002:a05:6000:250d:b0:439:b3ff:9ab9 with SMTP id ffacd0b85a97d-43a04db50f2mr10855788f8f.48.1773469939114;
+        Fri, 13 Mar 2026 23:32:19 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773469939; cv=none;
+        d=google.com; s=arc-20240605;
+        b=NUYUg1LM5b3MYg0UsGqvhjjlkUU4v3Epp7P8HU06WWUc1Nzymi3dChXTu4DQinA5p4
+         6Ilsjxxm+EnlcVqis9N6E+50XI5kcXPkwCWU0Mvl7n+kiiqhARyx18sogfytAWppF0Ic
+         3dDZget0Jz68PWdv6Ze8sjSaBNEFHZMOht0Ihzp6k0lh07iH67MvCm+dm2/2WcG4LBxC
+         Wri+zkbcWQisGlUcpne3a2F3M974/5B2PMA7OwOe2VLrbV/z3SixR7TvP2s6zZtoyYX4
+         B3LL+i6FKw2f2QS3c9Gh/KY863j4cLlyBN41Za3R49EmbT1vKkiUwu3393XTmmBM5aEJ
+         xDXA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=feedback-id:mime-version:subject:message-id:to:from:date:reply-to
+         :dkim-signature:dkim-signature;
+        bh=56sjNeofegIRSK08uyfwfE+33Aw72LVJZ5Hn7uYRyas=;
+        fh=OtPzu9x/RNLgB4aZv+MENsHxok4Z0VyTfSwxxhjBXGc=;
+        b=C86IymiVwwTGUBwzbyrSoPr1UTxRaB5go0P5e6g4lVi4lfr57i99X5N0kQXV6VGiua
+         zmaSB7bbnhH7x42Onl58M7otA8oYsRjyRCBe1btj3QcDhJPLRLOQzYaLZjkJUJxBjSls
+         Yr/UviNjoTmA74tdjZq9knjPdcqfzKzSAs4awPKCTV9EDbwDvZyF1zDYLXjzfNDZUZGr
+         PPYHHCmHAV8psRGZCg6FpPZUKTVoaFb54IyRIh4QkxMXGdZNx8O1xYiqjZDE4JfWTMM0
+         ZGPFpNYTefxK3zRa3vbvWK5TCT9GKD2XBKOtZ+r0tARiqgQ+KGhj0QPaJuadFBqLkNSN
+         1/mA==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@bftest.eu1.hubspotemail.net header.s=hs2 header.b=DOFD2QYE;
+       dkim=pass header.i=@hubspot.com header.s=hs1 header.b=MF4gtRHX;
+       spf=pass (google.com: domain of 1axb4vgqsga53q3et1t8cbkfvu51lpwkiolkub-des=alternoon.com@bftest.eu1.hubspotemail.net designates 143.244.84.212 as permitted sender) smtp.mailfrom="1axb4vgqsga53q3et1t8cbkfvu51lpwkiolkub-des=alternoon.com@bftest.eu1.hubspotemail.net";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=hubspot.com
+Return-Path: <1axb4vgqsga53q3et1t8cbkfvu51lpwkiolkub-des=alternoon.com@bftest.eu1.hubspotemail.net>
+Received: from bd77fb6.bftest.eu1.hubspotemail.net (bd77fb6.bftest.eu1.hubspotemail.net. [143.244.84.212])
+        by mx.google.com with ESMTPS id ffacd0b85a97d-439fe26be50si16801838f8f.507.2026.03.13.23.32.18
+        for <des@alternoon.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 13 Mar 2026 23:32:19 -0700 (PDT)
+Received-SPF: pass (google.com: domain of 1axb4vgqsga53q3et1t8cbkfvu51lpwkiolkub-des=alternoon.com@bftest.eu1.hubspotemail.net designates 143.244.84.212 as permitted sender) client-ip=143.244.84.212;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@bftest.eu1.hubspotemail.net header.s=hs2 header.b=DOFD2QYE;
+       dkim=pass header.i=@hubspot.com header.s=hs1 header.b=MF4gtRHX;
+       spf=pass (google.com: domain of 1axb4vgqsga53q3et1t8cbkfvu51lpwkiolkub-des=alternoon.com@bftest.eu1.hubspotemail.net designates 143.244.84.212 as permitted sender) smtp.mailfrom="1axb4vgqsga53q3et1t8cbkfvu51lpwkiolkub-des=alternoon.com@bftest.eu1.hubspotemail.net";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=hubspot.com
+Received: by 172.16.74.54 with SMTP id a089896hoz74526o58nvblpbzhyd4ojv0r69yw3hr2;
+        Sat, 14 Mar 2026 06:32:18 GMT
+DKIM-Signature: v=1; s=hs2; d=bftest.eu1.hubspotemail.net; 
+        i=@bftest.eu1.hubspotemail.net; 
+        h=sender:from:from:reply-to:to:to:cc:cc:subject:subject:list-unsubscribe:form-sub:feedback-id:list-unsubscribe-post; 
+        a=rsa-sha256; c=relaxed/relaxed; 
+        bh=56sjNeofegIRSK08uyfwfE+33Aw72LVJZ5Hn7uYRyas=; 
+        b=DOFD2QYE9La7VTNppjJmFG6Pzp3hfhVnTtBIu+wHcC9jjrkiYMsFqPcMiRaW8O
+         A+hrtE6Y/rLpxuO38RioN+v88MHDedk1d726R5DV9Q0JWmdEBOCs3aLyHTeJeKI
+         s2t/NWydddproRypqel8i0O/Mmd8fL2hMmBwj6hRbaZWFMZ5UY/SMoJyNOTuudm
+         sWJjbZC5HXPXWsQxkxVaeralUbYiiSEgAxbBb+RfcVGLL73Ac9fMH8F6oMwNzzO
+         Og/wDTAkuT5atZOQfDKo0xi27gdCcT0M15BmBwvYWumeTWzEU8BkFaxxrAt4HbW
+         CS7v7UFaAIxt4GztTpIUAIXlRy4w==; q=dns/txt; t=1773469938; 
+        x=1773732738;
+DKIM-Signature: v=1; s=hs1; d=hubspot.com; i=@hubspot.com; 
+        h=sender:from:from:reply-to:to:to:cc:cc:subject:subject:list-unsubscribe:form-sub:feedback-id:list-unsubscribe-post; 
+        a=rsa-sha256; c=relaxed/relaxed; 
+        bh=56sjNeofegIRSK08uyfwfE+33Aw72LVJZ5Hn7uYRyas=; 
+        b=MF4gtRHX3BTcQp66F7DMqCN/PMizbam4dEpH8bJSJ9F+OabNTFGs1MXME0MVFH
+         rtUBQ3fEcVJnRqHTe9bTWLt5tWP1OW7aoJ2HpLJczWSXumg+H3meHH5KX0A8wtk
+         1HyCBaB0/9JWcWO4+nt5oGiPIPKmXzHuL/GfdQ76XG6ZEhZTgj4v1SrT2n4UpKT
+         VsAU9LVLAz7SazFPNdDwt7ujCVzS4j/3WVw3a+L1zwVn3NHGzynU9xJ/uQQ90KO
+         5zLosv+CNA8cCZBCMPqWbhWhxge/MSZlkdDjzNlPsL2ks/sXtGDN9obEAjFZ4Rd
+         9BLPzw/SDazX7RYhGR0O3GeQAw6Q==; q=dns/txt; t=1773469938; 
+        x=1773732738;
+Reply-To: Marketing Email Preview Send <noreply@hubspot.com>
+Return-Path: <1axb4vgqsga53q3et1t8cbkfvu51lpwkiolkub-des=alternoon.com@bftest.eu1.hubspotemail.net>
+X-HS-Cid: 1axfwi64t4uqhugm1iipdlrfx07qh59ilzelr3
+Date: Sat, 14 Mar 2026 07:32:18 +0100
+From: Marketing Email Preview Send <noreply@hubspot.com>
+To: des@alternoon.com
+Message-ID: <1773469938126.dcde391a-a2ca-49fd-ac2a-66f37d4d7df0@bftest.eu1.hubspotemail.net>
+Subject: =?utf-8?Q?Test_send_-_1/8_Por_qu=C3=A9_la_segunda_vivien?=
+ =?utf-8?Q?da_tradicional_ha_dejado_de_tener_sentido?=
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_135232_2044751481.1773469938577"
+X-Report-Abuse-To: abuse@hubspot.com (see
+ https://policy.hubspot.com/abuse-complaints)
+Feedback-ID: aepfb7y:aic:aiprb:HubSpot
+
+------=_Part_135232_2044751481.1773469938577
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+En Espa=C3=B1a, las segundas residencias suelen utilizarse entre 4 y 6 sema=
+nas al a=C3=B1o, mientras que el propietario asume el 100% del precio de co=
+mpra, el mantenimiento y los costes fijos durante todo el a=C3=B1o.
+
+VIVLA Header
+
+VIVLA (https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04/MX320t-yZLQ=
+W9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wx3pyd0W6N1vHY6lZ3kJW3bHm6g538MqbW3Xzl2y9gGs=
+1mN4ykCF3QR3WMW3fNz4P5Dw-9bW522Wbv3J2DNgW752QY_8LjB6bW126dln44bHWBW3N4sRj5x=
+M_23MZ206ZvkllFW2NRfrL1K-kTFW6ddxMR8qPKnDVCYKXQ6MYN2BW47M4B65k0pgpW7W9FCn8T=
+xLKDW28pW468zY34BW3mFR7j1NCJ09VdSCNH4jQkwXW2m8HQg3W5ZZyW4hhDsQ2D7whZW5fR5TT=
+8b5qqXW33GzS54V9c1nW92tkX61CcB28f8F3MD204 )
+
+Hola Vivler,
+
+Soy Daniel - gracias por tu inter=C3=A9s en VIVLA.
+
+Durante los pr=C3=B3ximos d=C3=ADas compartir=C3=A9 contigo una breve serie=
+ de correos formativos (8 en total) en los que explicamos c=C3=B3mo funcion=
+a VIVLA y c=C3=B3mo evaluarla con criterio.
+
+Este es el primero.
+
+La mayor=C3=ADa de las personas que contactan con nosotros llegan a la mism=
+a conclusi=C3=B3n tras comparar opciones: la propiedad tradicional de una s=
+egunda vivienda es poco eficiente para el uso real que se le da.
+
+En Espa=C3=B1a, las segundas residencias suelen utilizarse entre 4 y 6 sema=
+nas al a=C3=B1o, mientras que el propietario asume el 100% del precio de co=
+mpra, el mantenimiento y los costes fijos durante todo el a=C3=B1o.
+
+VIVLA nace para corregir ese desequilibrio, alineando la propiedad con el u=
+so real de la vivienda:
+
+-
+
+M=C3=A1ximo 8 propietarios por vivienda. No es necesario coordinarse con ot=
+ros propietarios: VIVLA gestiona toda la complejidad.
+
+-
+
+Aproximadamente 6 o m=C3=A1s semanas de uso garantizado por participaci=C3=
+=B3n.
+
+-
+
+Costes fijos compartidos y alineados con el uso.
+
+-
+
+Propiedad real sobre un =C3=BAnico activo inmobiliario.
+
+-
+
+Posibilidad de reventa a partir de los 12 meses, definida desde el inicio.
+
+Cuando alguien dice que =E2=80=9Cno es el momento adecuado=E2=80=9D, rara v=
+ez se trata de una cuesti=C3=B3n de tiempo.
+
+Normalmente, es porque el modelo a=C3=BAn no termina de encajar.
+
+En el pr=C3=B3ximo correo explicar=C3=A9 qu=C3=A9 hace que una vivienda VIV=
+LA sea diferente.
+
+Resp=C3=B3ndeme por aqu=C3=AD o escr=C3=ADbeme por WhatsApp.
+
+
+
+wa_petrol (https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04/MX320t-=
+yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wx3pyd0W6N1vHY6lZ3lhW3PnWJ56G3z0XW1skpgB=
+5c79G8W50HCzJ77nk6gW4tqwQG2QSqP5W4Z0wTy8VZYJMW7LGnJj1jC0TPW7KVp1_5_2MD_V4ds=
+Kj8YFcZdW24Bq0h2crRxFN6wTbcPfBvf5W4p8mkq806xR6W66R2WS6KYvGgW3tZ6Nj3m381HW6y=
+F6BK3RDR-7W7wCC8H85qZHgN26nqyjWDX5ZW8Sq_QB4bV0-9W4_tmKk10v-TKW2rpG5h2N9B1vW=
+7qsM632yh_40W92qPjp1R6m5yW2ntP3l1x8L95f2mjTMM04 )
+
+
+
+
+
+Daniel Fuster Cardona
+
+Sales Development Representative
+
++34 604 560 179 (tel:+34604560179)
+
+www.vivla.com (https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04/MX3=
+20t-yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wx3pyd0W6N1vHY6lZ3lNW2Htt9m2dGSRmW6t=
+BD_f2PWQjzW5-mBll3hQtp8W2jN_GD16yHG2W3-gJ8k69kDnWW7K8hHD2HlNKkW2bb86f82X2l2=
+W7KnbHD5gg-L9W6f_Ch_6jyHWvW44Vc3v3RLFpRW1KQ27C3g1y1lW5mHm252WJBjnW1N2kfw3_K=
+X33W2yM5fG3Rvg6DW5FH0lz4cdLk2Vz7MNh8CxrlBW4532-Q3WqsBWW8N2NzG2rWT-1W5ymZnC5=
+5wjwbVvxGhY3ZhFdVW1Y-YzH5dnGP2W6qKyG92c1yYgf57BDls04 )
+
+Instagram (https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04/MX320t-=
+yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wR3pyd0W7lCdLW6lZ3lfW34jzWf15_Hf4W5KCpSw=
+4y5bv0W3TDtll8Kh19GVpbtZF3Lg5hZW1scGBd6d9JWXW3Hnnp_45bPCLW8x6MBJ4LtbvWW2wjT=
+1v7y5dC8W9j38h_4179_MW1YM71p480NDcW1Fxp-263ncX3W355q9k4XwCVFW689Dw_2yyysgW8=
+FTBL618-1xlW7qSyXl6P1dxtW67-v_27YWKQnW5ZMZsp9bfp1BW7N9ZWc3SZ26KW7LDVDk3ZppR=
+PN15yfF1K-bL6W1XBgGy5zN1thW8Z3-6B8Jtp26W4kkl2N3Y2-WtW7q0m_h22wZ7_dQRb1l04 )
+
+LinkedIn (https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04/MX320t-y=
+ZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wR3pyd0W7lCdLW6lZ3mrW1XsNXB8g7VtDW6VrVWX7=
+Px0XtW8qCY3X2rrKtQVHgJF-5nWXjvW6fxGK51xRTzfW2z7zB7661zSXW4fM6VG7qwc5-M6l-dW=
+TM6HHW3BGk441CKDR1W7_ljth9hlfDcW94pxRg62Hrk5V6cJ6q2JVFP-W7SS4gz8BZjc4N37vhp=
+NWkRL9W63wyZP5dDYGGW7cm0J02MFGKrW2nKrL35wcknNN7Z_N7fHHSx4W2cgMFp9l_ZJQW4jGs=
+tq2LQjYsVXxMsz7bXTsxW9kWJBg5h2qhSW2_jNSH1W98MtW7R0Q_N6hcXPJf562X6M04 )
+
+
+
+Vivla Lifestyle S.L., Carbonero y Sol, 8, Madrid, Comunidad de Madrid 28006=
+, Espa=C3=B1a
+
+Darme de baja (https://hs-25430028.s.hubspotemail-eu1.net/hs/preferences-ce=
+nter/es/direct?data=3DW2nVjwf3Y2wXmW45D5jk3GZf-PW3gd05t21h1BJW2KnX0m30qKsZW=
+3GXb2R41qF2JW3NXSB92Pw8c7W3QPD3R2HKJLSW4cPqGV4rlgsdW3d1TjD30HS5ZW4hLvPP1BnJ=
+HwW36gZBk34j2dBW4hxLmG2CX2FBW3ZvN342Yf34nW2KXLtR4kGyKxW1X2kyn2r5F64W3by-RY1=
+LjdzpW2RDbHx2WF5XXW3gqqkq47R2hYW36w0RH2n_-KgW3LPxCx309P9MW3gy87j3z2v0wW22V3=
+fY2TyM6hW2PTldn23kk5nW1Xqfk73XMJDgW3dhZQB2HZxYbW2MBDFj3DN8WCW49yHcJ3j4lHLW2=
+YqFWl30l6yXW1SzDMG1Nz9ZZW1Z4wC72-Gp8sW3QZQ0b36nP2mW30vrr03_DK0vW3XVkxD2xyxK=
+qW3ZFFM-45M9b_W3DMdl82TzW-yW4hPPvk21kwyVW2qMvQk3ZYYlqW2-g3qR34f-6CW43zl942Y=
+sl1mW3dkckg3Fg7x_W30vsz93VLHY2W2PPfCl1BhmgyW2sLrG74kG6yHW2xXpKy2FLhTSW2TxtD=
+X32xf_WW3NTb1G2FTlKJW3j4p7K3Cdgd3W2HKgyf3jvRGrW4mCX6S3GS2s7W2nZ6c53_RtmhW36=
+mWLM38b7bgW2y4GBx3Zx5cRf2-C0Wm04&_hsenc=3Dp2ANqtz-8H4_IRrwBHAbnSi5HlDsHYkpP=
+fPZiUjAQGH23tB3E_K5_VMnkc66mi3LBOLCQYE9SWN41pa183f2RoUn_Chq9q64yHsQ&_hsmi=
+=3D2 )
+Gestionar preferencias (https://hs-25430028.s.hubspotemail-eu1.net/hs/prefe=
+rences-center/es/page?data=3DW2nVjwf3Y2wXmW45D5jk3GZf-PW3gd05t21h1BJW2KnX0m=
+30qKsZW3GXb2R41qF2JW3NXSB92Pw8c7W3QPD3R2HKJLSW4cPqGV4rlgsdW3d1TjD30HS5ZW4hL=
+vPP1BnJHwW36gZBk34j2dBW4hxLmG2CX2FBW3ZvN342Yf34nW2KXLtR4kGyKxW1X2kyn2r5F64W=
+3by-RY1LjdzpW2RDbHx2WF5XXW3gqqkq47R2hYW36w0RH2n_-KgW3LPxCx309P9MW3gy87j3z2v=
+0wW22V3fY2TyM6hW2PTldn23kk5nW1Xqfk73XMJDgW3dhZQB2HZxYbW2MBDFj3DN8WCW49yHcJ3=
+j4lHLW2YqFWl30l6yXW1SzDMG1Nz9ZZW1Z4wC72-Gp8sW3QZQ0b36nP2mW30vrr03_DK0vW3XVk=
+xD2xyxKqW3ZFFM-45M9b_W3DMdl82TzW-yW4hPPvk21kwyVW2qMvQk3ZYYlqW2-g3qR34f-6CW4=
+3zl942Ysl1mW3dkckg3Fg7x_W30vsz93VLHY2W2PPfCl1BhmgyW2sLrG74kG6yHW2xXpKy2FLhT=
+SW2TxtDX32xf_WW3NTb1G2FTlKJW3j4p7K3Cdgd3W2HKgyf3jvRGrW4mCX6S3GS2s7W2nZ6c53_=
+RtmhW36mWLM38b7bgW2y4GBx3Zx5cRf2-C0Wm04&_hsenc=3Dp2ANqtz-8H4_IRrwBHAbnSi5Hl=
+DsHYkpPfPZiUjAQGH23tB3E_K5_VMnkc66mi3LBOLCQYE9SWN41pa183f2RoUn_Chq9q64yHsQ&=
+_hsmi=3D2 )
+------=_Part_135232_2044751481.1773469938577
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www=
+.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns=3D"http://www.w3=
+.org/1999/xhtml" xmlns:o=3D"urn:schemas-microsoft-com:office:office" xmlns:=
+v=3D"urn:schemas-microsoft-com:vml" lang=3D"es"><head>
+    <title>1/8 Por qu=C3=A9 la segunda vivienda tradicional ha dejado de te=
+ner sentido</title>
+    <meta property=3D"og:title" content=3D"1/8 Por qu=C3=A9 la segunda vivi=
+enda tradicional ha dejado de tener sentido">
+    <meta name=3D"twitter:title" content=3D"1/8 Por qu=C3=A9 la segunda viv=
+ienda tradicional ha dejado de tener sentido">
+   =20
+   =20
+   =20
+<meta name=3D"x-apple-disable-message-reformatting">
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8">
+<meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1.=
+0">
+    <!--[if gte mso 9]>
+  <xml>
+    <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+    <w:WordDocument xmlns:w=3D"urn:schemas-microsoft-com:office:word">
+      <w:DontUseAdvancedTypographyReadingMail/>
+    </w:WordDocument>
+  </xml>
+ =20
+  <style>
+    ul > li {
+      text-indent: -1em;
+    }
+  </style>
+<![endif]-->
+<!--[if mso]>
+<style type=3D"text/css">
+ body, td {font-family: Arial, Helvetica, sans-serif;}
+ .hse-body-wrapper-table {background-color: #ffffff;}
+</style>
+<![endif]-->
+<!--[if mso | IE]>
+  <style type=3D"text/css">
+    .hse-column-container { border: none !important; padding: 0 !important;=
+ }
+  </style>
+<![endif]-->
+   =20
+     =20
+ =20
+ =20
+   =20
+  <meta name=3D"generator" content=3D"HubSpot"><meta property=3D"og:url" co=
+ntent=3D"https://vivla-25430028.hs-sites-eu1.com/-temporary-slug-24e15aa0-c=
+6fc-44b2-839b-843b59e06bc9?hs_preview=3DaazmsntT-353888746740"><meta name=
+=3D"robots" content=3D"noindex,follow"><!--[if !((mso)|(IE))]><!-- --><styl=
+e type=3D"text/css">@media only screen and (max-width:639px){img.stretch-on=
+-mobile,.hs_rss_email_entries_table img,.hs-stretch-cta .hs-cta-img{height:=
+auto !important;width:100% !important}
+.display_block_on_small_screens{display:block}.hs_padded{padding-left:20px =
+!important;padding-right:20px !important}
+.hs-hm,table.hs-hm{display:none}.hs-hd{display:block !important}table.hs-hd=
+{display:table !important}
+}@media only screen and (max-width:639px){.hse-border-m{border-left:1px sol=
+id #ccc !important;border-right:1px solid #ccc !important;box-sizing:border=
+-box}
+.hse-border-bottom-m{border-bottom:1px solid #ccc !important}.hse-border-to=
+p-m{border-top:1px solid #ccc !important}
+.hse-border-top-hm{border-top:none !important}.hse-border-bottom-hm{border-=
+bottom:none !important}
+}.moz-text-html .hse-column-container{max-width:600px !important;width:600p=
+x !important}
+.moz-text-html .hse-column{display:table-cell;vertical-align:top}.moz-text-=
+html .hse-section .hse-size-4{max-width:200px !important;width:200px !impor=
+tant}
+.moz-text-html .hse-section .hse-size-8{max-width:400px !important;width:40=
+0px !important}
+.moz-text-html .hse-section .hse-size-12{max-width:600px !important;width:6=
+00px !important}
+@media only screen and (min-width:640px){.hse-column-container{max-width:60=
+0px !important;width:600px !important}
+.hse-column{display:table-cell;vertical-align:top}.hse-section .hse-size-4{=
+max-width:200px !important;width:200px !important}
+.hse-section .hse-size-8{max-width:400px !important;width:400px !important}=
+.hse-section .hse-size-12{max-width:600px !important;width:600px !important=
+}
+}@media only screen and (max-width:639px){.hse-body-wrapper-td{padding-top:=
+20px !important}
+#section_1769602673100 .hse-column-container{background-color:#fff !importa=
+nt} }@media only screen and (max-width:639px){ #section_17720999156784 .hse=
+-column-container{padding-top:0px !important;padding-bottom:0px !important}
+#section_17720999156784 .hse-column-container{background-color:#fff !import=
+ant} }
+@media only screen and (max-width:639px){ #section_17701326558113 .hse-colu=
+mn-container{padding-top:0px !important;padding-bottom:0px !important}
+#section_17701326558113 .hse-column-container{background-color:#fff !import=
+ant} }
+@media only screen and (max-width:639px){.hse-body-wrapper-td{padding-botto=
+m:20px !important}
+#section-1 .hse-column-container{padding-top:0px !important;padding-bottom:=
+0px !important;background-color:transparent !important}
+#section-1 .hse-column-container{background-color:transparent !important} }=
+</style><!--<![endif]--><style type=3D"text/css">#hs_body #hs_cos_wrapper_m=
+ain a[x-apple-data-detectors]{color:inherit !important;text-decoration:none=
+ !important;font-size:inherit !important;font-family:inherit !important;fon=
+t-weight:inherit !important;line-height:inherit !important}
+a{text-decoration:underline}p{margin:0}body{-ms-text-size-adjust:100%;-webk=
+it-text-size-adjust:100%;-webkit-font-smoothing:antialiased;moz-osx-font-sm=
+oothing:grayscale}
+table{border-spacing:0;mso-table-lspace:0;mso-table-rspace:0}table,td{borde=
+r-collapse:collapse}
+img{-ms-interpolation-mode:bicubic}p,a,li,td,blockquote{mso-line-height-rul=
+e:exactly}
+.ShadowHTML p,.sh-modified-inline p{margin:0}</style></head>
+  <body id=3D"hs_body" bgcolor=3D"#ffffff" style=3D"font-family:Arial, sans=
+-serif; font-size:15px; color:#23496d; word-break:break-word; margin:0; pad=
+ding:0; width:100% !important">
+    <div id=3D"preview_text" style=3D"display:none;font-size:1px;color:#fff=
+fff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;=
+" lang=3D"es">En Espa=C3=B1a, las segundas residencias suelen utilizarse en=
+tre 4 y 6 semanas al a=C3=B1o, mientras que el propietario asume el 100% de=
+l precio de compra, el mantenimiento y los costes fijos durante todo el a=
+=C3=B1o.</div>
+   =20
+<!--[if gte mso 9]>
+<v:background xmlns:v=3D"urn:schemas-microsoft-com:vml" fill=3D"t">
+    <v:fill type=3D"tile" size=3D"100%,100%" color=3D"#ffffff"/>
+</v:background>
+<![endif]-->
+    <div class=3D"hse-body-background" lang=3D"es" style=3D"background-colo=
+r:#ffffff" bgcolor=3D"#ffffff">
+      <table role=3D"presentation" class=3D"hse-body-wrapper-table" cellpad=
+ding=3D"0" cellspacing=3D"0" style=3D"margin:0; padding:0; width:100% !impo=
+rtant; min-width:320px !important; height:100% !important" width=3D"100%" h=
+eight=3D"100%">
+        <tbody><tr>
+          <td class=3D"hse-body-wrapper-td" valign=3D"top" style=3D"font-fa=
+mily:Arial, sans-serif; font-size:15px; color:#23496d; word-break:break-wor=
+d; padding-top:20px; padding-bottom:20px">
+            <div id=3D"hs_cos_wrapper_main" class=3D"hs_cos_wrapper hs_cos_=
+wrapper_widget hs_cos_wrapper_type_dnd_area" style=3D"color: inherit; font-=
+size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" d=
+ata-hs-cos-type=3D"dnd_area">  <div id=3D"section_1769602673100" class=3D"h=
+se-section hse-section-first" style=3D"padding-left:10px; padding-right:10p=
+x">
+   =20
+   =20
+      <div class=3D"hse-column-container" style=3D"min-width:280px; max-wid=
+th:600px; margin:0 auto; background-color:#ffffff" bgcolor=3D"#ffffff">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation" width=3D"600" bgcolor=3D"#ffffff">
+      <tr style=3D"background-color:#ffffff;">
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:600px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"600" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:600px">
+<![endif]-->
+<div id=3D"column_1769602673100_0" class=3D"hse-column hse-size-12">
+    <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"100%" class=3D"" style=3D""><tbody><tr><td class=3D"hs_padded" style=3D=
+"font-family:Arial, sans-serif; font-size:15px; color:#23496d; word-break:b=
+reak-word; padding:10px 20px"><div id=3D"hs_cos_wrapper_module_176959644893=
+610" class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_modu=
+le" style=3D"color: inherit; font-size: inherit; line-height: inherit;" dat=
+a-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"module">
+  <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8">
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1.0">
+  <title>VIVLA Header</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style type=3D"text/css">
+    /* Prevent Gmail and Chrome from inflating text sizes */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adju=
+st: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collap=
+se: collapse !important; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-d=
+ecoration: none; display: block; }
+   =20
+    /* Ensure links containing images don't collapse in Gmail */
+    .logo-link { display: inline-block !important; }
+  </style>
+  <!-- Full-width decorative bar with logo on the right -->
+  <table role=3D"presentation" width=3D"100%" cellpadding=3D"0" cellspacing=
+=3D"0" border=3D"0" align=3D"center" style=3D"border-collapse:collapse; tab=
+le-layout: fixed; width: 100%;">
+    <tbody><tr>
+      <!-- Left area: decorative bar -->
+      <td valign=3D"middle" style=3D"font-family:Arial, sans-serif; font-si=
+ze:15px; color:#23496d; word-break:break-word; padding:0; margin:0">
+        <table role=3D"presentation" width=3D"100%" cellpadding=3D"0" cells=
+pacing=3D"0" border=3D"0" style=3D"border-collapse:collapse;">
+          <tbody><tr>
+            <td height=3D"25" bgcolor=3D"#0c2425" style=3D"font-family:Aria=
+l, sans-serif; color:#23496d; word-break:break-word; height:25px; line-heig=
+ht:25px; font-size:1px; mso-line-height-rule:exactly; background-color:#0c2=
+425">
+              &nbsp;
+            </td>
+          </tr>
+        </tbody></table>
+      </td>
+      <!-- 10px Spacer -->
+      <td width=3D"10" style=3D"font-family:Arial, sans-serif; color:#23496=
+d; word-break:break-word; width:10px; min-width:10px; font-size:0; line-hei=
+ght:0">
+        &nbsp;
+      </td>
+      <!-- Logo Container -->
+      <td width=3D"40" valign=3D"middle" style=3D"font-family:Arial, sans-s=
+erif; color:#23496d; word-break:break-word; width:40px; min-width:40px; fon=
+t-size:0; line-height:0">
+        <a href=3D"https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04=
+/MX320t-yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wx3qn9qW6N1vHY6lZ3mRW6KQxd-8Y9gX=
+rW98MH_G2RfJGfW2xQ_f682TLwBW8SrZXr1bQZ3GW859W_C4N-_9cW3TShGL8dwLRyW1w8gv13Q=
+xlWBW7FzF146gXq3nN8TTStPcxPBJW6Kdz9M77vLlSMf9w6-cWgbvW3KL7WN3-0p92W2Vbzvk1D=
+5VbVW5Vf9kd7ckTs-VZBH3q3gHb24W7w1mnT5WhWh1W60d8S485cjvnW6yKR4h2QdTWgW1g71xt=
+4Tc5ycW11N9_l9f-k5dW2RVxFK5G-cDhW6q2RWp2_J2TVdzmF5204" target=3D"_blank" cl=
+ass=3D"logo-link" style=3D"color:#00a4bd; text-decoration:none; display:inl=
+ine-block" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"ma8nlvL+">
+          <img src=3D"https://hs-25430028.f.hubspotemail-eu1.net/hub/254300=
+28/hubfs/vivla_logo_sq.png?width=3D80&amp;height=3D80&amp;upscale=3Dtrue&am=
+p;name=3Dvivla_logo_sq.png" alt=3D"VIVLA" width=3D"40" height=3D"40" border=
+=3D"0" style=3D"display:block; width:40px; max-width:40px; height:40px; bor=
+der:0; outline:none; text-decoration:none">
+        </a>
+      </td>
+    </tr>
+  </tbody></table>
+</div></td></tr></tbody></table>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+  </div>
+  <div id=3D"section_1769602715551" class=3D"hse-section" style=3D"padding-=
+left:10px; padding-right:10px">
+   =20
+   =20
+      <div class=3D"hse-column-container" style=3D"min-width:280px; max-wid=
+th:600px; margin:0 auto; background-color:#ffffff" bgcolor=3D"#ffffff">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation" width=3D"600" bgcolor=3D"#ffffff">
+      <tr style=3D"background-color:#ffffff;">
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:600px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"600" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:600px">
+<![endif]-->
+<div id=3D"column_1769602715551_0" class=3D"hse-column hse-size-12">
+    <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"100%" class=3D"" style=3D""><tbody><tr><td class=3D"hs_padded" style=3D=
+"font-family:Arial, sans-serif; font-size:15px; color:#23496d; word-break:b=
+reak-word; padding:10px 20px"><div id=3D"hs_cos_wrapper_module_176959297462=
+51" class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_modul=
+e" style=3D"color: inherit; font-size: inherit; line-height: inherit;" data=
+-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"module"><div id=3D"hs_c=
+os_wrapper_module_17695929746251_" class=3D"hs_cos_wrapper hs_cos_wrapper_w=
+idget hs_cos_wrapper_type_rich_text" style=3D"color: inherit; font-size: in=
+herit; line-height: inherit;" data-hs-cos-general-type=3D"widget" data-hs-c=
+os-type=3D"rich_text"><p style=3D"line-height:175%"><span style=3D"color: #=
+0c2425;">Hola Vivler,<br></span></p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Soy Daniel </=
+span><span style=3D"color: #0c2425;">- gracias por tu inter=C3=A9s en VIVLA=
+.</span></p>
+<p style=3D"line-height:175%">&nbsp;</p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Durante los p=
+r=C3=B3ximos d=C3=ADas compartir=C3=A9 contigo una breve serie de correos f=
+ormativos (8 en total) en los que explicamos c=C3=B3mo funciona VIVLA y c=
+=C3=B3mo evaluarla con criterio.</span></p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Este es el pr=
+imero.</span></p>
+<p style=3D"line-height:175%">&nbsp;</p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">La mayor=C3=
+=ADa de las personas que contactan con nosotros llegan a la misma conclusi=
+=C3=B3n tras comparar opciones: la propiedad tradicional de una segunda viv=
+ienda es poco eficiente para el uso real que se le da.</span></p>
+<p style=3D"line-height:175%">&nbsp;</p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">En Espa=C3=B1=
+a, las segundas residencias suelen utilizarse entre 4 y 6 semanas al a=C3=
+=B1o, mientras que el propietario asume el 100% del precio de compra, el ma=
+ntenimiento y los costes fijos durante todo el a=C3=B1o.</span></p>
+<p style=3D"line-height:175%">&nbsp;</p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">VIVLA nace pa=
+ra corregir ese desequilibrio, alineando la propiedad con el uso real de la=
+ vivienda:</span></p>
+<ul style=3D"line-height:175%">
+<li>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">M=C3=A1ximo 8=
+ propietarios por vivienda. No es necesario coordinarse con otros propietar=
+ios: VIVLA gestiona toda la complejidad.</span></p>
+</li>
+<li>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Aproximadamen=
+te 6 o m=C3=A1s semanas de uso garantizado por participaci=C3=B3n.</span></=
+p>
+</li>
+<li>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Costes fijos =
+compartidos y alineados con el uso.</span></p>
+</li>
+<li>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Propiedad rea=
+l sobre un =C3=BAnico activo inmobiliario.</span></p>
+</li>
+<li>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Posibilidad d=
+e reventa a partir de los 12 meses, definida desde el inicio.</span></p>
+</li>
+</ul>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Cuando alguie=
+n dice que =E2=80=9Cno es el momento adecuado=E2=80=9D, rara vez se trata d=
+e una cuesti=C3=B3n de tiempo.</span></p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">Normalmente, =
+es porque el modelo a=C3=BAn no termina de encajar.</span></p>
+<p style=3D"line-height:175%">&nbsp;</p>
+<p style=3D"line-height:175%"><span style=3D"color: #0c2425;">En el pr=C3=
+=B3ximo correo explicar=C3=A9 qu=C3=A9 hace que una vivienda VIVLA sea dife=
+rente.</span></p>
+<p style=3D"line-height:175%">&nbsp;</p></div></div></td></tr></tbody></tab=
+le>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+  </div>
+  <div id=3D"section_17720999156784" class=3D"hse-section" style=3D"padding=
+-left:10px; padding-right:10px">
+   =20
+   =20
+      <div class=3D"hse-column-container hse-no-stack-row" style=3D"min-wid=
+th:280px; max-width:600px; margin:0 auto; border-collapse:separate; display=
+:table; width:100%; background-color:#ffffff" bgcolor=3D"#ffffff">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation" class=3D"hse-no-stack-row" width=3D"600=
+" bgcolor=3D"#ffffff">
+      <tr style=3D"background-color:#ffffff;">
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:400px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"400" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:400px">
+<![endif]-->
+<div id=3D"column-1772099915678-0" class=3D"hse-column hse-size-8 hse-no-st=
+ack" style=3D"display:table-cell; vertical-align:top; max-width:400px; widt=
+h:66.66%">
+    <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"100%" class=3D"" style=3D"table-layout:fixed"><tbody><tr><td style=3D"f=
+ont-family:Arial, sans-serif; font-size:15px; color:#23496d; word-break:bre=
+ak-word; padding:10px 0px 10px 20px"><div id=3D"hs_cos_wrapper_module_17720=
+999156782" class=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_typ=
+e_module" style=3D"color: inherit; font-size: inherit; line-height: inherit=
+;" data-hs-cos-general-type=3D"widget" data-hs-cos-type=3D"module"><div id=
+=3D"hs_cos_wrapper_module_17720999156782_" class=3D"hs_cos_wrapper hs_cos_w=
+rapper_widget hs_cos_wrapper_type_rich_text" style=3D"color: inherit; font-=
+size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widget" d=
+ata-hs-cos-type=3D"rich_text"><p style=3D"line-height:175%; font-weight:bol=
+d"><span style=3D"color: #0c2425;">Resp=C3=B3ndeme por aqu=C3=AD o escr=C3=
+=ADbeme por WhatsApp.</span></p></div></div></td></tr></tbody></table>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+<!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:200px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"200" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:200px">
+<![endif]-->
+<div id=3D"column-1772099915678-1" class=3D"hse-column hse-size-4 hse-no-st=
+ack" style=3D"display:table-cell; vertical-align:top; max-width:200px; widt=
+h:33.33%">
+  <div id=3D"hs_cos_wrapper_module_17720999156783" class=3D"hs_cos_wrapper =
+hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; =
+font-size: inherit; line-height: inherit;table-layout:fixed" data-hs-cos-ge=
+neral-type=3D"widget" data-hs-cos-type=3D"module"><table class=3D"hse-image=
+-wrapper" role=3D"presentation" width=3D"100%" cellpadding=3D"0" cellspacin=
+g=3D"0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Arial, sans-=
+serif; color:#23496d; word-break:break-word; text-align:center; padding:0px=
+; font-size:0px">
+        <a href=3D"https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04=
+/MX320t-yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wx3qn9qW6N1vHY6lZ3lmW9670PK1rVT2=
+nN3pDDVCY5q6CW15HkV12ttqfVW7NbqmY4Y1PbhW5wjQxG7ykst_W3Zwfs273fN6yW2DksYG8Y6=
+tXBW2tnpY75fr_L_W1WTtBR1hS0sKN7JZCP15Wt_tW73czRz7Zzx3wN7GDd8x7gnTNW6zTQct6V=
+BKWZN316vzDBSsVtVkl58B2N51KHN3Bt0cW-zdjMW5zBWyN6ktZvLW3DDTMN4bWGKXMNC62txDY=
+vWW3mr3XH3LYznCVz_MN92BK1WmW6_020H1ZK4-yf12vkjd04" target=3D"_blank" style=
+=3D"color:#00a4bd" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"eebpQEha">
+        <img alt=3D"wa_petrol" src=3D"https://hs-25430028.f.hubspotemail-eu=
+1.net/hub/25430028/hubfs/wa_petrol.png?width=3D400&amp;upscale=3Dtrue&amp;n=
+ame=3Dwa_petrol.png" style=3D"outline:none; text-decoration:none; border:no=
+ne; max-width:100%; font-size:16px" width=3D"200" align=3D"middle">
+        </a>
+      </td>
+    </tr>
+  </tbody>
+</table></div>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+  </div>
+  <div id=3D"section_1772099922563" class=3D"hse-section" style=3D"padding-=
+left:10px; padding-right:10px">
+   =20
+   =20
+      <div class=3D"hse-column-container" style=3D"min-width:280px; max-wid=
+th:600px; margin:0 auto; background-color:#ffffff" bgcolor=3D"#ffffff">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation" width=3D"600" bgcolor=3D"#ffffff">
+      <tr style=3D"background-color:#ffffff;">
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:600px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"600" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:600px">
+<![endif]-->
+<div id=3D"column_1772099922563_0" class=3D"hse-column hse-size-12">
+    <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"100%" class=3D"" style=3D""><tbody><tr><td class=3D"hs_padded" style=3D=
+"font-family:Arial, sans-serif; font-size:15px; color:#23496d; word-break:b=
+reak-word; padding:20px"><div id=3D"hs_cos_wrapper_module_17720999225341" c=
+lass=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" st=
+yle=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-c=
+os-general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"none"=
+ border=3D"0" cellpadding=3D"0" cellspacing=3D"0" style=3D"vertical-align:t=
+op" width=3D"100%">
+  <tbody><tr>
+    <td align=3D"center" style=3D"font-family:Arial, sans-serif; color:#234=
+96d; font-size:0; word-break:break-word">
+      <p style=3D"font-size:1px;border-top:1px solid #000000;width:100%;mar=
+gin:0 auto;"></p>
+      <!--[if mso]>
+        <table role=3D"none" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"font-size:1px;border-top:1px solid #000000;wid=
+th:560px;">
+          <tr>
+            <td style=3D"height:0;line-height:0">&nbsp;</td>
+          </tr>
+        </table>
+      <![endif]-->
+    </td>
+  </tr>
+</tbody></table></div></td></tr></tbody></table>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+  </div>
+  <div id=3D"section_17701326558113" class=3D"hse-section" style=3D"padding=
+-left:10px; padding-right:10px">
+   =20
+   =20
+      <div class=3D"hse-column-container" style=3D"min-width:280px; max-wid=
+th:600px; margin:0 auto; background-color:#ffffff" bgcolor=3D"#ffffff">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation" width=3D"600" bgcolor=3D"#ffffff">
+      <tr style=3D"background-color:#ffffff;">
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:600px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"600" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:600px">
+<![endif]-->
+<div id=3D"column-1770132655811-0" class=3D"hse-column hse-size-12">
+  <div id=3D"hs_cos_wrapper_module_17701326558112" class=3D"hs_cos_wrapper =
+hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=3D"color: inherit; =
+font-size: inherit; line-height: inherit;" data-hs-cos-general-type=3D"widg=
+et" data-hs-cos-type=3D"module"><table role=3D"presentation" cellpadding=3D=
+"0" cellspacing=3D"0" border=3D"0" width=3D"100%" style=3D"max-width:600px;=
+">
+  <tbody><tr>
+    <td valign=3D"top" width=3D"120" style=3D"font-family:Arial, sans-serif=
+; font-size:15px; color:#23496d; word-break:break-word; padding-right:16px"=
+>
+      <img src=3D"https://hs-25430028.f.hubspotemail-eu1.net/hub/25430028/h=
+ubfs/sdr-daniel-fuster.png?width=3D240&amp;height=3D240&amp;upscale=3Dtrue&=
+amp;name=3Dsdr-daniel-fuster.png" alt=3D"Daniel Fuster Cardona" width=3D"12=
+0" height=3D"auto" style=3D"outline:none; text-decoration:none; display:blo=
+ck; border:0; max-width:120px; height:auto">
+    </td>
+    <td valign=3D"top" style=3D"font-size:15px; word-break:break-word; font=
+-family:Arial, Helvetica, sans-serif; color:#0c2425">
+      <div style=3D"font-size:16px; font-weight:700; line-height:1.4;">Dani=
+el Fuster Cardona</div>
+      <div style=3D"font-size:14px; line-height:1.4; margin-top:4px;">Sales=
+ Development Representative</div>
+      <div style=3D"font-size:14px; line-height:1.4; margin-top:10px;">
+        <a href=3D"tel:+34604560179" style=3D"color:#0c2425; text-decoratio=
+n:none" data-hs-link-id=3D"1" data-hs-link-id-v2=3D"j+kcU9eZ" target=3D"_bl=
+ank">+34 604 560 179</a><br>
+        <a href=3D"https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-vTs04=
+/MX320t-yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wx3qn9qW6N1vHY6lZ3l_Vl56-y1rVGrh=
+W3lnBR15QJCb3W6Z-sfJ7mQ4VXW7r0JHt5L1307VVnrdt3XGBRYW964zTR3mcflzW8nXgXj6dh4=
+r6W1Kfl2t5_BsGzW2wtYmY3y8jJsN8vwrFHlpl4wW2Rv5YN2_RZKPW4tb1mJ1_ZvKZW1pLr9S57=
+MfjbW1TpwQS69qgT8W7RmD486c0KSZW2bSR9n61kcxzW5GFY7W8kVlcBW3rn3CN5THqbxW6T4nn=
+L1M58BbVpfjQ340Jcc7W5bH6yf5t06ZvW2HpPRW7JD8YLf6xY64C04" style=3D"color:#0c2=
+425; text-decoration:none" data-hs-link-id=3D"7" data-hs-link-id-v2=3D"Zr9x=
+spDq" target=3D"_blank">www.vivla.com</a>
+      </div>
+      <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" bord=
+er=3D"0" style=3D"margin-top:10px;">
+        <tbody><tr>
+          <td style=3D"font-family:Arial, sans-serif; font-size:15px; color=
+:#23496d; word-break:break-word; padding-right:10px">
+            <a href=3D"https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-v=
+Ts04/MX320t-yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-wR3qn9qW7lCdLW6lZ3lVVH7qDd3V=
+-mYQW2h53tS1lxQVXW24Pd387kNh9mW61F8sx7V1GQ_W5rNkLd94wVk2W9d9Vt36W6MFJW4jWwn=
+k7Y3X7kW834sRn53cXy3W1dQrMJ1wQtshW7ZRbX276kR3WW32M86Z2KRK6MW7c4X8r2gQk-KW7g=
+vHPy5pVD_YW32GlFD5PKNl0W1pqysC7zWgktW46VmTK4M9LtQW6XQv7d7dyd7vW8N6ZC_6Mcbbl=
+F1HcdQxyvRcW9bykm_8Yt2d7W99jZB0461zQTN86hMRVnFCSqN1xJYmDvLdtTW18hRfS787T1pf=
+5_V1Dg04" style=3D"color:#00a4bd" data-hs-link-id=3D"6" data-hs-link-id-v2=
+=3D"PU+kqkCS" target=3D"_blank"><img src=3D"https://cdn-icons-png.flaticon.=
+com/512/87/87390.png" alt=3D"Instagram" width=3D"20" height=3D"20" style=3D=
+"outline:none; text-decoration:none; display:block; border:0"></a>
+          </td>
+          <td style=3D"font-family:Arial, sans-serif; font-size:15px; color=
+:#23496d; word-break:break-word">
+            <a href=3D"https://d2-vTs04.eu1.hubspotlinks.com/Ctc/W+113/d2-v=
+Ts04/MX320t-yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hN7xs-x63qn9qW7Y8-PT6lZ3pMW3Sxn5t5=
+-_hHZW56V_1-3PRPhDW6FFFbK3-dMjpW1kHwTV5y02BVW8p5WvV8cY_JQW2Nx9q53tkbvfW88Hz=
+GP6JK_qMW6k8q7r6T66qlW4f3rwz8FKKWNW4pTlHr1N8KqDW70twkt1KdllSVxvdly8FXNmFW3F=
+FrMF1y3Qw-W7tRsrC2YHMQ2W6FQtVy1PNxpRW30GqrQ44D8d6W74FFbD8FlNXsW35tGb56bYBst=
+W7NrP6z97THz7W7kb1hJ6sD0xPW8P6dq949ngLlN7lQbVdrXtz8W5nz-kg1Fm3NgVWVXXg52ttN=
+9W1GnP9C4m5H2LW7sdF911stMW2f1C3PCW04" style=3D"color:#00a4bd" data-hs-link-=
+id=3D"6" data-hs-link-id-v2=3D"eiYAGXRd" target=3D"_blank"><img src=3D"http=
+s://cdn-icons-png.flaticon.com/512/1384/1384014.png" alt=3D"LinkedIn" width=
+=3D"20" height=3D"20" style=3D"outline:none; text-decoration:none; display:=
+block; border:0"></a>
+          </td>
+        </tr>
+      </tbody></table>
+      <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" bord=
+er=3D"0" width=3D"100%" style=3D"margin-top:10px;">
+        <tbody><tr><td height=3D"6" style=3D"font-family:Arial, sans-serif;=
+ color:#23496d; word-break:break-word; background-color:#0c2425; font-size:=
+0; line-height:0" bgcolor=3D"#0c2425">&nbsp;</td></tr>
+      </tbody></table>
+    </td>
+  </tr>
+</tbody></table></div>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+  </div>
+  <div id=3D"section-1" class=3D"hse-section hse-section-last" style=3D"pad=
+ding-left:10px; padding-right:10px">
+   =20
+   =20
+      <div class=3D"hse-column-container" style=3D"min-width:280px; max-wid=
+th:600px; margin:0 auto">
+   =20
+    <!--[if (mso)|(IE)]>
+      <table align=3D"center" style=3D"width:600px;" cellpadding=3D"0" cell=
+spacing=3D"0" role=3D"presentation">
+      <tr>
+    <![endif]-->
+    <!--[if (mso)|(IE)]>
+  <td valign=3D"top" style=3D"width:600px;">
+<![endif]-->
+<!--[if gte mso 9]>
+  <table role=3D"presentation" width=3D"600" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"width:600px">
+<![endif]-->
+<div id=3D"column-1-0" class=3D"hse-column hse-size-12">
+    <table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" width=
+=3D"100%" class=3D"" style=3D""><tbody><tr><td class=3D"hs_padded" style=3D=
+"font-family:Arial, sans-serif; font-size:15px; color:#23496d; word-break:b=
+reak-word; padding:10px 20px"><div id=3D"hs_cos_wrapper_module-1-0-0" class=
+=3D"hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style=
+=3D"color: inherit; font-size: inherit; line-height: inherit;" data-hs-cos-=
+general-type=3D"widget" data-hs-cos-type=3D"module"><table role=3D"presenta=
+tion" class=3D"hse-footer hse-secondary" width=3D"100%" cellpadding=3D"0" c=
+ellspacing=3D"0" style=3D"font-family:Arial, sans-serif; font-size:12px; li=
+ne-height:135%; color:#23496d; margin-bottom:0; padding:0">
+  <tbody>
+    <tr>
+      <td align=3D"center" valign=3D"top" style=3D"font-family:Arial, sans-=
+serif; font-size:15px; color:#23496d; word-break:break-word; text-align:cen=
+ter; margin-bottom:0; line-height:135%; padding:10px 20px">
+        <p style=3D"font-family:Arial, sans-serif;font-size:12px;font-weigh=
+t:normal;text-decoration:none;font-style:normal;color:#23496d">
+          Vivla Lifestyle S.L., Carbonero y Sol, 8, Madrid, Comunidad de Ma=
+drid 28006, Espa=C3=B1a
+        </p>
+        <p>
+          <a data-unsubscribe=3D"true" href=3D"https://hs-25430028.s.hubspo=
+temail-eu1.net/hs/preferences-center/es/direct?data=3DW2nVjwf3Y2wXmW45D5jk3=
+GZf-PW3gd05t21h1BJW2KnX0m30qKsZW3GXb2R41qF2JW3NXSB92Pw8c7W3QPD3R2HKJLSW4cPq=
+GV4rlgsdW3d1TjD30HS5ZW4hLvPP1BnJHwW36gZBk34j2dBW4hxLmG2CX2FBW3ZvN342Yf34nW2=
+KXLtR4kGyKxW1X2kyn2r5F64W3by-RY1LjdzpW2RDbHx2WF5XXW3gqqkq47R2hYW36w0RH2n_-K=
+gW3LPxCx309P9MW3gy87j3z2v0wW22V3fY2TyM6hW2PTldn23kk5nW1Xqfk73XMJDgW3dhZQB2H=
+ZxYbW2MBDFj3DN8WCW49yHcJ3j4lHLW2YqFWl30l6yXW1SzDMG1Nz9ZZW1Z4wC72-Gp8sW3QZQ0=
+b36nP2mW30vrr03_DK0vW3XVkxD2xyxKqW3ZFFM-45M9b_W3DMdl82TzW-yW4hPPvk21kwyVW2q=
+MvQk3ZYYlqW2-g3qR34f-6CW43zl942Ysl1mW3dkckg3Fg7x_W30vsz93VLHY2W2PPfCl1Bhmgy=
+W2sLrG74kG6yHW2xXpKy2FLhTSW2TxtDX32xf_WW3NTb1G2FTlKJW3j4p7K3Cdgd3W2HKgyf3jv=
+RGrW4mCX6S3GS2s7W2nZ6c53_RtmhW36mWLM38b7bgW2y4GBx3Zx5cRf2-C0Wm04&amp;utm_ca=
+mpaign=3D354339052-Nurturing%202026&amp;utm_source=3Dhs_email&amp;utm_mediu=
+m=3Demail&amp;utm_content=3D2&amp;_hsenc=3Dp2ANqtz--d-fJonITtJq54Wk8x4tL_Dg=
+Pi4LpBQSfPBfz1a3FdDpmvJj4ye9_N5Ve_YWUwSBEE_L7SCPwHGerwxGNraoIWz_jZUQ&amp;_h=
+smi=3D2" style=3D"font-family:Helvetica,Arial,sans-serif; font-size:12px; c=
+olor:#00a4bd; font-weight:normal; text-decoration:underline; font-style:nor=
+mal" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"SFRZzEXk" target=3D"_blank=
+">Darme de baja</a>
+          <a data-unsubscribe=3D"true" href=3D"https://hs-25430028.s.hubspo=
+temail-eu1.net/hs/preferences-center/es/page?data=3DW2nVjwf3Y2wXmW45D5jk3GZ=
+f-PW3gd05t21h1BJW2KnX0m30qKsZW3GXb2R41qF2JW3NXSB92Pw8c7W3QPD3R2HKJLSW4cPqGV=
+4rlgsdW3d1TjD30HS5ZW4hLvPP1BnJHwW36gZBk34j2dBW4hxLmG2CX2FBW3ZvN342Yf34nW2KX=
+LtR4kGyKxW1X2kyn2r5F64W3by-RY1LjdzpW2RDbHx2WF5XXW3gqqkq47R2hYW36w0RH2n_-KgW=
+3LPxCx309P9MW3gy87j3z2v0wW22V3fY2TyM6hW2PTldn23kk5nW1Xqfk73XMJDgW3dhZQB2HZx=
+YbW2MBDFj3DN8WCW49yHcJ3j4lHLW2YqFWl30l6yXW1SzDMG1Nz9ZZW1Z4wC72-Gp8sW3QZQ0b3=
+6nP2mW30vrr03_DK0vW3XVkxD2xyxKqW3ZFFM-45M9b_W3DMdl82TzW-yW4hPPvk21kwyVW2qMv=
+Qk3ZYYlqW2-g3qR34f-6CW43zl942Ysl1mW3dkckg3Fg7x_W30vsz93VLHY2W2PPfCl1BhmgyW2=
+sLrG74kG6yHW2xXpKy2FLhTSW2TxtDX32xf_WW3NTb1G2FTlKJW3j4p7K3Cdgd3W2HKgyf3jvRG=
+rW4mCX6S3GS2s7W2nZ6c53_RtmhW36mWLM38b7bgW2y4GBx3Zx5cRf2-C0Wm04&amp;utm_camp=
+aign=3D354339052-Nurturing%202026&amp;utm_source=3Dhs_email&amp;utm_medium=
+=3Demail&amp;utm_content=3D2&amp;_hsenc=3Dp2ANqtz--d-fJonITtJq54Wk8x4tL_DgP=
+i4LpBQSfPBfz1a3FdDpmvJj4ye9_N5Ve_YWUwSBEE_L7SCPwHGerwxGNraoIWz_jZUQ&amp;_hs=
+mi=3D2" style=3D"font-family:Helvetica,Arial,sans-serif; font-size:12px; co=
+lor:#00a4bd; font-weight:normal; text-decoration:underline; font-style:norm=
+al" data-hs-link-id=3D"0" data-hs-link-id-v2=3D"qjPJqCop" target=3D"_blank"=
+>Gestionar preferencias</a>
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table></div></td></tr></tbody></table>
+</div>
+<!--[if gte mso 9]></table><![endif]-->
+<!--[if (mso)|(IE)]></td><![endif]-->
+    <!--[if (mso)|(IE)]></tr></table><![endif]-->
+    </div>
+  =20
+  </div></div>
+          </td>
+        </tr>
+      </tbody></table>
+    </div>
+ =20
+<img src=3D"https://d2-vTs04.eu1.hubspotlinks.com/Cto/W+113/d2-vTs04/MX320t=
+-yZLQW9gwVL88WqXt3W8Ny6Rt5LD35hW7xs-gF8fYy3v315z1" alt=3D"" width=3D"1" hei=
+ght=3D"1" border=3D"0" style=3D"display:none!important;min-height:1px!impor=
+tant;width:1px!important;border-width:0!important;margin-top:0!important;ma=
+rgin-bottom:0!important;margin-right:0!important;margin-left:0!important;pa=
+dding-top:0!important;padding-bottom:0!important;padding-right:0!important;=
+padding-left:0!important"></body></html>
+------=_Part_135232_2044751481.1773469938577--
+

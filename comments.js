@@ -805,7 +805,12 @@
       event.stopPropagation();
       const card = button.closest(".miro-card");
       const image = card?.querySelector(".miro-card-image");
-      if (image) openLightbox(image);
+      if (image) {
+        openLightbox(image);
+        return;
+      }
+      const href = card?.querySelector(".miro-card-stage")?.getAttribute("data-doc-href");
+      if (href) window.location.href = href;
     });
   });
 
