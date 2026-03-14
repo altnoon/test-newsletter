@@ -965,13 +965,13 @@ body {
   --lightbox-pin-ui-scale: 1;
   --lightbox-pin-marker-scale: 1;
   --lightbox-backdrop: rgba(247, 245, 239, 0.94);
-  --lightbox-control-bg: rgba(255, 255, 255, 0.82);
-  --lightbox-control-bg-hover: rgba(255, 255, 255, 0.94);
-  --lightbox-control-border: rgba(20, 20, 19, 0.18);
+  --lightbox-control-bg: rgba(255, 255, 255, 0.92);
+  --lightbox-control-bg-hover: rgba(255, 255, 255, 0.98);
+  --lightbox-control-border: rgba(20, 20, 19, 0.32);
   --lightbox-control-text: #1a1918;
-  --lightbox-panel-bg: rgba(255, 255, 255, 0.82);
-  --lightbox-panel-border: rgba(20, 20, 19, 0.18);
-  --lightbox-panel-metric-bg: rgba(20, 20, 19, 0.06);
+  --lightbox-panel-bg: rgba(255, 255, 255, 0.92);
+  --lightbox-panel-border: rgba(20, 20, 19, 0.28);
+  --lightbox-panel-metric-bg: rgba(20, 20, 19, 0.08);
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
@@ -1113,6 +1113,10 @@ body {
   object-position: center;
   pointer-events: none;
   margin: 0;
+}
+
+.image-lightbox:not([data-lightbox-theme="dark"]) .image-lightbox-close-icon {
+  filter: brightness(0) saturate(100%);
 }
 
 .image-lightbox-analytics-toggle {
@@ -1279,14 +1283,8 @@ body {
 
 .image-lightbox-theme-toggle .timeline-theme-toggle-icon {
   top: 9px;
-}
-
-.image-lightbox-theme-toggle .timeline-theme-toggle-icon-sun {
   left: 9px;
-}
-
-.image-lightbox-theme-toggle .timeline-theme-toggle-icon-moon {
-  right: 9px;
+  right: auto;
 }
 
 .image-lightbox-theme-toggle[data-theme-state="light"] .timeline-theme-toggle-icon-sun {
@@ -1294,11 +1292,11 @@ body {
 }
 
 .image-lightbox-theme-toggle[data-theme-state="light"] .timeline-theme-toggle-icon-moon {
-  opacity: 0.45;
+  opacity: 0;
 }
 
 .image-lightbox-theme-toggle[data-theme-state="dark"] .timeline-theme-toggle-icon-sun {
-  opacity: 0.45;
+  opacity: 0;
 }
 
 .image-lightbox-theme-toggle[data-theme-state="dark"] .timeline-theme-toggle-icon-moon {
