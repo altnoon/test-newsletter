@@ -1119,6 +1119,14 @@ body {
   filter: brightness(0) saturate(100%);
 }
 
+.image-lightbox:not([data-lightbox-theme="dark"]) .image-lightbox-zoom-btn {
+  color: #353432;
+}
+
+.image-lightbox:not([data-lightbox-theme="dark"]) .image-lightbox-theme-toggle .timeline-theme-toggle-icon-sun::before {
+  filter: grayscale(1) brightness(0.28) contrast(0.92);
+}
+
 .image-lightbox-analytics-toggle {
   position: absolute;
   z-index: 3;
