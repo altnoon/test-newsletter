@@ -37,12 +37,15 @@
       document.querySelectorAll('[data-timeline-action="theme"]')
     );
     buttons.forEach((button) => {
-      button.textContent = activeTheme === "dark" ? "Light mode" : "Dark mode";
+      const label = activeTheme === "dark" ? "Light mode" : "Dark mode";
+      const actionLabel =
+        activeTheme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+      const srOnly = button.querySelector(".theme-toggle-label");
       button.setAttribute("aria-pressed", activeTheme === "dark" ? "true" : "false");
-      button.setAttribute(
-        "aria-label",
-        activeTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
-      );
+      button.setAttribute("data-theme-state", activeTheme);
+      button.setAttribute("aria-label", actionLabel);
+      button.setAttribute("title", actionLabel);
+      if (srOnly) srOnly.textContent = label;
     });
   };
 
@@ -1886,12 +1889,7 @@
       try {
         window.localStorage.setItem(storageKey, next);
       } catch (_) {}
-      themeBtn.textContent = next === "dark" ? "Light mode" : "Dark mode";
-      themeBtn.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
-      themeBtn.setAttribute(
-        "aria-label",
-        next === "dark" ? "Switch to light mode" : "Switch to dark mode"
-      );
+      updateThemeButtons();
     });
   }
 

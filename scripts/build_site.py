@@ -1161,7 +1161,7 @@ def timeline_content_for_root(
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
-        '<button class="timeline-control-btn" type="button" data-timeline-action="theme" aria-pressed="false">Dark mode</button>'
+        '<button class="timeline-control-btn timeline-control-btn-icon" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="theme-toggle-icon" aria-hidden="true"></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
         "</div>"
         "</div>"
@@ -1255,7 +1255,7 @@ def timeline_content_for_group(
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
-        '<button class="timeline-control-btn" type="button" data-timeline-action="theme" aria-pressed="false">Dark mode</button>'
+        '<button class="timeline-control-btn timeline-control-btn-icon" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="theme-toggle-icon" aria-hidden="true"></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
         "</div>"
         "</div>"
