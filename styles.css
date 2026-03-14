@@ -1281,6 +1281,7 @@ body {
 .image-lightbox-theme-toggle .timeline-theme-toggle-track {
   width: 42px;
   height: 42px;
+  position: relative;
   background: transparent;
   box-shadow: none;
 }
@@ -1309,6 +1310,21 @@ body {
 
 .image-lightbox-theme-toggle[data-theme-state="dark"] .timeline-theme-toggle-icon-moon {
   opacity: 1;
+}
+
+.image-lightbox[data-lightbox-theme="light"] .image-lightbox-theme-toggle {
+  background: linear-gradient(180deg, #ffc666, #ed9d24);
+  border-color: rgba(152, 97, 21, 0.38);
+}
+
+.image-lightbox[data-lightbox-theme="light"] .image-lightbox-theme-toggle:hover {
+  background: linear-gradient(180deg, #ffcb74, #f1a32d);
+}
+
+.image-lightbox[data-lightbox-theme="light"] .image-lightbox-theme-toggle .timeline-theme-toggle-icon {
+  top: 9px;
+  left: 9px;
+  right: auto;
 }
 
 @media (min-width: 701px) {
