@@ -231,6 +231,7 @@
     '<span class="image-lightbox-zoom-readout" aria-live="polite">100%</span>' +
     '<button class="image-lightbox-zoom-btn image-lightbox-zoom-in" type="button" aria-label="Zoom in">+</button>' +
     "</div>" +
+    '<button class="timeline-control-btn timeline-theme-toggle image-lightbox-theme-toggle" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="timeline-theme-toggle-track" aria-hidden="true"><span class="timeline-theme-toggle-thumb"></span><span class="timeline-theme-toggle-icon timeline-theme-toggle-icon-sun"></span><span class="timeline-theme-toggle-icon timeline-theme-toggle-icon-moon"></span></span><span class="sr-only theme-toggle-label">Dark mode</span></button>' +
     '<button class="image-lightbox-analytics-toggle" type="button" aria-label="Show analytics in fullscreen" aria-pressed="false">' +
     '<svg class="image-lightbox-analytics-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
     '<rect x="4" y="12" width="3" height="8" rx="1"></rect>' +
@@ -256,6 +257,7 @@
   const zoomInBtn = overlay.querySelector(".image-lightbox-zoom-in");
   const zoomOutBtn = overlay.querySelector(".image-lightbox-zoom-out");
   const zoomReadout = overlay.querySelector(".image-lightbox-zoom-readout");
+  const lightboxThemeBtn = overlay.querySelector('.image-lightbox-theme-toggle');
   const analyticsToggleBtn = overlay.querySelector(".image-lightbox-analytics-toggle");
   const pinToggleBtn = overlay.querySelector(".image-lightbox-pin-toggle");
   const analyticsPanel = overlay.querySelector(".image-lightbox-analytics-panel");
@@ -293,6 +295,7 @@
     !zoomInBtn ||
     !zoomOutBtn ||
     !zoomReadout ||
+    !lightboxThemeBtn ||
     !analyticsToggleBtn ||
     !pinToggleBtn ||
     !analyticsPanel ||
@@ -818,6 +821,25 @@
   zoomOutBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     applyZoom(zoomLevel - ZOOM_STEP);
+  });
+  lightboxThemeBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const root = document.documentElement;
+    const storageKey = "timeline-theme";
+    const current = root.getAttribute("data-theme");
+    const prefersDark =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const active = current || (prefersDark ? "dark" : "light");
+    const next = active === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try {
+      window.localStorage.setItem(storageKey, next);
+    } catch (_) {}
+    if (typeof window.updateTimelineThemeButtons === "function") {
+      window.updateTimelineThemeButtons();
+    }
   });
   analyticsToggleBtn.addEventListener("click", (event) => {
     event.preventDefault();

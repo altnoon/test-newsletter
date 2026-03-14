@@ -1099,7 +1099,7 @@ body {
 .image-lightbox-analytics-toggle {
   position: absolute;
   z-index: 3;
-  top: 164px;
+  top: 216px;
   right: -62px;
   width: 42px;
   height: 42px;
@@ -1140,7 +1140,7 @@ body {
 .image-lightbox-pin-toggle {
   position: absolute;
   z-index: 3;
-  top: 216px;
+  top: 268px;
   right: -62px;
   width: 42px;
   height: 42px;
@@ -1227,6 +1227,65 @@ body {
   transition: opacity 120ms ease;
 }
 
+.image-lightbox-theme-toggle {
+  position: absolute;
+  z-index: 3;
+  top: 164px;
+  right: -62px;
+  min-width: 42px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.66);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  transition: opacity 120ms ease;
+}
+
+.image-lightbox-theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.image-lightbox-theme-toggle .timeline-theme-toggle-track {
+  width: 42px;
+  height: 42px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.image-lightbox-theme-toggle .timeline-theme-toggle-thumb {
+  display: none;
+}
+
+.image-lightbox-theme-toggle .timeline-theme-toggle-icon {
+  top: 9px;
+}
+
+.image-lightbox-theme-toggle .timeline-theme-toggle-icon-sun {
+  left: 9px;
+}
+
+.image-lightbox-theme-toggle .timeline-theme-toggle-icon-moon {
+  right: 9px;
+}
+
+.image-lightbox-theme-toggle[data-theme-state="light"] .timeline-theme-toggle-icon-sun {
+  opacity: 1;
+}
+
+.image-lightbox-theme-toggle[data-theme-state="light"] .timeline-theme-toggle-icon-moon {
+  opacity: 0.45;
+}
+
+.image-lightbox-theme-toggle[data-theme-state="dark"] .timeline-theme-toggle-icon-sun {
+  opacity: 0.45;
+}
+
+.image-lightbox-theme-toggle[data-theme-state="dark"] .timeline-theme-toggle-icon-moon {
+  opacity: 1;
+}
+
 @media (min-width: 701px) {
   .image-lightbox-zoom {
     flex-direction: column;
@@ -1307,6 +1366,7 @@ body {
 
 .image-lightbox.is-panning .image-lightbox-close,
 .image-lightbox.is-panning .image-lightbox-zoom,
+.image-lightbox.is-panning .image-lightbox-theme-toggle,
 .image-lightbox.is-panning .image-lightbox-analytics-toggle,
 .image-lightbox.is-panning .image-lightbox-pin-toggle,
 .image-lightbox.is-panning .image-lightbox-analytics-panel,
@@ -1355,6 +1415,7 @@ body {
   .image-lightbox-nav,
   .image-lightbox-close,
   .image-lightbox-zoom,
+  .image-lightbox-theme-toggle,
   .image-lightbox-analytics-toggle,
   .image-lightbox-pin-toggle {
     position: fixed !important;
@@ -1396,13 +1457,19 @@ body {
   }
 
   .image-lightbox-analytics-toggle {
-    top: calc(var(--safe-top) + 164px) !important;
+    top: calc(var(--safe-top) + 216px) !important;
     right: calc(var(--safe-right) + 8px) !important;
     left: auto !important;
   }
 
   .image-lightbox-pin-toggle {
-    top: calc(var(--safe-top) + 214px) !important;
+    top: calc(var(--safe-top) + 268px) !important;
+    right: calc(var(--safe-right) + 8px) !important;
+    left: auto !important;
+  }
+
+  .image-lightbox-theme-toggle {
+    top: calc(var(--safe-top) + 164px) !important;
     right: calc(var(--safe-right) + 8px) !important;
     left: auto !important;
   }
