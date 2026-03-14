@@ -34,7 +34,7 @@
     const explicitTheme = currentTheme();
     const activeTheme = explicitTheme || (systemPrefersDark() ? "dark" : "light");
     const buttons = Array.from(
-      document.querySelectorAll('[data-timeline-action="theme"]')
+      document.querySelectorAll('.timeline-controls [data-timeline-action="theme"]')
     );
     buttons.forEach((button) => {
       const label = activeTheme === "dark" ? "Light mode" : "Dark mode";
@@ -335,6 +335,7 @@
   let pinMode = true;
   let lightboxDraft = null;
   let lightboxEditingNoteId = null;
+  let lightboxTheme = "";
   let currentBoardKey = "timeline-board";
   let lightboxNotes = [];
   let pinDragState = null;
@@ -346,6 +347,26 @@
   const AUTHOR_STORAGE_KEY = "image-timeline-author";
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const clamp01 = (value) => Math.min(1, Math.max(0, value));
+  const getEffectivePageTheme = () => {
+    const explicit = document.documentElement.getAttribute("data-theme");
+    if (explicit === "light" || explicit === "dark") return explicit;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  };
+  const syncLightboxThemeButton = () => {
+    const activeTheme = lightboxTheme || getEffectivePageTheme();
+    const label = activeTheme === "dark" ? "Light mode" : "Dark mode";
+    const actionLabel =
+      activeTheme === "dark"
+        ? "Switch fullscreen to light mode"
+        : "Switch fullscreen to dark mode";
+    overlay.setAttribute("data-lightbox-theme", activeTheme);
+    lightboxThemeBtn.setAttribute("data-theme-state", activeTheme);
+    lightboxThemeBtn.setAttribute("aria-pressed", activeTheme === "dark" ? "true" : "false");
+    lightboxThemeBtn.setAttribute("aria-label", actionLabel);
+    lightboxThemeBtn.setAttribute("title", actionLabel);
+    const srOnly = lightboxThemeBtn.querySelector(".theme-toggle-label");
+    if (srOnly) srOnly.textContent = label;
+  };
   const toTimestamp = (value) => {
     const ts = Date.parse(String(value || ""));
     return Number.isNaN(ts) ? 0 : ts;
@@ -733,6 +754,8 @@
     }
     currentList = [];
     currentIndex = -1;
+    lightboxTheme = "";
+    overlay.removeAttribute("data-lightbox-theme");
     activePointers.clear();
     pinchActive = false;
     lastFocused = null;
@@ -754,6 +777,8 @@
     lastFocused = document.activeElement;
     currentList = list;
     currentIndex = index;
+    lightboxTheme = getEffectivePageTheme();
+    syncLightboxThemeButton();
     currentBoardKey =
       document.querySelector(".comments[data-board-key]")?.getAttribute("data-board-key") ||
       "timeline-board";
@@ -824,22 +849,9 @@
   });
   lightboxThemeBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    const root = document.documentElement;
-    const storageKey = "timeline-theme";
-    const current = root.getAttribute("data-theme");
-    const prefersDark =
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const active = current || (prefersDark ? "dark" : "light");
-    const next = active === "dark" ? "light" : "dark";
-    root.setAttribute("data-theme", next);
-    try {
-      window.localStorage.setItem(storageKey, next);
-    } catch (_) {}
-    if (typeof window.updateTimelineThemeButtons === "function") {
-      window.updateTimelineThemeButtons();
-    }
+    const active = lightboxTheme || getEffectivePageTheme();
+    lightboxTheme = active === "dark" ? "light" : "dark";
+    syncLightboxThemeButton();
   });
   analyticsToggleBtn.addEventListener("click", (event) => {
     event.preventDefault();
