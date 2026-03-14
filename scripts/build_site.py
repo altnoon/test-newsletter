@@ -1158,8 +1158,8 @@ def timeline_content_for_root(
         "<h1 class=\"timeline-root-title\">VIVLA HS FLOWS</h1>"
         "<p>Left-to-right sequence. <span class=\"timeline-helper-break\">Click on any email to view it full screen.</span></p>"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
-        '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn timeline-theme-toggle" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="timeline-theme-toggle-track" aria-hidden="true"><span class="timeline-theme-toggle-thumb"></span><span class="timeline-theme-toggle-icon timeline-theme-toggle-icon-sun"></span><span class="timeline-theme-toggle-icon timeline-theme-toggle-icon-moon"></span></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
@@ -1252,8 +1252,8 @@ def timeline_content_for_group(
         "<p>Left-to-right sequence. <span class=\"timeline-helper-break\">Click on any email to view it full screen.</span></p>"
         f"{summary_markup}"
         '<div class="timeline-controls" role="toolbar" aria-label="Timeline view controls">'
-        '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn timeline-theme-toggle" type="button" data-timeline-action="theme" aria-pressed="false" aria-label="Switch to dark mode" title="Switch to dark mode"><span class="timeline-theme-toggle-track" aria-hidden="true"><span class="timeline-theme-toggle-thumb"></span><span class="timeline-theme-toggle-icon timeline-theme-toggle-icon-sun"></span><span class="timeline-theme-toggle-icon timeline-theme-toggle-icon-moon"></span></span><span class="sr-only theme-toggle-label">Dark mode</span></button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
