@@ -1,9 +1,0 @@
-{
-  "name": "test-newsletter",
-  "private": true,
-  "version": "1.0.0",
-  "description": "Static newsletter pages with pinned notes",
-  "dependencies": {
-    "@upstash/redis": "^1.35.3"
-  }
-}
