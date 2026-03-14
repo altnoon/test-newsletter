@@ -7,8 +7,6 @@ import re
 import unicodedata
 import zipfile
 import tempfile
-from email import policy
-from email.parser import BytesParser
 from html.parser import HTMLParser
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -19,12 +17,9 @@ from urllib.request import urlopen, Request
 ROOT = Path(__file__).resolve().parent.parent
 IMAGE_DIR = ROOT / "Images"
 PAGES_DIR = ROOT / "pages"
-RENDERED_EMAIL_DIR = ROOT / "rendered-emails"
 STYLE_FILE = ROOT / "styles.css"
 INDEX_FILE = ROOT / "index.html"
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
-EMAIL_EXTS = {".eml"}
-MEDIA_EXTS = IMAGE_EXTS | EMAIL_EXTS
 ANALYTICS_XLSX_CANDIDATES = [
     ROOT.parent / "Analytics.xlsx",
     ROOT / "Analytics.xlsx",
@@ -50,11 +45,6 @@ EMAIL_LINKS_CSV_CANDIDATES = [
 ]
 TIMELINE_SUMMARY_XLSX_CANDIDATES_BY_GROUP = {
     "timeline-1-onboarding-flujo-1-y-2-en-only": [
-        ROOT.parent / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
-        ROOT / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
-        Path("/Users/delchev/Downloads/Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx"),
-    ],
-    "timeline-1-onboarding-flujo-1-y-2-en": [
         ROOT.parent / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
         ROOT / "Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx",
         Path("/Users/delchev/Downloads/Timeline 1 - Onboarding Flujo 1 y 2 (EN Only).xlsx"),
@@ -953,57 +943,6 @@ def display_label(path: Path) -> str:
     return stem
 
 
-def extract_eml_html(path: Path) -> str:
-    message = BytesParser(policy=policy.default).parsebytes(path.read_bytes())
-    html_part = None
-    text_part = None
-    for part in message.walk():
-        ctype = part.get_content_type()
-        if ctype == "text/html" and html_part is None:
-            html_part = part.get_content()
-        elif ctype == "text/plain" and text_part is None:
-            text_part = part.get_content()
-    subject = html.escape(str(message.get("subject") or path.stem))
-    if html_part:
-        if "<head" in html_part.lower():
-            return re.sub(
-                r"(<head[^>]*>)",
-                r'\1<meta name="viewport" content="width=device-width, initial-scale=1" /><base target="_blank" />',
-                html_part,
-                count=1,
-                flags=re.IGNORECASE,
-            )
-        return (
-            "<!doctype html><html><head>"
-            '<meta charset="utf-8" />'
-            '<meta name="viewport" content="width=device-width, initial-scale=1" />'
-            '<base target="_blank" />'
-            f"<title>{subject}</title>"
-            "</head><body>"
-            f"{html_part}"
-            "</body></html>"
-        )
-    text_html = "<br />".join(html.escape(line) for line in str(text_part or "").splitlines())
-    return (
-        "<!doctype html><html><head>"
-        '<meta charset="utf-8" />'
-        '<meta name="viewport" content="width=device-width, initial-scale=1" />'
-        '<base target="_blank" />'
-        f"<title>{subject}</title>"
-        "<style>body{margin:0;padding:24px;font:16px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#111;} .email-fallback{max-width:760px;margin:0 auto;white-space:normal;}</style>"
-        "</head><body>"
-        f'<div class="email-fallback">{text_html}</div>'
-        "</body></html>"
-    )
-
-
-def write_rendered_email(doc: dict) -> str:
-    RENDERED_EMAIL_DIR.mkdir(parents=True, exist_ok=True)
-    output_path = RENDERED_EMAIL_DIR / f'{doc["slug"]}.html'
-    output_path.write_text(extract_eml_html(doc["path"]), encoding="utf-8")
-    return output_path.name
-
-
 def timeline_label_from_name(name: str) -> str:
     cleaned = name.strip()
     cleaned = re.sub(r"_+", " ", cleaned)
@@ -1026,7 +965,7 @@ def timeline_group_sort_key(label: str) -> tuple[int, str]:
 
 def collect_timeline_groups() -> list[dict]:
     root_files = sorted(
-        [p for p in IMAGE_DIR.iterdir() if p.is_file() and p.suffix.lower() in MEDIA_EXTS],
+        [p for p in IMAGE_DIR.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTS],
         key=media_sort_key,
     )
     subdirs = sorted([p for p in IMAGE_DIR.iterdir() if p.is_dir()], key=lambda p: p.name.lower())
@@ -1038,10 +977,12 @@ def collect_timeline_groups() -> list[dict]:
             [
                 p
                 for p in folder.iterdir()
-                if p.is_file() and p.suffix.lower() in MEDIA_EXTS
+                if p.is_file() and p.suffix.lower() in IMAGE_EXTS
             ],
             key=media_sort_key,
         )
+        if not files:
+            continue
         groups.append(
             {
                 "key": slugify(folder.name),
@@ -1132,55 +1073,43 @@ def render_page(
     mobile_nav: str,
     mobile_brand: str,
     custom_content: str | None = None,
-    media_kind: str = "image",
 ) -> str:
     if custom_content is not None:
         content = custom_content
     elif media_path:
-        if media_kind == "email":
-            content = (
-                '<div class="layout email-layout">'
-                '<section class="main-pane">'
-                '<div class="viewer-wrap viewer-wrap-email">'
-                f'<iframe class="media-viewer media-viewer-email" src="{media_path}" title="{media_alt or ""}" loading="lazy" referrerpolicy="no-referrer"></iframe>'
-                "</div>"
-                "</section>"
-                "</div>"
-            )
-        else:
-            content = (
-                '<div class="layout">'
-                '<section class="main-pane">'
-                '<div class="viewer-wrap">'
-                f'<img class="media-viewer" src="{media_path}" alt="{media_alt or ""}" />'
-                "</div>"
-                "</section>"
-                f'<aside class="comments" data-page-key="{page_key or ""}">'
-                '<div class="comments-top">'
-                "<h2>Pin Notes</h2>"
-                '<p class="comment-hint">'
-                "Click on the image to place a pin and add a note."
-                "</p>"
-                '<p class="comment-live sr-only" aria-live="polite" '
-                'aria-atomic="true" role="status"></p>'
-                '<p class="comment-live-alert sr-only" aria-live="assertive" '
-                'aria-atomic="true"></p>'
-                '<label class="comment-author-label" for="comment-author">'
-                "Your name"
-                "</label>"
-                '<input id="comment-author" class="comment-author" '
-                'type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />'
-                '<p class="comment-count">0 notes</p>'
-                '<button class="comment-clear" type="button">Clear all notes</button>'
-                "</div>"
-                '<div class="comment-log-wrap">'
-                '<h3 class="comment-log-title">Chronological Notes</h3>'
-                '<p class="comment-log-empty">No notes yet.</p>'
-                '<ol class="comment-log"></ol>'
-                "</div>"
-                "</aside>"
-                "</div>"
-            )
+        content = (
+            '<div class="layout">'
+            '<section class="main-pane">'
+            '<div class="viewer-wrap">'
+            f'<img class="media-viewer" src="{media_path}" alt="{media_alt or ""}" />'
+            "</div>"
+            "</section>"
+            f'<aside class="comments" data-page-key="{page_key or ""}">'
+            '<div class="comments-top">'
+            "<h2>Pin Notes</h2>"
+            '<p class="comment-hint">'
+            "Click on the image to place a pin and add a note."
+            "</p>"
+            '<p class="comment-live sr-only" aria-live="polite" '
+            'aria-atomic="true" role="status"></p>'
+            '<p class="comment-live-alert sr-only" aria-live="assertive" '
+            'aria-atomic="true"></p>'
+            '<label class="comment-author-label" for="comment-author">'
+            "Your name"
+            "</label>"
+            '<input id="comment-author" class="comment-author" '
+            'type="text" maxlength="40" placeholder="E.g. Sofía, Manuela, Oliver, Philip" />'
+            '<p class="comment-count">0 notes</p>'
+            '<button class="comment-clear" type="button">Clear all notes</button>'
+            "</div>"
+            '<div class="comment-log-wrap">'
+            '<h3 class="comment-log-title">Chronological Notes</h3>'
+            '<p class="comment-log-empty">No notes yet.</p>'
+            '<ol class="comment-log"></ol>'
+            "</div>"
+            "</aside>"
+            "</div>"
+        )
     else:
         content = (
             '<div class="empty-state">'
@@ -1237,27 +1166,6 @@ def timeline_content_for_root(
             entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
             card_key = f'{group["key"]}::{doc["slug"]}'
             email_url = email_links.get(card_key)
-            open_label = (
-                f"Open {doc['label']} in full screen"
-                if doc["kind"] == "image"
-                else f"Open {doc['label']}"
-            )
-            stage_markup = (
-                f'<div class="miro-card-stage miro-card-stage-email" data-card-key="{card_key}" '
-                f'data-card-label="{group["label"]} • {doc["label"]}" data-doc-href="pages/{doc["slug"]}.html">'
-                f'<iframe class="miro-card-email-frame" src="rendered-emails/{doc["rendered_email_file"]}" title="{doc["alt"]}" loading="lazy" referrerpolicy="no-referrer" tabindex="-1"></iframe>'
-                f'<a class="miro-card-email-hit" href="pages/{doc["slug"]}.html" aria-label="{open_label}"></a>'
-                '<div class="pin-layer"></div>'
-                f"{analytics_overlay_markup(entry)}"
-                "</div>"
-                if doc["kind"] == "email"
-                else f'<div class="miro-card-stage" data-card-key="{card_key}" '
-                f'data-card-label="{group["label"]} • {doc["label"]}">'
-                f'<img class="miro-card-image" src="Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
-                '<div class="pin-layer"></div>'
-                f"{analytics_overlay_markup(entry)}"
-                "</div>"
-            )
             email_button = (
                 f'<a class="miro-open-link miro-card-action miro-card-action-email" href="{html.escape(email_url, quote=True)}" '
                 f'target="_blank" rel="noopener noreferrer" aria-label="Open {doc["label"]} in HubSpot web version">Email</a>'
@@ -1273,14 +1181,19 @@ def timeline_content_for_root(
                 f'<span class="miro-card-comment-count" data-card-count-for="{card_key}" aria-label="0 comments">0</span>'
                 "</div>"
                 '<div class="miro-card-actions">'
-                f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="{open_label}">Open</button>'
+                f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
                 f"{email_button}"
                 f'<button class="miro-card-action miro-card-action-analytics" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
                 "</div>"
                 "</div>"
                 f'<p class="miro-card-title">{doc["label"]}</p>'
                 "</div>"
-                f"{stage_markup}"
+                f'<div class="miro-card-stage" data-card-key="{card_key}" '
+                f'data-card-label="{group["label"]} • {doc["label"]}">'
+                f'<img class="miro-card-image" src="Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
+                '<div class="pin-layer"></div>'
+                f"{analytics_overlay_markup(entry)}"
+                "</div>"
                 "</article>"
             )
 
@@ -1356,27 +1269,6 @@ def timeline_content_for_group(
         entry = entry_for_doc(analytics_map, doc.get("raw_label", doc["label"]))
         card_key = f'{group["key"]}::{doc["slug"]}'
         email_url = email_links.get(card_key)
-        open_label = (
-            f"Open {doc['label']} in full screen"
-            if doc["kind"] == "image"
-            else f"Open {doc['label']}"
-        )
-        stage_markup = (
-            f'<div class="miro-card-stage miro-card-stage-email" data-card-key="{card_key}" '
-            f'data-card-label="{group["label"]} • {doc["label"]}" data-doc-href="{doc["slug"]}.html">'
-            f'<iframe class="miro-card-email-frame" src="../rendered-emails/{doc["rendered_email_file"]}" title="{doc["alt"]}" loading="lazy" referrerpolicy="no-referrer" tabindex="-1"></iframe>'
-            f'<a class="miro-card-email-hit" href="{doc["slug"]}.html" aria-label="{open_label}"></a>'
-            '<div class="pin-layer"></div>'
-            f"{analytics_overlay_markup(entry)}"
-            "</div>"
-            if doc["kind"] == "email"
-            else f'<div class="miro-card-stage" data-card-key="{card_key}" '
-            f'data-card-label="{group["label"]} • {doc["label"]}">'
-            f'<img class="miro-card-image" src="../Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
-            '<div class="pin-layer"></div>'
-            f"{analytics_overlay_markup(entry)}"
-            "</div>"
-        )
         email_button = (
             f'<a class="miro-open-link miro-card-action miro-card-action-email" href="{html.escape(email_url, quote=True)}" '
             f'target="_blank" rel="noopener noreferrer" aria-label="Open {doc["label"]} in HubSpot web version">Email</a>'
@@ -1392,14 +1284,19 @@ def timeline_content_for_group(
             f'<span class="miro-card-comment-count" data-card-count-for="{card_key}" aria-label="0 comments">0</span>'
             "</div>"
             '<div class="miro-card-actions">'
-            f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="{open_label}">Open</button>'
+            f'<button class="miro-card-action miro-card-action-open" type="button" aria-label="Open {doc["label"]} in full screen">Open</button>'
             f"{email_button}"
             f'<button class="miro-card-action miro-card-action-analytics" type="button" aria-label="Analytics for {doc["label"]}">Analytics</button>'
             "</div>"
             "</div>"
             f'<p class="miro-card-title">{doc["label"]}</p>'
             "</div>"
-            f"{stage_markup}"
+            f'<div class="miro-card-stage" data-card-key="{card_key}" '
+            f'data-card-label="{group["label"]} • {doc["label"]}">'
+            f'<img class="miro-card-image" src="../Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
+            '<div class="pin-layer"></div>'
+            f"{analytics_overlay_markup(entry)}"
+            "</div>"
             "</article>"
         )
 
@@ -1462,13 +1359,10 @@ def timeline_content_for_group(
 def main() -> None:
     IMAGE_DIR.mkdir(parents=True, exist_ok=True)
     PAGES_DIR.mkdir(parents=True, exist_ok=True)
-    RENDERED_EMAIL_DIR.mkdir(parents=True, exist_ok=True)
     STYLE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     for page in PAGES_DIR.glob("*.html"):
         page.unlink()
-    for rendered in RENDERED_EMAIL_DIR.glob("*.html"):
-        rendered.unlink()
 
     timeline_groups = collect_timeline_groups()
     analytics_map = load_analytics_map()
@@ -1513,7 +1407,6 @@ def main() -> None:
             label = html.escape(display_label(path))
             raw_label = display_label(path)
             slug = unique_slug(seen, slugify(rel_path))
-            kind = "email" if path.suffix.lower() in EMAIL_EXTS else "image"
             doc = {
                 "path": path,
                 "rel_path": rel_path,
@@ -1521,10 +1414,7 @@ def main() -> None:
                 "raw_label": raw_label,
                 "slug": slug,
                 "alt": html.escape(display_label(path)),
-                "kind": kind,
             }
-            if kind == "email":
-                doc["rendered_email_file"] = write_rendered_email(doc)
             docs.append(doc)
             group_docs.append(doc)
         group["docs"] = group_docs
@@ -1595,18 +1485,13 @@ def main() -> None:
             page_html = render_page(
                 title=f"{doc['label']} | Image Timeline",
                 nav=nav_for_page_tabs(tabs, active_tab_key),
-                media_path=(
-                    f"../rendered-emails/{doc['rendered_email_file']}"
-                    if doc["kind"] == "email"
-                    else f"../Images/{quote(doc['rel_path'])}"
-                ),
+                media_path=f"../Images/{quote(doc['rel_path'])}",
                 media_alt=doc["alt"],
                 css_href="../styles.css",
                 script_href="../comments.js",
                 page_key=doc["slug"],
                 mobile_nav=mobile_controls(page_menu_links),
                 mobile_brand=doc["label"],
-                media_kind=doc["kind"],
             )
             (PAGES_DIR / f"{doc['slug']}.html").write_text(page_html, encoding="utf-8")
     else:
