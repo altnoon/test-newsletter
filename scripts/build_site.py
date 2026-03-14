@@ -819,12 +819,25 @@ def format_analytics_value(metric_name: str, raw_value: str) -> str:
     return f"{number:.3f}".rstrip("0").rstrip(".")
 
 
-def analytics_overlay_markup(entry: dict | None) -> str:
+def analytics_overlay_markup(entry: dict | None, heading: str = "Analytics") -> str:
     if not entry:
         return (
             '<div class="miro-card-analytics" hidden>'
             '<button class="miro-card-analytics-close" type="button" aria-label="Close analytics">×</button>'
-            '<h4>Analytics</h4>'
+            f'<h4>{html.escape(heading)}</h4>'
+            '<p class="miro-card-analytics-empty">No analytics data yet.</p>'
+            "</div>"
+        )
+    has_values = any(
+        format_analytics_value(metric["name"], point["value"]) != "—"
+        for metric in entry["metrics"]
+        for point in metric["points"]
+    )
+    if not has_values:
+        return (
+            '<div class="miro-card-analytics" hidden>'
+            '<button class="miro-card-analytics-close" type="button" aria-label="Close analytics">×</button>'
+            f'<h4>{html.escape(heading)}</h4>'
             '<p class="miro-card-analytics-empty">No analytics data yet.</p>'
             "</div>"
         )
@@ -846,7 +859,7 @@ def analytics_overlay_markup(entry: dict | None) -> str:
     return (
         '<div class="miro-card-analytics" hidden>'
         '<button class="miro-card-analytics-close" type="button" aria-label="Close analytics">×</button>'
-        f'<h4>{html.escape(entry["title"])}</h4>'
+        f'<h4>{html.escape(heading)}</h4>'
         f'<ul class="miro-card-analytics-list">{"".join(metric_rows)}</ul>'
         "</div>"
     )
@@ -1200,7 +1213,7 @@ def timeline_content_for_root(
                 f'data-card-label="{group["label"]} • {doc["label"]}">'
                 f'<img class="miro-card-image" src="Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
                 '<div class="pin-layer"></div>'
-                f"{analytics_overlay_markup(entry)}"
+                f"{analytics_overlay_markup(entry, doc['label'])}"
                 "</div>"
                 "</article>"
             )
@@ -1303,7 +1316,7 @@ def timeline_content_for_group(
             f'data-card-label="{group["label"]} • {doc["label"]}">'
             f'<img class="miro-card-image" src="../Images/{quote(doc["rel_path"])}" alt="{doc["alt"]}" loading="lazy" />'
             '<div class="pin-layer"></div>'
-            f"{analytics_overlay_markup(entry)}"
+            f"{analytics_overlay_markup(entry, doc['label'])}"
             "</div>"
             "</article>"
         )
