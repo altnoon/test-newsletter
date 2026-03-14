@@ -467,8 +467,8 @@ body {
 
 .timeline-theme-toggle {
   padding: 0;
-  min-width: 74px;
-  width: 74px;
+  min-width: 92px;
+  width: 92px;
   height: var(--control-min-height);
   display: inline-flex;
   align-items: center;
@@ -480,7 +480,7 @@ body {
 
 .timeline-theme-toggle-track {
   position: relative;
-  width: 66px;
+  width: 84px;
   height: 34px;
   border-radius: var(--radius-full);
   background: linear-gradient(180deg, #fbfbfb, #ecebe9);
@@ -505,7 +505,7 @@ body {
 }
 
 .timeline-theme-toggle[data-theme-state="dark"] .timeline-theme-toggle-thumb {
-  transform: translateX(32px);
+  transform: translateX(50px);
   background: linear-gradient(180deg, #767676, #525252);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.38);
 }
@@ -523,11 +523,11 @@ body {
 }
 
 .timeline-theme-toggle-icon-sun {
-  left: 2px;
+  left: 5px;
 }
 
 .timeline-theme-toggle-icon-moon {
-  right: 2px;
+  right: 5px;
 }
 
 .timeline-theme-toggle-icon::before {
