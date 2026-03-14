@@ -1,4 +1,68 @@
 (() => {
+  const storageKey = "timeline-theme";
+  const root = document.documentElement;
+  const getStoredTheme = () => {
+    try {
+      const value = window.localStorage.getItem(storageKey);
+      return value === "light" || value === "dark" ? value : "";
+    } catch (_) {
+      return "";
+    }
+  };
+  const systemPrefersDark = () =>
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const currentTheme = () => root.getAttribute("data-theme") || "";
+  const applyTheme = (theme) => {
+    if (theme === "light" || theme === "dark") {
+      root.setAttribute("data-theme", theme);
+    } else {
+      root.removeAttribute("data-theme");
+    }
+  };
+  const persistTheme = (theme) => {
+    try {
+      if (theme) {
+        window.localStorage.setItem(storageKey, theme);
+      } else {
+        window.localStorage.removeItem(storageKey);
+      }
+    } catch (_) {}
+  };
+  const updateThemeButtons = () => {
+    const explicitTheme = currentTheme();
+    const activeTheme = explicitTheme || (systemPrefersDark() ? "dark" : "light");
+    const buttons = Array.from(
+      document.querySelectorAll('[data-timeline-action="theme"]')
+    );
+    buttons.forEach((button) => {
+      button.textContent = activeTheme === "dark" ? "Light mode" : "Dark mode";
+      button.setAttribute("aria-pressed", activeTheme === "dark" ? "true" : "false");
+      button.setAttribute(
+        "aria-label",
+        activeTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+      );
+    });
+  };
+
+  applyTheme(getStoredTheme());
+  updateThemeButtons();
+
+  if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handlePreferenceChange = () => {
+      if (!currentTheme()) updateThemeButtons();
+    };
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handlePreferenceChange);
+    } else if (typeof media.addListener === "function") {
+      media.addListener(handlePreferenceChange);
+    }
+  }
+})();
+
+(() => {
   const topbar = document.querySelector(".topbar");
   if (topbar) {
     const navPrev = topbar.querySelector(".nav-arrow-left");
@@ -1751,6 +1815,7 @@
   const fitBtn = controls.querySelector('[data-timeline-action="fit"]');
   const zoomInBtn = controls.querySelector('[data-timeline-action="zoom-in"]');
   const zoomOutBtn = controls.querySelector('[data-timeline-action="zoom-out"]');
+  const themeBtn = controls.querySelector('[data-timeline-action="theme"]');
   const readout = controls.querySelector(".timeline-zoom-readout");
 
   let zoom = 1;
@@ -1803,6 +1868,30 @@
     zoomOutBtn.addEventListener("click", () => {
       zoom = clampZoom(zoom - 0.1);
       applyZoom();
+    });
+  }
+
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      const root = document.documentElement;
+      const storageKey = "timeline-theme";
+      const current = root.getAttribute("data-theme");
+      const prefersDark =
+        typeof window !== "undefined" &&
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const active = current || (prefersDark ? "dark" : "light");
+      const next = active === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try {
+        window.localStorage.setItem(storageKey, next);
+      } catch (_) {}
+      themeBtn.textContent = next === "dark" ? "Light mode" : "Dark mode";
+      themeBtn.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+      themeBtn.setAttribute(
+        "aria-label",
+        next === "dark" ? "Switch to light mode" : "Switch to dark mode"
+      );
     });
   }
 

@@ -1161,6 +1161,7 @@ def timeline_content_for_root(
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="theme" aria-pressed="false">Dark mode</button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
         "</div>"
         "</div>"
@@ -1254,6 +1255,7 @@ def timeline_content_for_group(
         '<button class="timeline-control-btn" type="button" data-timeline-action="fit">Fit to screen</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-in">Zoom in</button>'
         '<button class="timeline-control-btn" type="button" data-timeline-action="zoom-out">Zoom out</button>'
+        '<button class="timeline-control-btn" type="button" data-timeline-action="theme" aria-pressed="false">Dark mode</button>'
         '<span class="timeline-zoom-readout" aria-live="polite">100%</span>'
         "</div>"
         "</div>"

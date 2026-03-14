@@ -82,7 +82,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --glass-bg: #242320;
     --glass-bg-elevated: #2e2d29;
     --glass-border: rgba(255, 255, 255, 0.12);
@@ -105,6 +105,30 @@
     --note-chip-text: #ffc974;
     --focus-ring: rgba(237, 157, 36, 0.35);
   }
+}
+
+:root[data-theme="dark"] {
+    --glass-bg: #242320;
+    --glass-bg-elevated: #2e2d29;
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-subtle: rgba(255, 255, 255, 0.08);
+    --glass-highlight: rgba(255, 255, 255, 0.16);
+    --glass-shadow: rgba(0, 0, 0, 0.35);
+    --glass-shadow-deep: rgba(0, 0, 0, 0.5);
+    --glass-text-primary: #ece9e1;
+    --glass-text-secondary: #b0aea5;
+    --surface-bg: #1a1918;
+    --surface-panel: #242320;
+    --line-subtle: rgba(255, 255, 255, 0.14);
+    --accent-orange: #ed9d24;
+    --accent-red: #cf8121;
+    --brand-dark-green: #1f1e1b;
+    --brand-medium-green: #2e2d29;
+    --brand-light-green: rgba(255, 255, 255, 0.2);
+    --note-chip-bg: rgba(237, 157, 36, 0.22);
+    --note-chip-border: rgba(237, 157, 36, 0.45);
+    --note-chip-text: #ffc974;
+    --focus-ring: rgba(237, 157, 36, 0.35);
 }
 
 * {
