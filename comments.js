@@ -215,9 +215,9 @@
 })();
 
 (() => {
-  const selector = ".miro-card-image, .media-viewer";
-  const images = Array.from(document.querySelectorAll(selector));
-  if (!images.length) return;
+  const selector = ".miro-card-stage, .media-viewer, .media-viewer-email";
+  const mediaItems = Array.from(document.querySelectorAll(selector));
+  if (!mediaItems.length) return;
 
   const overlay = document.createElement("div");
   overlay.className = "image-lightbox";
@@ -248,6 +248,7 @@
     '<section class="image-lightbox-analytics-panel" hidden></section>' +
     '<div class="image-lightbox-pin-layer" aria-hidden="true"></div>' +
     '<img class="image-lightbox-image" alt="" />' +
+    '<iframe class="image-lightbox-email" title="" loading="lazy" referrerpolicy="no-referrer"></iframe>' +
     "</div>";
   document.body.appendChild(overlay);
 
@@ -264,6 +265,7 @@
   const lightboxPinLayer = overlay.querySelector(".image-lightbox-pin-layer");
   const lightboxFrame = overlay.querySelector(".image-lightbox-frame");
   const lightboxImage = overlay.querySelector(".image-lightbox-image");
+  const lightboxEmail = overlay.querySelector(".image-lightbox-email");
   const createLightboxPinEditor = () => {
     const editor = document.createElement("div");
     editor.className = "pin-note-editor";
@@ -302,6 +304,7 @@
     !lightboxPinLayer ||
     !lightboxFrame ||
     !lightboxImage ||
+    !lightboxEmail ||
     !lightboxPinMeta ||
     !lightboxPinAuthor ||
     !lightboxPinInput ||
@@ -313,6 +316,7 @@
   let lastFocused = null;
   let currentList = [];
   let currentIndex = -1;
+  let currentMediaKind = "image";
   let zoomLevel = 1;
   let panX = 0;
   let panY = 0;
@@ -408,6 +412,44 @@
     (window.matchMedia("(pointer: coarse)").matches ||
       window.matchMedia("(hover: none)").matches ||
       window.matchMedia("(max-width: 900px)").matches);
+  const getMediaKind = (item) => {
+    if (!item) return "image";
+    if (item.classList?.contains("media-viewer-email")) return "email";
+    if (item.classList?.contains("miro-card-stage-email")) return "email";
+    if (item.querySelector?.(".miro-card-email-frame")) return "email";
+    return "image";
+  };
+  const getMediaSource = (item) => {
+    if (!item) return "";
+    if (item.classList?.contains("media-viewer") || item.classList?.contains("media-viewer-email")) {
+      return item.getAttribute("src") || "";
+    }
+    if (item.classList?.contains("miro-card-stage")) {
+      const image = item.querySelector(".miro-card-image");
+      if (image) return image.getAttribute("src") || "";
+      const frame = item.querySelector(".miro-card-email-frame");
+      if (frame) return frame.getAttribute("src") || "";
+    }
+    return "";
+  };
+  const getMediaAlt = (item) => {
+    if (!item) return "";
+    if (item.classList?.contains("media-viewer") || item.classList?.contains("media-viewer-email")) {
+      return item.getAttribute("alt") || item.getAttribute("title") || "";
+    }
+    if (item.classList?.contains("miro-card-stage")) {
+      const image = item.querySelector(".miro-card-image");
+      if (image) return image.getAttribute("alt") || "";
+      const frame = item.querySelector(".miro-card-email-frame");
+      if (frame) return frame.getAttribute("title") || "";
+    }
+    return "";
+  };
+  const getStageForItem = (item) => {
+    if (!item) return null;
+    if (item.classList?.contains("miro-card-stage")) return item;
+    return item.closest?.(".miro-card-stage") || null;
+  };
   const clampPan = (x, y) => {
     const maxX = Math.max(0, (lightboxImage.clientWidth * (zoomLevel - 1)) / 2);
     const maxY = Math.max(0, (lightboxImage.clientHeight * (zoomLevel - 1)) / 2);
@@ -417,6 +459,10 @@
     };
   };
   const updateImageTransform = () => {
+    if (currentMediaKind !== "image") {
+      lightboxFrame.style.transform = "";
+      return;
+    }
     const bounded = clampPan(panX, panY);
     panX = bounded.x;
     panY = bounded.y;
@@ -441,7 +487,7 @@
   };
   const getCurrentCardKey = () => {
     const source = currentList[currentIndex];
-    const stage = source?.closest(".miro-card-stage");
+    const stage = getStageForItem(source);
     return stage?.getAttribute("data-card-key") || "";
   };
   const syncPinToggleVisibility = (noteCount) => {
@@ -556,7 +602,7 @@
   const resetPan = () => {
     panX = 0;
     panY = 0;
-    updateImageTransform();
+    if (currentMediaKind === "image") updateImageTransform();
   };
   const pointerDistance = (a, b) => {
     const dx = b.x - a.x;
@@ -565,6 +611,7 @@
   };
 
   const applyZoom = (value) => {
+    if (currentMediaKind !== "image") return;
     zoomLevel = clamp(value, MIN_ZOOM, MAX_ZOOM);
     if (zoomLevel <= 1.001) {
       panX = 0;
@@ -657,7 +704,7 @@
       analyticsToggleBtn.disabled = true;
       return;
     }
-    const stage = item.closest(".miro-card-stage");
+    const stage = getStageForItem(item);
     const sourcePanel = stage?.querySelector(".miro-card-analytics");
     if (!sourcePanel) {
       analyticsPanel.innerHTML = "";
@@ -704,20 +751,52 @@
     analyticsToggleBtn.setAttribute("aria-pressed", "false");
   };
 
-  const showCurrentImage = () => {
+  const syncLightboxMode = () => {
+    overlay.classList.toggle("is-email", currentMediaKind === "email");
+    lightboxImage.hidden = currentMediaKind !== "image";
+    lightboxEmail.hidden = currentMediaKind !== "email";
+    lightboxPinLayer.hidden = currentMediaKind !== "image";
+    lightboxPinLayer.style.display = currentMediaKind === "image" && pinMode ? "block" : "none";
+    const zoomRail = zoomInBtn.closest(".image-lightbox-zoom");
+    if (zoomRail) {
+      zoomRail.style.display = currentMediaKind === "image" ? "inline-flex" : "none";
+    }
+    if (currentMediaKind !== "image") {
+      pinToggleBtn.style.display = "none";
+    }
+  };
+
+  const showCurrentMedia = () => {
     const item = currentList[currentIndex];
     if (!item) return;
-    const src = item.getAttribute("src");
+    currentMediaKind = getMediaKind(item);
+    const src = getMediaSource(item);
     if (!src) return;
-    lightboxImage.setAttribute("src", src);
-    lightboxImage.setAttribute("alt", item.getAttribute("alt") || "");
+    syncLightboxMode();
+    if (currentMediaKind === "email") {
+      lightboxImage.removeAttribute("src");
+      lightboxEmail.setAttribute("src", src);
+      lightboxEmail.setAttribute("title", getMediaAlt(item));
+      zoomReadout.textContent = "100%";
+      zoomOutBtn.disabled = true;
+      zoomInBtn.disabled = true;
+    } else {
+      lightboxEmail.removeAttribute("src");
+      lightboxImage.setAttribute("src", src);
+      lightboxImage.setAttribute("alt", getMediaAlt(item));
+    }
     updateNavState();
     renderLightboxAnalytics();
     setLightboxAnalyticsVisible(false);
-    setPinMode(true);
+    setPinMode(currentMediaKind === "image");
     closeLightboxPinEditor();
-    resetZoom();
-    renderLightboxPins();
+    if (currentMediaKind === "image") {
+      resetZoom();
+      renderLightboxPins();
+    } else {
+      lightboxPinLayer.innerHTML = "";
+      syncPinToggleVisibility(0);
+    }
   };
 
   const stepImage = (delta) => {
@@ -725,7 +804,7 @@
     const nextIndex = currentIndex + delta;
     if (nextIndex < 0 || nextIndex >= currentList.length) return;
     currentIndex = nextIndex;
-    showCurrentImage();
+    showCurrentMedia();
   };
 
   const closeLightbox = () => {
@@ -733,6 +812,7 @@
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
     lightboxImage.removeAttribute("src");
+    lightboxEmail.removeAttribute("src");
     analyticsPanel.innerHTML = "";
     lightboxPinLayer.innerHTML = "";
     setLightboxAnalyticsVisible(false);
@@ -754,6 +834,7 @@
     }
     currentList = [];
     currentIndex = -1;
+    currentMediaKind = "image";
     lightboxTheme = "";
     overlay.removeAttribute("data-lightbox-theme");
     activePointers.clear();
@@ -761,17 +842,17 @@
     lastFocused = null;
   };
 
-  const getImageList = (source) => {
+  const getMediaList = (source) => {
     const group = source.closest(".timeline-group");
     if (group) {
-      const groupImages = Array.from(group.querySelectorAll(".miro-card-image"));
-      if (groupImages.length) return groupImages;
+      const groupItems = Array.from(group.querySelectorAll(".miro-card-stage"));
+      if (groupItems.length) return groupItems;
     }
-    return images.filter((item) => item.matches(selector));
+    return mediaItems.filter((item) => item.matches(selector));
   };
 
   const openLightbox = (source) => {
-    const list = getImageList(source);
+    const list = getMediaList(source);
     const index = list.indexOf(source);
     if (!list.length || index < 0) return;
     lastFocused = document.activeElement;
@@ -782,19 +863,24 @@
     currentBoardKey =
       document.querySelector(".comments[data-board-key]")?.getAttribute("data-board-key") ||
       "timeline-board";
-    showCurrentImage();
+    showCurrentMedia();
     loadLightboxNotes();
     overlay.classList.add("is-open");
     overlay.setAttribute("aria-hidden", "false");
     closeBtn.focus();
   };
 
-  images.forEach((image) => {
-    image.style.cursor = "zoom-in";
-    image.addEventListener("click", (event) => {
+  mediaItems.forEach((item) => {
+    if (item.classList?.contains("miro-card-stage")) {
+      item.style.cursor = "zoom-in";
+    } else if (item.classList?.contains("media-viewer") || item.classList?.contains("media-viewer-email")) {
+      item.style.cursor = "zoom-in";
+    }
+    item.addEventListener("click", (event) => {
+      if (event.target.closest?.(".miro-card-analytics")) return;
       event.preventDefault();
       event.stopPropagation();
-      openLightbox(image);
+      openLightbox(item);
     });
   });
 
@@ -804,9 +890,9 @@
       event.preventDefault();
       event.stopPropagation();
       const card = button.closest(".miro-card");
-      const image = card?.querySelector(".miro-card-image");
-      if (image) {
-        openLightbox(image);
+      const stage = card?.querySelector(".miro-card-stage");
+      if (stage) {
+        openLightbox(stage);
         return;
       }
       const href = card?.querySelector(".miro-card-stage")?.getAttribute("data-doc-href");
@@ -1194,8 +1280,9 @@
     }
     event.preventDefault();
     event.stopPropagation();
+    if (currentMediaKind !== "image") return;
     const source = currentList[currentIndex];
-    const stage = source?.closest(".miro-card-stage");
+    const stage = getStageForItem(source);
     const cardKey = stage?.getAttribute("data-card-key");
     const boardKey =
       document.querySelector(".comments[data-board-key]")?.getAttribute("data-board-key") ||
@@ -1216,6 +1303,7 @@
       const delta = event.deltaY;
       if (!delta) return;
       const direction = delta < 0 ? 1 : -1;
+      if (currentMediaKind !== "image") return;
       applyZoom(zoomLevel + direction * (ZOOM_STEP * 0.6));
       event.preventDefault();
     },
@@ -1251,9 +1339,9 @@
     if (event.key === "Escape") closeLightbox();
     if (event.key === "ArrowLeft") stepImage(-1);
     if (event.key === "ArrowRight") stepImage(1);
-    if (event.key === "+" || event.key === "=") applyZoom(zoomLevel + ZOOM_STEP);
-    if (event.key === "-") applyZoom(zoomLevel - ZOOM_STEP);
-    if (event.key === "0") resetZoom();
+    if (currentMediaKind === "image" && (event.key === "+" || event.key === "=")) applyZoom(zoomLevel + ZOOM_STEP);
+    if (currentMediaKind === "image" && event.key === "-") applyZoom(zoomLevel - ZOOM_STEP);
+    if (currentMediaKind === "image" && event.key === "0") resetZoom();
   });
   window.addEventListener("resize", () => {
     if (!overlay.classList.contains("is-open")) return;
