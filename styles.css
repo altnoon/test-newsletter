@@ -532,6 +532,7 @@ body {
 
 .timeline-theme-toggle-icon::before {
   content: "";
+  display: block;
   width: 18px;
   height: 18px;
   background-repeat: no-repeat;
@@ -1291,9 +1292,8 @@ body {
 }
 
 .image-lightbox-theme-toggle .timeline-theme-toggle-icon {
-  top: 9px;
-  left: 9px;
-  right: auto;
+  inset: 0;
+  margin: auto;
 }
 
 .image-lightbox-theme-toggle[data-theme-state="light"] .timeline-theme-toggle-icon-sun {
@@ -1322,9 +1322,8 @@ body {
 }
 
 .image-lightbox[data-lightbox-theme="light"] .image-lightbox-theme-toggle .timeline-theme-toggle-icon {
-  top: 9px;
-  left: 9px;
-  right: auto;
+  inset: 0;
+  margin: auto;
 }
 
 @media (min-width: 701px) {
